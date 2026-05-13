@@ -1,0 +1,51 @@
+import Joi from "joi";
+import AppError from "../utils/AppError.js";
+
+const customerRegisterSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(255).required(),
+  email: Joi.string().email().lowercase().trim().required(),
+  password: Joi.string().min(6).max(128).required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().email().lowercase().trim().required(),
+  password: Joi.string().min(6).max(128).required(),
+});
+
+const employeeCreateSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(255).required(),
+  email: Joi.string().email().lowercase().trim().required(),
+  password: Joi.string().min(6).max(128).required(),
+  role: Joi.string()
+    .valid("SUPPORT_AGENT", "MANAGER", "ADMIN")
+    .required(),
+  issueCategoryNames: Joi.array().items(Joi.string()).optional(),
+});
+
+
+const validateBody = (schema) => (req, res, next) => {
+  const { error, value } = schema.validate(req.body, {
+    abortEarly: false,
+    stripUnknown: true,
+    convert: true,
+  });
+
+  if (error) {
+    return next(
+      new AppError(
+        400,
+        "Validation failed",
+        "VALIDATION_ERROR",
+        error.details.map((d) => d.message),
+      ),
+    );
+  }
+
+  req.body = value;
+  next();
+};
+
+
+export const validateCustomerRegister = validateBody(customerRegisterSchema);
+export const validateLogin = validateBody(loginSchema);
+export const validateEmployeeCreate = validateBody(employeeCreateSchema);
