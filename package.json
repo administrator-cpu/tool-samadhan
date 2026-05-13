@@ -1,0 +1,23 @@
+{
+  "name": "samadhan-customer-support-system",
+  "scripts": {
+    "build": "turbo run build",
+    "clean": "turbo run clean",
+    "dev": "turbo run dev",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "check-types": "turbo run check-types"
+  },
+  "dependencies": {
+    "prettier": "^3.6.0",
+    "turbo": "^2.9.6"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@11.11.0",
+  "workspaces": [
+    "apps/*/"
+  ]
+}
