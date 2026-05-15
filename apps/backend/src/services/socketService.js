@@ -35,6 +35,9 @@ export const initSocket = (server) => {
   io.on("connection", (socket) => {
     console.log(`[SOCKET] User connected: ${socket.user.userId} (${socket.id})`);
 
+    // Join user-specific room for forced disconnects/notifications
+    socket.join(`user:${socket.user.userId}`);
+
     socket.on("join_ticket", async (ticketId) => {
       try {
         const hasAccess = await checkTicketAccess(socket.user.userId, ticketId);
@@ -53,13 +56,14 @@ export const initSocket = (server) => {
 
     socket.on("sync_missed_events", async ({ ticketId, lastSeenEventId }) => {
       try {
+        // Strict real-time access validation
         const hasAccess = await checkTicketAccess(socket.user.userId, ticketId);
         if (!hasAccess) return;
 
         const userRes = await postgresPool.query("SELECT role FROM users WHERE id = $1", [socket.user.userId]);
         const role = userRes.rows[0]?.role;
 
-        // Fetch events newer than lastSeenEventId with a safe limit
+        // Fetch events newer than lastSeenEventId with LIMIT 201 for hasMore check
         const result = await postgresPool.query(
           `SELECT te.id, te.ticket_id, te.actor_user_id, u.name AS actor_name, 
                   te.event_type, te.message, te.metadata, te.visible_to_customer, te.created_at
@@ -67,13 +71,16 @@ export const initSocket = (server) => {
            LEFT JOIN users u ON u.id = te.actor_user_id
            WHERE te.ticket_id = $1 AND te.id > $2
            ORDER BY te.id ASC
-           LIMIT 200`,
+           LIMIT 201`,
           [ticketId, lastSeenEventId]
         );
 
         let missedEvents = result.rows;
-        if (result.rowCount === 200) {
-          console.warn(`[SOCKET] Sync for ticket ${ticketId} reached limit of 200. Some messages might be skipped.`);
+        const hasMore = missedEvents.length === 201;
+        
+        if (hasMore) {
+          // Remove the 201st item
+          missedEvents = missedEvents.slice(0, 200);
         }
 
         // Filter for customers
@@ -82,8 +89,8 @@ export const initSocket = (server) => {
         }
 
         if (missedEvents.length > 0) {
-          console.log(`[SOCKET] Sending ${missedEvents.length} missed events for ticket ${ticketId} to user ${socket.user.userId}`);
-          socket.emit("missed_events", { ticketId, events: missedEvents });
+          console.log(`[SOCKET] Sending ${missedEvents.length} missed events (hasMore: ${hasMore}) for ticket ${ticketId}`);
+          socket.emit("missed_events", { ticketId, events: missedEvents, hasMore });
         }
       } catch (err) {
         console.error("[SOCKET] Error syncing missed events:", err);
@@ -107,6 +114,16 @@ export const initSocket = (server) => {
   });
 
   return io;
+};
+
+/**
+ * Forcibly disconnects all active sockets for a specific user.
+ * Useful for session revocation, password changes, or account locking.
+ */
+export const disconnectUser = (userId) => {
+  if (!io) return;
+  console.log(`[SOCKET] Forcibly disconnecting all sockets for user:${userId}`);
+  io.to(`user:${userId}`).disconnectSockets(true);
 };
 
 const checkTicketAccess = async (userId, ticketId) => {
