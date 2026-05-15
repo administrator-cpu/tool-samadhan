@@ -251,7 +251,7 @@ export default function TicketDetailPage() {
       {/* Layout */}
       <main className="flex flex-1 overflow-hidden max-w-[1400px] mx-auto w-full">
         {/* Timeline */}
-        <section className="flex-1 flex flex-col relative overflow-y-auto">
+        <section className="flex-1 flex flex-col relative px-5 overflow-y-auto">
           <Timeline events={events} />
         </section>
         

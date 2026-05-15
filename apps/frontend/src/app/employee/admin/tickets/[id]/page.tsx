@@ -216,7 +216,7 @@ export default function TicketDetailPage() {
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto px-0 py-8 border-r border-slate-100 flex flex-col">
+        <main className="flex-1 overflow-y-auto px-5 py-8 border-r border-slate-100 flex flex-col">
           <div className="max-w-4xl mx-auto w-full flex-1">
             <Timeline events={events} />
           </div>
