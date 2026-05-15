@@ -67,5 +67,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   // Default layout for unauthenticated users
+  // If we are on a dashboard route but not authenticated, return null while redirecting
+  const publicRoutes = ["/", "/auth/login", "/auth/signup", "/auth/logout"];
+  const isDashboardRoute = pathname.startsWith("/customer") || pathname.startsWith("/employee") || pathname.startsWith("/profile");
+
+  if (!isAuthenticated && isDashboardRoute && isMounted) {
+    return null;
+  }
+
   return <>{children}</>;
 }
