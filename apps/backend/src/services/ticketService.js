@@ -3,6 +3,7 @@ import AppError from "../utils/AppError.js";
 import { findBestAgentForCategory } from "./assignmentService.js";
 import { sendTicketConfirmationEmail, sendTicketStatusUpdateEmail, sendTicketAssignmentEmails, sendTicketUpdateEmail } from "../utils/emailService.js";
 import { ticketAutomationQueue } from "../config/queue.js";
+import ticketEventEmitter from "../utils/eventEmitter.js";
 
 const ACTIVE_TICKET_STATUSES = ["OPEN", "IN_PROGRESS", "ON_HOLD", "ESCALATED"];
 
@@ -374,7 +375,17 @@ export const addTicketEvent = async ({
       });
     }
 
+    // Emit real-time update
+    ticketEventEmitter.emit("ticket_updated", { 
+      ticketId, 
+      data: { 
+        type: "EVENT_ADDED", 
+        event 
+      } 
+    });
+
     return event;
+
   });
 };
 
@@ -731,7 +742,17 @@ export const updateTicket = async ({ ticketId, status, priority, actorUserId }) 
       }
     }
 
+    // Emit real-time update
+    ticketEventEmitter.emit("ticket_updated", { 
+      ticketId, 
+      data: { 
+        type: "TICKET_STATUS_UPDATED", 
+        ticket: updatedTicket 
+      } 
+    });
+
     return updatedTicket;
+
   });
 };
 
@@ -927,7 +948,21 @@ export const reassignTicket = async ({ ticketId, employeeId, actorUserId }) => {
       }
     });
 
+    // Emit real-time update
+    ticketEventEmitter.emit("ticket_updated", { 
+      ticketId, 
+      data: { 
+        type: "TICKET_REASSIGNED", 
+        ticketId,
+        assigned_employee: {
+          id: employeeId,
+          name: employee.name
+        }
+      } 
+    });
+
     return updateResult.rows[0];
+
   });
 };
 
