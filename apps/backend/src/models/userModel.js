@@ -251,7 +251,27 @@ export const passwordResetOtps = async () => {
       );
     `;
   await postgresPool.query(query);
-}
+};
+
+export const createAutomatedEmailLogTable = async () => {
+  const query = `
+    CREATE TABLE IF NOT EXISTS automated_email_logs (
+        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        ticket_id BIGINT NOT NULL,
+        email_type VARCHAR(50) NOT NULL,
+        sent_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT fk_email_logs_ticket
+            FOREIGN KEY (ticket_id)
+            REFERENCES tickets(id)
+            ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_automated_email_logs_ticket_type 
+    ON automated_email_logs(ticket_id, email_type);
+  `;
+  await postgresPool.query(query);
+};
 
 export const createDatabaseTables = async () => {
   await createUserTable();
@@ -264,4 +284,5 @@ export const createDatabaseTables = async () => {
   await createSessionTable();
   await seedDefaultIssueCategories();
   await passwordResetOtps();
+  await createAutomatedEmailLogTable();
 }

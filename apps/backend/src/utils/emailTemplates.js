@@ -264,3 +264,73 @@ export const ticketAssignedToAgentTemplate = ({ ticketNo, agentName, customerNam
     </div>
   `
 });
+
+export const troubleshootingUpdateTemplate = ({ ticketNo, customerName }) => ({
+  subject: `Samadhan Update - Ticket #${ticketNo}: Investigation Underway`,
+  html: `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
+      <div style="background-color: #065f46; padding: 40px 30px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">Technical Review</h1>
+        <p style="color: #a7f3d0; margin-top: 8px; font-size: 16px; font-weight: 500;">Ticket #${ticketNo} Update</p>
+      </div>
+      
+      <div style="padding: 40px 30px;">
+        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${customerName},</h2>
+        <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 25px;">
+          Our technical team is currently investigating your request. We are performing a root-cause analysis to ensure a permanent resolution.
+        </p>
+        
+        <div style="background-color: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; padding: 20px; margin: 25px 0;">
+          <p style="color: #166534; font-size: 14px; font-weight: 600; margin: 0;">
+            Estimated Update Window: <span style="font-weight: 800;">~45 Minutes</span>
+          </p>
+        </div>
+
+        <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
+          You will receive another update as soon as the assigned specialist completes their review.
+        </p>
+        
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
+          <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
+            Samadhan Support System &bull; Intelligent Resolution Engine
+          </p>
+        </div>
+      </div>
+    </div>
+  `
+});
+
+export const longDelayUpdateTemplate = ({ ticketNo, customerName }) => ({
+  subject: `Samadhan Update - Ticket #${ticketNo}: Resolution Timeline`,
+  html: `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
+      <div style="background-color: #059669; padding: 40px 30px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">Priority Resolution</h1>
+        <p style="color: #d1fae5; margin-top: 8px; font-size: 16px; font-weight: 500;">Extended Timeline Update</p>
+      </div>
+      
+      <div style="padding: 40px 30px;">
+        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${customerName},</h2>
+        <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 25px;">
+          Your ticket is undergoing an in-depth investigation by our senior support specialists. Due to the technical nature of the request, resolution may take longer than initially estimated.
+        </p>
+        
+        <div style="background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 20px; margin: 25px 0;">
+          <p style="color: #92400e; font-size: 14px; font-weight: 600; margin: 0;">
+            Current Resolution Estimate: <span style="font-weight: 800;">Up to 4 Hours</span>
+          </p>
+        </div>
+
+        <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
+          We appreciate your patience while we work towards a definitive solution. We will notify you immediately once the resolution is applied.
+        </p>
+        
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
+          <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
+            Samadhan Enterprise Support &bull; Tier 2 Technical Queue
+          </p>
+        </div>
+      </div>
+    </div>
+  `
+});

@@ -9,14 +9,16 @@
     "dev": "nodemon src/index.js"
   },
   "dependencies": {
+    "argon2": "^0.44.0",
+    "bullmq": "^5.76.8",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "nodemon": "^3.1.14",
-    "pg": "^8.20.0",
-    "argon2": "^0.44.0",
+    "ioredis": "^5.10.1",
     "joi": "^18.2.1",
-    "cookie-parser": "^1.4.7",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "nodemon": "^3.1.14",
+    "pg": "^8.20.0"
   }
 }
