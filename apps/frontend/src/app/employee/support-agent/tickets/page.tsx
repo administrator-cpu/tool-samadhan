@@ -53,10 +53,6 @@ export default function AgentTicketsPage() {
   const [sortField, setSortField] = useState<"priority" | "status" | "date">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  useEffect(() => {
-    fetchTickets();
-  }, [page]);
-
   const fetchTickets = async () => {
     try {
       setLoading(true);
@@ -69,6 +65,10 @@ export default function AgentTicketsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchTickets();
+  }, [page]);
 
   const filteredAndSortedTickets = useMemo(() => {
     let result = [...tickets];
