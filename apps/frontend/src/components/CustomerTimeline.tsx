@@ -167,7 +167,7 @@ export default function Timeline({ events }: TimelineProps) {
                           ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm" 
                           : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
                         }`}>
-                        <p className="text-[15px] leading-relaxed font-body font-medium whitespace-pre-wrap">
+                        <p className="text-[15px] leading-relaxed font-body font-medium  whitespace-pre-wrap">
                           {event.message}
                         </p>
                       </div>
