@@ -58,6 +58,7 @@ export default function TicketDetailPage() {
         setTicket(response.data.ticket);
         setEvents(response.data.events);
       } catch (err: any) {
+        if (err.code === "SESSION_CLEARED_SILENT") return;
         console.error("Failed to fetch ticket details:", err);
         setError("Failed to load ticket details. Please try again later.");
       } finally {
@@ -134,11 +135,11 @@ export default function TicketDetailPage() {
   }, [socket, id, markEventSeen]);
 
   useEffect(() => {
-    if (events.length > 0 && id) {
+    if (events && events.length > 0 && id) {
       const lastEvent = events[events.length - 1];
       markEventSeen(Number(id), lastEvent.id);
     }
-  }, [events.length, id, markEventSeen]);
+  }, [events?.length, id, markEventSeen]);
 
 
   const handleStatusUpdate = async (newStatus: string) => {
@@ -149,8 +150,9 @@ export default function TicketDetailPage() {
       setTicket(response.data.ticket);
       setEvents(response.data.events);
     } catch (err: any) {
+      if (err.code === "SESSION_CLEARED_SILENT") return;
       console.error("Failed to update ticket status:", err);
-      alert(err.message || "Failed to update ticket status");
+      toast.error(err.message || "Failed to update ticket status");
     }
   };
 

@@ -46,7 +46,8 @@ export default function AdminDashboard() {
         console.log("[DASHBOARD] Fetching fresh intelligence from DB...");
         const res = await api.get("/tickets/stats");
         setDashboardStats(res.data);
-      } catch (err) {
+      } catch (err: any) {
+        if (err.code === "SESSION_CLEARED_SILENT") return;
         // Only show toast if user is still authenticated
         if (useAuthStore.getState().isAuthenticated) {
           toast.error("Failed to fetch dashboard statistics");

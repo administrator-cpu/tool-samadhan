@@ -60,7 +60,8 @@ export default function TicketDetailPage() {
     try {
       const res = await api.get(`/tickets/${id}`);
       setData(res.data);
-    } catch (err: any) {
+     } catch (err: any) {
+      if (err.code === "SESSION_CLEARED_SILENT") return;
       toast.error(err.message || "Failed to load ticket details");
     } finally {
       setLoading(false);
@@ -165,6 +166,7 @@ export default function TicketDetailPage() {
       toast.success("Ticket updated successfully");
       await fetchTicket();
     } catch (err: any) {
+      if (err.code === "SESSION_CLEARED_SILENT") return;
       toast.error(err.message || "Update failed");
     } finally {
       setUpdating(false);
