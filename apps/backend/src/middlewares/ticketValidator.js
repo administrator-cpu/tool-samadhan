@@ -2,7 +2,7 @@ import Joi from "joi";
 import AppError from "../utils/AppError.js";
 
 const createTicketSchema = Joi.object({
-  message: Joi.string().trim().min(100).max(5000).required(),
+  message: Joi.string().trim().min(10).max(5000).required(),
   issueCategoryId: Joi.number().required(),
 });
 

@@ -44,8 +44,8 @@ export default function CreateTicketPage() {
       return;
     }
 
-    if (formData.description.length < 100) {
-      toast.error(`Please provide more detail. Minimum 100 characters required (currently ${formData.description.length})`);
+    if (formData.description.length < 10) {
+      toast.error(`Please provide more detail. Minimum 10 characters required (currently ${formData.description.length})`);
       return;
     }
 
