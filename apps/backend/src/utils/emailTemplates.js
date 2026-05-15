@@ -57,13 +57,9 @@ export const ticketCreatedTemplate = ({ ticketNo, customerName, category, priori
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="color: #64748b; font-size: 13px; font-weight: 700; text-transform: uppercase; padding-bottom: 10px;">Category</td>
-              <td style="color: #64748b; font-size: 13px; font-weight: 700; text-transform: uppercase; padding-bottom: 10px;">Priority</td>
             </tr>
             <tr>
               <td style="color: #1e293b; font-weight: 700; font-size: 16px;">${category}</td>
-              <td style="color: #1e293b; font-weight: 700; font-size: 16px;">
-                <span style="color: ${priority === 'URGENT' ? '#dc2626' : priority === 'HIGH' ? '#d97706' : '#059669'}">${priority}</span>
-              </td>
             </tr>
           </table>
         </div>
@@ -195,10 +191,6 @@ export const ticketAssignedToCustomerTemplate = ({ ticketNo, customerName, agent
             <tr>
               <td style="padding-bottom: 8px; color: #64748b; font-size: 14px;">Category</td>
               <td style="padding-bottom: 8px; color: #1e293b; font-weight: 700; font-size: 14px; text-align: right;">${category}</td>
-            </tr>
-            <tr>
-              <td style="padding-bottom: 8px; color: #64748b; font-size: 14px;">Priority</td>
-              <td style="padding-bottom: 8px; color: ${priority === 'URGENT' ? '#dc2626' : '#10b981'}; font-weight: 700; font-size: 14px; text-align: right;">${priority}</td>
             </tr>
           </table>
         </div>

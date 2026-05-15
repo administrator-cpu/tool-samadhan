@@ -247,24 +247,6 @@ export const createTicket = async ({ userId, message, issueCategoryId }) => {
         priority: ticket.priority,
       }).catch(err => console.error("[EMAIL] Creation notification failed:", err));
 
-      // If assigned to an agent during creation, notify both
-      if (assignedEmployeeId) {
-        getEmployeeDetailsById(client, assignedEmployeeId).then(agent => {
-          if (agent) {
-            sendTicketAssignmentEmails({
-              customerName: contact.name,
-              customerEmail: contact.email,
-              customerId: contact.customer_id,
-              agentName: agent.name,
-              agentEmail: agent.email,
-              ticketNo: contact.ticket_no,
-              category: categoryName,
-              priority: ticket.priority,
-              message: message,
-            }).catch(err => console.error("[EMAIL] Initial assignment notification failed:", err));
-          }
-        });
-      }
     }
 
     // Schedule Automated Follow-up Jobs
