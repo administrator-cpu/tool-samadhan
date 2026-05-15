@@ -8,6 +8,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { format } from "date-fns";
+import { useSocket } from "@/hooks/useSocket";
+import { useSocketStore } from "@/store/useSocketStore";
+import { toast } from "sonner";
 
 interface Ticket {
   id: number;
@@ -64,6 +67,79 @@ export default function TicketDetailPage() {
 
     fetchTicketDetails();
   }, [id]);
+
+  const { socket } = useSocket(id as string);
+  const markEventSeen = useSocketStore((state) => state.markEventSeen);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = (data: any) => {
+      console.log("[SOCKET] Received update:", data);
+
+      if (data.type === "EVENT_ADDED") {
+        setEvents((prev) => {
+          if (prev.some((e) => e.id === data.event.id)) return prev;
+          return [...prev, data.event].sort((a, b) => a.id - b.id);
+        });
+        
+        markEventSeen(Number(id), data.event.id);
+        
+        if (data.event.event_type !== "INTERNAL_NOTE") {
+           toast.info(`New message: ${data.event.message.substring(0, 50)}...`);
+        }
+      } else if (data.type === "TICKET_STATUS_UPDATED") {
+        setTicket((prev) => {
+          if (!prev) return null;
+          return { ...prev, ...data.ticket };
+        });
+        toast.success(`Ticket status updated to ${data.ticket.status}`);
+      } else if (data.type === "TICKET_REASSIGNED") {
+        setTicket((prev) => {
+          if (!prev) return null;
+          return { ...prev, assigned_employee: data.assigned_employee };
+        });
+        toast.info(`Ticket reassigned to ${data.assigned_employee.name}`);
+      }
+    };
+
+    const handleMissedEvents = (data: { ticketId: number, events: TicketEvent[] }) => {
+      if (Number(data.ticketId) !== Number(id)) return;
+      
+      console.log(`[SOCKET] Received ${data.events.length} missed events`);
+      setEvents((prev) => {
+        const newEvents = data.events.filter(e => !prev.some(p => p.id === e.id));
+        if (newEvents.length === 0) return prev;
+        
+        const combined = [...prev, ...newEvents].sort((a, b) => a.id - b.id);
+        
+        const lastEvent = combined[combined.length - 1];
+        if (lastEvent) {
+          markEventSeen(Number(id), lastEvent.id);
+        }
+        
+        return combined;
+      });
+      
+      toast.info(`Synced ${data.events.length} new updates`);
+    };
+
+    socket.on("ticket_update", handleUpdate);
+    socket.on("missed_events", handleMissedEvents);
+
+    return () => {
+      socket.off("ticket_update", handleUpdate);
+      socket.off("missed_events", handleMissedEvents);
+    };
+  }, [socket, id, markEventSeen]);
+
+  useEffect(() => {
+    if (events.length > 0 && id) {
+      const lastEvent = events[events.length - 1];
+      markEventSeen(Number(id), lastEvent.id);
+    }
+  }, [events.length, id, markEventSeen]);
+
 
   const handleStatusUpdate = async (newStatus: string) => {
     try {

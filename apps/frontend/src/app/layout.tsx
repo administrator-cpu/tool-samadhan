@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Outfit } from "next/font/google";
 import { Toaster } from "sonner";
 import AppShell from "@/components/AppShell";
 import GlobalAuthHandler from "@/components/GlobalAuthHandler";
+import { SocketInitializer } from "@/components/SocketInitializer";
 
 import "./globals.css";
 
@@ -43,6 +44,7 @@ export default function RootLayout({
       <body className="h-full">
         <Toaster position="bottom-right" richColors/>
         <GlobalAuthHandler />
+        <SocketInitializer />
         <AppShell>
           {children}
         </AppShell>
