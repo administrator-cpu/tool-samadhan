@@ -142,8 +142,8 @@ export default function Timeline({ events }: TimelineProps) {
 
               {/* Message Card */}
               <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}>
-                <div className={`flex flex-col gap-3 pl-2 ${isUser ? "items-end" : "items-start"} w-full`}>
-                  <div className={`max-w-[80%] flex flex-col gap-3 ${isUser ? "items-end text-right" : "items-start text-left"}`}>
+                <div className={`flex flex-col gap-3 pl-2 ${isUser ? "items-end" : "items-start"} w-full min-w-0`}>
+                  <div className={`max-w-[80%] flex flex-col gap-3 ${isUser ? "items-end text-right" : "items-start text-left"} min-w-0`}>
                     <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} gap-1 text-slate-500 mb-1 font-semibold leading-normal`}>
                       <div className={`flex flex-row items-center gap-2 ${isUser ? "flex-row-reverse" : ""}`}>
                         <span className="text-xs font-body font-semibold">
@@ -160,12 +160,12 @@ export default function Timeline({ events }: TimelineProps) {
                           {format(new Date(event.created_at), "MMM d, h:mm a")}
                         </span>
                       </div>
-                      <div className={`p-3 rounded-2xl shadow-xs border ${
+                      <div className={`p-3 rounded-2xl shadow-xs border overflow-hidden w-full ${
                         isUser 
                           ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm" 
                           : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
-                        } w-full`}>
-                        <p className="text-[15px] leading-relaxed font-body font-medium">
+                        }`}>
+                        <p className="text-[15px] leading-relaxed font-body font-medium break-all whitespace-pre-wrap">
                           {event.message}
                         </p>
                       </div>
