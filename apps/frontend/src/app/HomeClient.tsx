@@ -6,18 +6,26 @@ import { ArrowRight, Gauge, ShieldCheck, Eye } from "lucide-react";
 import SamadhanLogo from "../assets/Samadhan-Logo.png";
 import TicketWorkflowStepper from "../components/TicketWorkflowStepper";
 import { useAuthStore } from "../store/useAuthStore";
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function HomeClient() {
   const { isAuthenticated, getDashboardPath, getReportPath, _hasHydrated } = useAuthStore();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (_hasHydrated && isAuthenticated) {
       router.replace(getDashboardPath());
     }
   }, [isAuthenticated, _hasHydrated, router, getDashboardPath]);
+
+  // Use a stable path for SSR and initial client render to avoid hydration mismatch
+  const reportPath = isMounted ? getReportPath() : "/auth/login?redirect=report";
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased selection:bg-emerald-700 selection:text-white">
@@ -80,7 +88,7 @@ export default function HomeClient() {
 
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
-                href={getReportPath()}
+                href={reportPath}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-700 px-8 py-4 text-lg font-medium text-white transition hover:-translate-y-0.5 hover:bg-emerald-800 sm:w-auto"
               >
                 Report an Issue
@@ -157,7 +165,7 @@ export default function HomeClient() {
               </p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
-                  href={getReportPath()}
+                  href={reportPath}
                   className="w-full rounded-full bg-white px-8 py-4 text-lg font-bold text-emerald-700 transition hover:bg-slate-50 sm:w-auto"
                 >
                   Report an Issue Now
