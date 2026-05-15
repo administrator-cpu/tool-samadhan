@@ -24,13 +24,6 @@ export default function ReassignModal({ isOpen, ticketId, currentAgentId, onClos
   const [selectedAgentId, setSelectedAgentId] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchAgents();
-      setSelectedAgentId(currentAgentId?.toString() || "");
-    }
-  }, [isOpen, currentAgentId]);
-
   const fetchAgents = async () => {
     // 1-day cache expiry
     const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -49,6 +42,13 @@ export default function ReassignModal({ isOpen, ticketId, currentAgentId, onClos
       toast.error("Failed to load agents");
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchAgents();
+      setSelectedAgentId(currentAgentId?.toString() || "");
+    }
+  }, [isOpen, currentAgentId]);
 
   const handleReassign = async () => {
     if (!selectedAgentId) {
