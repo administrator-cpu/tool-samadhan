@@ -31,8 +31,10 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       auth: { token },
       transports: ["websocket"],
       reconnection: true,
-      reconnectionAttempts: 10,
+      reconnectionAttempts: Infinity, // Never give up
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 30000, // Max 30s backoff
+      randomizationFactor: 0.5,
     });
 
     s.on("connect", () => {
@@ -46,12 +48,32 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         joinedRooms.forEach((id) => {
           s.emit("join_ticket", id);
           
-          // Trigger sync if we have a last seen ID
+          // Trigger initial sync if we have a last seen ID
           const lastId = get().lastSeenEventIdMap[id];
           if (lastId) {
             s.emit("sync_missed_events", { ticketId: id, lastSeenEventId: lastId });
           }
         });
+      }
+    });
+
+    s.on("missed_events", (data: { ticketId: number, events: any[], hasMore: boolean }) => {
+      const { ticketId, events, hasMore } = data;
+      if (!events || events.length === 0) return;
+
+      console.log(`[SOCKET-STORE] Sync received ${events.length} events for ticket ${ticketId}. hasMore: ${hasMore}`);
+      
+      // We don't update the UI state directly here (components listen for missed_events)
+      // but we update our lastSeen tracking to ensure continuity
+      const lastEvent = events[events.length - 1];
+      if (lastEvent) {
+        get().markEventSeen(ticketId, lastEvent.id);
+        
+        // Continuation Sync: Fetch the next batch if hasMore is true
+        if (hasMore) {
+          console.log(`[SOCKET-STORE] Continuation sync triggered for ticket ${ticketId}...`);
+          s.emit("sync_missed_events", { ticketId, lastSeenEventId: lastEvent.id });
+        }
       }
     });
 
