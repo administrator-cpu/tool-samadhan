@@ -87,7 +87,19 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       set({ isConnected: false });
       
       if (err.message.includes("Authentication error")) {
-        console.log("[SOCKET-STORE] Auth error detected. Waiting for token update...");
+        console.log("[SOCKET-STORE] Auth error detected. Attempting to trigger token refresh...");
+        // Call api.refresh to get a new token. 
+        // This will update the useAuthStore, which triggers updateToken in SocketInitializer.
+        import("@/lib/api").then(({ api }) => {
+          api.refresh().then((data) => {
+            if (data) {
+              console.log("[SOCKET-STORE] Token refreshed successfully from socket error");
+              // useAuthStore will be updated via the refresh logic in api.ts if we used setAuth there
+              // but performRefresh doesn't call setAuth, apiFetch does.
+              // So we should handle it here or in api.refresh
+            }
+          });
+        });
       }
     });
 

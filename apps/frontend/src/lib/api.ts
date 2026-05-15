@@ -22,34 +22,40 @@ export class ApiError extends Error {
 
 let refreshPromise: Promise<any> | null = null;
 
+export const refreshToken = async () => {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        console.log("[API] Attempting background token refresh...");
+        const res = await fetch(`${API_URL}/refresh`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        
+        if (!res.ok) return null;
+        
+        const data = await res.json();
+        if (data && data.data?.accessToken) {
+          useAuthStore.getState().setAuth(data.data.user, data.data.accessToken);
+        }
+        return data;
+      } catch (e) {
+        console.error("[API] Refresh fetch failed:", e);
+        return null;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+  return refreshPromise;
+};
+
 async function apiFetch(endpoint: string, options: ApiOptions = {}) {
   const { setAuth, clearAuth } = useAuthStore.getState();
   
   // 1. Helper to perform a refresh
-  const performRefresh = async () => {
-    if (!refreshPromise) {
-      refreshPromise = (async () => {
-        try {
-          const res = await fetch(`${API_URL}/refresh`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          });
-          
-          if (!res.ok) return null;
-          
-          const data = await res.json();
-          return data;
-        } catch (e) {
-          console.error("[API] Refresh fetch failed:", e);
-          return null;
-        } finally {
-          refreshPromise = null;
-        }
-      })();
-    }
-    return refreshPromise;
-  };
+  const performRefresh = refreshToken;
 
   // 2. Prevent requests if unauthenticated (except public routes)
   const publicRoutes = ["/login", "/register", "/refresh", "/forgot-password", "/verify-otp", "/reset-password", "/logout"];
@@ -202,4 +208,5 @@ export const api = {
     apiFetch(endpoint, { ...options, method: "DELETE" }),
   patch: (endpoint: string, body?: any, options?: ApiOptions) =>
     apiFetch(endpoint, { ...options, method: "PATCH", body }),
+  refresh: refreshToken,
 };
