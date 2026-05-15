@@ -50,7 +50,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // If authenticated, we show the Sidebar Layout for ALL pages (except if we are currently redirecting)
   // Actually, the user said: "If user is loggedout then show the navbar which in inbuilt in the home page and if user is loggedIn then show them sidebarNavbar"
   
-  if (isAuthenticated) {
+  if (isAuthenticated && isMounted) {
     // Force password change if required
     if (user?.must_change_password) {
       return <ForcePasswordChange />;
