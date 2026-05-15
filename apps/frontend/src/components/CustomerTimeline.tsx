@@ -116,7 +116,7 @@ export default function Timeline({ events }: TimelineProps) {
   const sla = ticketCreatedEvent ? getSLADetails(ticketCreatedEvent.created_at) : { label: "Calculating...", percentage: 0, isBreached: false };
 
   return (
-    <section className="xl:col-span-2 px-10 pb-20 mt-10" data-purpose="ticket-timeline">
+    <section className="xl:col-span-2 px-0 pb-20 mt-10" data-purpose="ticket-timeline">
       <div className="relative pl-6 sm:pl-10 pb-8">
         {visibleEvents.map((event, index) => {
           const isUser = event.event_type === "TICKET_CREATED";

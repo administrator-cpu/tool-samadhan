@@ -223,7 +223,7 @@ export default function TicketDetailPage() {
 
           {/* Dynamic Action Section: Reply or RCA */}
           {!["RESOLVED", "CLOSED"].includes(ticket.status) ? (
-            <div className="max-w-4xl mx-auto w-full mt-10 pt-10 border-t border-slate-100 pb-10">
+            <div className="max-w-4xl mx-auto w-full mt-10 pt-10 px-5 border-t border-slate-100 pb-10">
               <div className="mb-6 flex items-center gap-2">
                 <Zap size={18} className="text-amber-500" />
                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Intelligent Quick Replies</h3>

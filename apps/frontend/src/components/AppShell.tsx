@@ -24,12 +24,27 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     const isPublicRoute = publicRoutes.includes(pathname);
     const isDashboardRoute = pathname.startsWith("/customer") || pathname.startsWith("/employee") || pathname.startsWith("/profile");
 
-    if (isAuthenticated) {
-      // If logged in and on a public route (like / or /auth/login), redirect to dashboard
+    if (isAuthenticated && user) {
+      // If logged in and on a public route, redirect to dashboard
       if (isPublicRoute) {
         router.replace(getDashboardPath());
+        return;
       }
-    } else {
+
+      // RBAC: If agent/admin tries to access customer routes, redirect back
+      if (user.role !== "USER" && pathname.startsWith("/customer")) {
+        console.warn("[RBAC] Employee attempted to access customer route. Redirecting...");
+        router.replace(getDashboardPath());
+        return;
+      }
+
+      // RBAC: If customer tries to access employee routes, redirect back
+      if (user.role === "USER" && pathname.startsWith("/employee")) {
+        console.warn("[RBAC] Customer attempted to access employee route. Redirecting...");
+        router.replace(getDashboardPath());
+        return;
+      }
+    } else if (!isAuthenticated) {
       // If not logged in and trying to access dashboard routes, redirect to home
       if (isDashboardRoute) {
         router.replace("/");
