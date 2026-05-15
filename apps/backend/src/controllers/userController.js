@@ -4,20 +4,25 @@ import AppError from "../utils/AppError.js";
 import { REFRESH_TOKEN_MAX_AGE_MS } from "../services/jwt.js";
 
 const setRefreshCookie = (res, token) => {
+  const isProd = process.env.NODE_ENV === "production";
+  
   res.cookie("refreshToken", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.COOKIE_SAME_SITE || "lax",
+    secure: isProd,
+    // For cross-site cookies (Render), we need sameSite: 'none' and secure: true
+    sameSite: process.env.COOKIE_SAME_SITE || (isProd ? "none" : "lax"),
     path: "/",
     maxAge: REFRESH_TOKEN_MAX_AGE_MS,
   });
 };
 
 const clearRefreshCookie = (res) => {
+  const isProd = process.env.NODE_ENV === "production";
+  
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.COOKIE_SAME_SITE || "lax",
+    secure: isProd,
+    sameSite: process.env.COOKIE_SAME_SITE || (isProd ? "none" : "lax"),
     path: "/",
   });
 };
@@ -129,8 +134,9 @@ export const refresh = async (req, res) => {
   const token = req.cookies?.refreshToken;
 
   if (!token) {
-    console.log("[REFRESH] No refresh token cookie found");
-    throw new AppError(401, "No refresh token", "NO_REFRESH_TOKEN");
+    console.log(`[REFRESH] No refresh token found in cookies. Total cookies: ${Object.keys(req.cookies || {}).length}`);
+    console.log(`[REFRESH] User-Agent: ${req.headers["user-agent"]}`);
+    throw new AppError(401, "No refresh token found. Please log in again.", "NO_REFRESH_TOKEN");
   }
 
   try {
