@@ -2,6 +2,7 @@ import postgresPool from "../config/db.js";
 import AppError from "../utils/AppError.js";
 import { findBestAgentForCategory } from "./assignmentService.js";
 import { sendTicketConfirmationEmail, sendTicketStatusUpdateEmail, sendTicketAssignmentEmails } from "../utils/emailService.js";
+import { ticketAutomationQueue } from "../config/queue.js";
 
 const ACTIVE_TICKET_STATUSES = ["OPEN", "IN_PROGRESS", "ON_HOLD", "ESCALATED"];
 
@@ -264,6 +265,24 @@ export const createTicket = async ({ userId, message, issueCategoryId }) => {
           }
         });
       }
+    }
+
+    // Schedule Automated Follow-up Jobs
+    try {
+      const jobData = { ticketId: ticket.id };
+      
+      // 1. Agent Assignment Check at 5 minutes (300s)
+      await ticketAutomationQueue.add("AGENT_ASSIGNMENT_CHECK", jobData, { delay: 5 * 60 * 1000 });
+      
+      // 2. Troubleshooting Update at 15 minutes (900s)
+      await ticketAutomationQueue.add("TROUBLESHOOTING_UPDATE", jobData, { delay: 15 * 60 * 1000 });
+      
+      // 3. Final Activity Check at 45 minutes (2700s)
+      await ticketAutomationQueue.add("FINAL_ACTIVITY_CHECK", jobData, { delay: 45 * 60 * 1000 });
+      
+      console.log(`[QUEUE] Scheduled automation sequence for Ticket #${ticket.id}`);
+    } catch (err) {
+      console.error("[QUEUE] Failed to schedule automation jobs:", err);
     }
 
     return {

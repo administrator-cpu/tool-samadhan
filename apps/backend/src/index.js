@@ -4,6 +4,7 @@ dotenv.config();
 import app from "./app.js";
 import postgresPool from "./config/db.js";
 import { createDatabaseTables } from "./models/userModel.js";
+import "./workers/ticketAutomationWorker.js"; // Initialize worker
 
 const PORT = Number(process.env.BACKEND_PORT || 4000);
 
