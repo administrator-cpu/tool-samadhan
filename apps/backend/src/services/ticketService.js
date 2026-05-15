@@ -1,7 +1,7 @@
 import postgresPool from "../config/db.js";
 import AppError from "../utils/AppError.js";
 import { findBestAgentForCategory } from "./assignmentService.js";
-import { sendTicketConfirmationEmail, sendTicketStatusUpdateEmail, sendTicketAssignmentEmails } from "../utils/emailService.js";
+import { sendTicketConfirmationEmail, sendTicketStatusUpdateEmail, sendTicketAssignmentEmails, sendTicketUpdateEmail } from "../utils/emailService.js";
 import { ticketAutomationQueue } from "../config/queue.js";
 
 const ACTIVE_TICKET_STATUSES = ["OPEN", "IN_PROGRESS", "ON_HOLD", "ESCALATED"];
@@ -358,6 +358,21 @@ export const addTicketEvent = async ({
        WHERE id = $1`,
       [ticket.id],
     );
+
+    // Notify customer if it's an employee reply visible to customer
+    if (isEmployee && visibleToCustomer) {
+      getCustomerContactByTicketId(client, ticketId).then(contact => {
+        if (contact) {
+          sendTicketUpdateEmail({
+            name: contact.name,
+            email: contact.email,
+            ticketNo: contact.ticket_no,
+            agentName: actor.name,
+            message: message
+          }).catch(err => console.error("[EMAIL] Ticket update notification failed:", err));
+        }
+      });
+    }
 
     return event;
   });
