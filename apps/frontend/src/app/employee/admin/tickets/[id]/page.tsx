@@ -152,7 +152,7 @@ export default function TicketDetailPage() {
 
         <div className="flex-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">{ticket.subject}</h1>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 break-words">{ticket.subject}</h1>
             <span className="px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border border-slate-200">
               #{ticket.ticket_no}
             </span>

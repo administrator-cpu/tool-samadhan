@@ -109,7 +109,7 @@ export default function TicketDetailPage() {
         </Link>
 
         <div>
-          <h1 className="text-xl font-semibold">{ticket.subject}</h1>
+          <h1 className="text-xl font-semibold break-words">{ticket.subject}</h1>
           <p className="text-sm text-slate-500">Ticket #{ticket.ticket_no}</p>
         </div>
 
@@ -176,7 +176,7 @@ export default function TicketDetailPage() {
         <section className="flex-1 flex flex-col relative overflow-y-auto">
           <Timeline events={events} />
         </section>
-
+        
         <div className="hidden lg:block w-[300px] xl:w-[340px] shrink-0 p-6 bg-surface border-l border-gray-100 overflow-y-auto">
           {/* Status Stepper */}
           <div className="mb-10">
