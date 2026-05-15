@@ -166,3 +166,16 @@ export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo }) => {
     htmlContent: html,
   });
 };
+/**
+ * Sends an email to the customer when a staff member updates the ticket
+ */
+export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, message }) => {
+  const { ticketUpdateByStaffTemplate } = await import("./emailTemplates.js");
+  const { subject, html } = ticketUpdateByStaffTemplate({ ticketNo, customerName: name, agentName, message });
+  await sendEmail({
+    toEmail: email,
+    toName: name,
+    subject,
+    htmlContent: html,
+  });
+};

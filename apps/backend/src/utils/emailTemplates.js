@@ -326,3 +326,37 @@ export const longDelayUpdateTemplate = ({ ticketNo, customerName }) => ({
     </div>
   `
 });
+export const ticketUpdateByStaffTemplate = ({ ticketNo, customerName, agentName, message }) => ({
+  subject: `Samadhan Update - New Message on Ticket #${ticketNo}`,
+  html: `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
+      <div style="background-color: #4f46e5; padding: 40px 30px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">New Message</h1>
+        <p style="color: #e0e7ff; margin-top: 8px; font-size: 16px; font-weight: 500;">Ticket #${ticketNo}</p>
+      </div>
+      
+      <div style="padding: 40px 30px;">
+        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${customerName},</h2>
+        <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 25px;">
+          Our support specialist, <strong style="color: #4f46e5;">${agentName}</strong>, has provided an update on your ticket:
+        </p>
+        
+        <div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 20px; margin: 25px 0; border-radius: 4px;">
+          <p style="color: #1e293b; font-size: 15px; font-style: italic; margin: 0; line-height: 1.6;">
+            "${message}"
+          </p>
+        </div>
+
+        <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
+          You can view the full conversation and respond by logging into your Samadhan dashboard.
+        </p>
+        
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
+          <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
+            Samadhan Support System &bull; Enterprise Operations
+          </p>
+        </div>
+      </div>
+    </div>
+  `
+});
