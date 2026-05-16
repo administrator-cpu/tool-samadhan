@@ -103,7 +103,7 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
   // 4. First attempt
   let response;
   try {
-    console.log(`[API] Fetching ${endpoint} with token: ${accessToken?.substring(0, 10)}...`);
+    console.log(`[API] Fetching ${endpoint}`);
     response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,

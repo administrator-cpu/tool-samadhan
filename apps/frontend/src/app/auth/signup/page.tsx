@@ -12,15 +12,21 @@ import icon from "@/assets/Samadhan-Logo.png";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { setAuth, isAuthenticated, _hasHydrated, getDashboardPath } = useAuthStore();
+  const {
+    setAuth,
+    isAuthenticated,
+    _hasHydrated,
+    isSessionChecked,
+    getDashboardPath,
+  } = useAuthStore();
 
   // 49 block L
 
   useEffect(() => {
-    if (_hasHydrated && isAuthenticated) {
+    if (_hasHydrated && isSessionChecked && isAuthenticated) {
       router.replace(getDashboardPath());
     }
-  }, [isAuthenticated, _hasHydrated, router, getDashboardPath]);
+  }, [isAuthenticated, isSessionChecked, _hasHydrated, router, getDashboardPath]);
   
   const [formData, setFormData] = useState({
     name: "",
