@@ -138,3 +138,44 @@ export const sendTicketAssignmentEmails = async ({
 
   await Promise.all([p1, p2]);
 };
+
+/**
+ * Sends troubleshooting update email
+ */
+export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo }) => {
+  const { troubleshootingUpdateTemplate } = await import("./emailTemplates.js");
+  const { subject, html } = troubleshootingUpdateTemplate({ ticketNo, customerName: name });
+  await sendEmail({
+    toEmail: email,
+    toName: name,
+    subject,
+    htmlContent: html,
+  });
+};
+
+/**
+ * Sends long delay update email
+ */
+export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo }) => {
+  const { longDelayUpdateTemplate } = await import("./emailTemplates.js");
+  const { subject, html } = longDelayUpdateTemplate({ ticketNo, customerName: name });
+  await sendEmail({
+    toEmail: email,
+    toName: name,
+    subject,
+    htmlContent: html,
+  });
+};
+/**
+ * Sends an email to the customer when a staff member updates the ticket
+ */
+export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, message }) => {
+  const { ticketUpdateByStaffTemplate } = await import("./emailTemplates.js");
+  const { subject, html } = ticketUpdateByStaffTemplate({ ticketNo, customerName: name, agentName, message });
+  await sendEmail({
+    toEmail: email,
+    toName: name,
+    subject,
+    htmlContent: html,
+  });
+};
