@@ -10,7 +10,13 @@ import { Loader2 } from "lucide-react";
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, user, _hasHydrated, getDashboardPath } = useAuthStore();
+  const {
+    isAuthenticated,
+    user,
+    _hasHydrated,
+    isSessionChecked,
+    getDashboardPath,
+  } = useAuthStore();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -18,7 +24,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!_hasHydrated || !isMounted) return;
+    if (!_hasHydrated || !isSessionChecked || !isMounted) return;
 
     const publicRoutes = ["/", "/auth/login", "/auth/signup", "/auth/logout"];
     const isPublicRoute = publicRoutes.includes(pathname);
@@ -50,11 +56,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         router.replace("/");
       }
     }
-  }, [isAuthenticated, _hasHydrated, isMounted, pathname, router, getDashboardPath]);
+  }, [
+    isAuthenticated,
+    isSessionChecked,
+    _hasHydrated,
+    isMounted,
+    pathname,
+    router,
+    getDashboardPath,
+    user,
+  ]);
 
   // Prevent flash of unauthenticated content during hydration
   // EXCEPT on the home page, where we want immediate visibility
-  if ((!_hasHydrated || !isMounted) && pathname !== "/") {
+  if ((!_hasHydrated || !isSessionChecked || !isMounted) && pathname !== "/") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
