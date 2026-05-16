@@ -147,6 +147,7 @@ export const createTicketTable = async () => {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
         resolved_at TIMESTAMPTZ NULL,
         closed_at TIMESTAMPTZ NULL,
+        circuit_description TEXT NULL,
         rca TEXT NULL,
 
         CONSTRAINT fk_tickets_customer
@@ -169,6 +170,13 @@ export const createTicketTable = async () => {
             REFERENCES issue_categories(id)
             ON DELETE SET NULL
     );
+    
+    -- 5. Add circuit_description column if it doesn't exist (for existing tables)
+    DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tickets' AND column_name='circuit_description') THEN
+            ALTER TABLE tickets ADD COLUMN circuit_description TEXT NULL;
+        END IF;
+    END $$;
   `;
   await postgresPool.query(query);
 };

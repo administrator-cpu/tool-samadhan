@@ -10,7 +10,9 @@ const postgresPool = new Pool({
   port: Number(process.env.POSTGRES_PORT),
   max: Number(process.env.PG_POOL_MAX || 1),
   idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
+  connectionTimeoutMillis: 10_000,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10_000,
   ssl: {
     rejectUnauthorized: false,
   },
@@ -26,7 +28,6 @@ postgresPool.on("connect", () => {
 
 postgresPool.on("error", (err) => {
   console.error("Unexpected PostgreSQL pool error:", err);
-  process.exit(1);
 });
 
 export default postgresPool;

@@ -10,7 +10,13 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function HomeClient() {
-  const { isAuthenticated, getDashboardPath, getReportPath, _hasHydrated } = useAuthStore();
+  const {
+    isAuthenticated,
+    getDashboardPath,
+    getReportPath,
+    _hasHydrated,
+    isSessionChecked,
+  } = useAuthStore();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -19,10 +25,10 @@ export default function HomeClient() {
   }, []);
 
   useEffect(() => {
-    if (_hasHydrated && isAuthenticated) {
+    if (_hasHydrated && isSessionChecked && isAuthenticated) {
       router.replace(getDashboardPath());
     }
-  }, [isAuthenticated, _hasHydrated, router, getDashboardPath]);
+  }, [isAuthenticated, isSessionChecked, _hasHydrated, router, getDashboardPath]);
 
   // Use a stable path for SSR and initial client render to avoid hydration mismatch
   const reportPath = isMounted ? getReportPath() : "/auth/login?redirect=report";

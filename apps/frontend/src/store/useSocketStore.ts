@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { io, Socket } from "socket.io-client";
+import { useAuthStore } from "./useAuthStore";
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:4000";
+let socketTokenRefresh: Promise<string | null> | null = null;
 
 interface SocketState {
   socket: Socket | null;
@@ -82,12 +84,48 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       set({ isConnected: false });
     });
 
-    s.on("connect_error", (err) => {
+    s.on("connect_error", async (err) => {
       console.error("[SOCKET-STORE] Connection error:", err.message);
       set({ isConnected: false });
       
       if (err.message.includes("Authentication error")) {
-        console.log("[SOCKET-STORE] Auth error detected. Waiting for token update...");
+        console.log("[SOCKET-STORE] Auth error detected. Refreshing token...");
+
+        try {
+          if (!socketTokenRefresh) {
+            socketTokenRefresh = import("@/lib/api")
+              .then(({ refreshToken }) => refreshToken())
+              .then((data) => data?.data?.accessToken ?? null)
+              .finally(() => {
+                socketTokenRefresh = null;
+              });
+          }
+
+          const freshToken = await socketTokenRefresh;
+
+          if (freshToken) {
+            console.log("[SOCKET-STORE] Token refreshed. Reconnecting socket...");
+            s.auth = { token: freshToken };
+            s.connect();
+            return;
+          }
+
+          console.warn("[SOCKET-STORE] Token refresh failed. Ending socket session.");
+          get().disconnect();
+          useAuthStore.getState().clearAuth();
+
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("auth-session-expired"));
+          }
+        } catch (refreshError) {
+          console.error("[SOCKET-STORE] Socket token refresh failed:", refreshError);
+          get().disconnect();
+          useAuthStore.getState().clearAuth();
+
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("auth-session-expired"));
+          }
+        }
       }
     });
 
