@@ -36,6 +36,7 @@ export default function ProfilePage() {
         const response = await api.get("/me");
         setProfileData(response.data);
       } catch (error: any) {
+        if (error.code === "SESSION_CLEARED_SILENT") return;
         toast.error("Failed to load profile details.");
         if (error.statusCode === 401) {
           clearAuth();
