@@ -51,21 +51,35 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
     return refreshPromise;
   };
 
-  // 2. Ensure we have a token if we think we're authenticated
-  let accessToken = useAuthStore.getState().accessToken;
+  // 2. Prevent requests if unauthenticated (except public routes)
+  const publicRoutes = ["/login", "/register", "/refresh", "/forgot-password", "/verify-otp", "/reset-password", "/logout"];
   const isAuthenticated = useAuthStore.getState().isAuthenticated;
+  let accessToken = useAuthStore.getState().accessToken;
 
-  if (!accessToken && isAuthenticated && !["/refresh", "/login", "/register"].includes(endpoint)) {
+  if (!isAuthenticated && !publicRoutes.includes(endpoint)) {
+    console.warn(`[API] Blocked ${endpoint} while unauthenticated.`);
+    return { data: {}, _isSilent: true } as any;
+  }
+
+  // 3. Ensure we have a token if we think we're authenticated
+  if (!accessToken && isAuthenticated && !publicRoutes.includes(endpoint)) {
     const refreshData = await performRefresh();
     if (refreshData) {
-      console.log("[API] Refresh data:", refreshData);
+      console.log("[API] Refresh data successful");
       accessToken = refreshData.data.accessToken;
       if (accessToken) {
         setAuth(refreshData.data.user, accessToken);
       }
     } else {
+      const stillAuthenticated = useAuthStore.getState().isAuthenticated;
       clearAuth();
-      throw new ApiError("Session expired", 401, "SESSION_EXPIRED");
+      if (stillAuthenticated && typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("auth-session-expired"));
+        throw new ApiError("Session expired", 401, "SESSION_EXPIRED");
+      } else {
+        // Return a silent object instead of throwing
+        return { data: {}, _isSilent: true } as any;
+      }
     }
   }
 
@@ -149,9 +163,11 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
         // Only trigger session expired event if the user was supposedly logged in
         if (stillAuthenticated && typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("auth-session-expired"));
+          throw new ApiError("Session expired", 401, "SESSION_EXPIRED");
+        } else {
+          // Return a silent object instead of throwing to avoid console noise
+          return { data: {}, _isSilent: true } as any;
         }
-        
-        throw new ApiError("Session expired", 401, "SESSION_EXPIRED");
       }
     }
   }
@@ -160,6 +176,11 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    const stillAuth = useAuthStore.getState().isAuthenticated;
+    if (!stillAuth && response.status === 401) {
+      return { data: {}, _isSilent: true } as any;
+    }
+
     let message = data.message || "An unexpected error occurred";
     if (response.status >= 500) {
       message = "Something went wrong on our end. Please try again later.";

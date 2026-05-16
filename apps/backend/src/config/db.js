@@ -16,6 +16,8 @@ const postgresPool = new Pool({
   },
 });
 
+console.log(`[DB] Attempting to connect to ${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}...`);
+
 postgresPool.on("connect", () => {
   if (process.env.NODE_ENV !== "production") {
     console.log("Connected to the database.");

@@ -32,9 +32,9 @@ const nextConfig: NextConfig = {
     },
 
     reactStrictMode: false,
-  compiler: {
-      removeConsole: true,
-  },
+    compiler: {
+      removeConsole: false,
+    },
 };
 
 export default nextConfig;
