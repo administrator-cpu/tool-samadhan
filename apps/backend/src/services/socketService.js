@@ -127,8 +127,11 @@ export const disconnectUser = (userId) => {
 };
 
 const checkTicketAccess = async (userId, ticketId) => {
-  const client = await postgresPool.connect();
+  let client;
+
   try {
+    client = await postgresPool.connect();
+
     // 1. Check if user is an employee (employees generally have access or we check assignments)
     const userRes = await client.query("SELECT role FROM users WHERE id = $1", [userId]);
     const role = userRes.rows[0]?.role;
@@ -149,8 +152,13 @@ const checkTicketAccess = async (userId, ticketId) => {
       [ticketId, userId]
     );
     return customerRes.rowCount > 0;
+  } catch (err) {
+    console.error("[SOCKET] Ticket access check failed:", err);
+    throw err;
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 };
 

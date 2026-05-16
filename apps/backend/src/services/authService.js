@@ -326,16 +326,22 @@ export const refreshSession = async ({ refreshToken, userAgent, ipAddress }) => 
 
     const storedSession = tokenResult.rows[0];
 
-    const GRACE_PERIOD_MS = 30000; // 30 seconds
+    const GRACE_PERIOD_MS = 60000; // 60 seconds grace for race conditions
     const isRevoked = storedSession.revoked || storedSession.revoked_at;
-    const revokedRecently = isRevoked && storedSession.revoked_at && (new Date() - new Date(storedSession.revoked_at)) < GRACE_PERIOD_MS;
+    const now = new Date();
+    const revokedAt = storedSession.revoked_at ? new Date(storedSession.revoked_at) : null;
+    const revokedRecently = isRevoked && revokedAt && (now.getTime() - revokedAt.getTime()) < GRACE_PERIOD_MS;
 
-    if (isRevoked && !revokedRecently) {
-      console.log(`[AUTH-SERVICE] Attempted to use revoked token for JTI: ${decoded.jti}`);
-      throw new AppError(401, "Refresh token revoked", "REFRESH_REVOKED");
+    if (isRevoked) {
+      if (revokedRecently) {
+        console.log(`[AUTH-SERVICE] Grace period hit for recently revoked JTI: ${decoded.jti}. Allowing one more rotation.`);
+      } else {
+        console.log(`[AUTH-SERVICE] Attempted to use revoked token for JTI: ${decoded.jti} (Revoked at: ${storedSession.revoked_at})`);
+        throw new AppError(401, "Refresh token revoked", "REFRESH_REVOKED");
+      }
     }
 
-    if (new Date(storedSession.expires_at) < new Date()) {
+    if (new Date(storedSession.expires_at) < now) {
       console.log(`[AUTH-SERVICE] Refresh token expired for JTI: ${decoded.jti}`);
       throw new AppError(401, "Refresh token expired", "REFRESH_EXPIRED");
     }

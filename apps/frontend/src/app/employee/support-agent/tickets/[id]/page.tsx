@@ -39,6 +39,7 @@ interface TicketData {
     assigned_employee: {
       name: string;
     } | null;
+    circuit_description: string | null;
     rca: string | null;
   };
   events: TicketEvent[];
@@ -297,7 +298,7 @@ export default function TicketDetailPage() {
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto px-8 py-8 border-r border-slate-100 flex flex-col">
+        <main className="flex-1 overflow-y-auto px-4 py-8 border-r border-slate-100 flex flex-col">
           <div className="max-w-4xl mx-auto w-full flex-1">
             <Timeline events={events} />
           </div>
@@ -428,6 +429,14 @@ export default function TicketDetailPage() {
                   label="Opened On" 
                   value={format(new Date(ticket.created_at), "MMM d, yyyy")} 
                 />
+
+                {ticket.circuit_description && (
+                  <PropertyItem 
+                    icon={<Info size={16} className="text-slate-400" />}
+                    label="Circuit ID" 
+                    value={ticket.circuit_description} 
+                  />
+                )}
               </div>
 
               <hr className="border-slate-100" />

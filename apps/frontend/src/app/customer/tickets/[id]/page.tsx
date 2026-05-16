@@ -18,6 +18,7 @@ interface Ticket {
   status: string;
   priority: string;
   subject: string;
+  circuit_description: string | null;
   created_at: string;
   updated_at: string;
   closed_at: string | null;
@@ -251,7 +252,7 @@ export default function TicketDetailPage() {
       {/* Layout */}
       <main className="flex flex-1 overflow-hidden max-w-[1400px] mx-auto w-full">
         {/* Timeline */}
-        <section className="flex-1 flex flex-col relative overflow-y-auto">
+        <section className="flex-1 flex flex-col relative px-5 overflow-y-auto">
           <Timeline events={events} />
         </section>
         
@@ -353,6 +354,13 @@ export default function TicketDetailPage() {
                 {format(new Date(ticket.created_at), "MMM d, yyyy, h:mm a")}
               </p>
             </div>
+
+            {ticket.circuit_description && (
+              <div>
+                <p className="text-muted text-xs font-bold tracking-wide uppercase mb-1">Circuit Description</p>
+                <p className="text-text-main text-[15px] font-medium">{ticket.circuit_description}</p>
+              </div>
+            )}
           </div>
         </div>
       </main>

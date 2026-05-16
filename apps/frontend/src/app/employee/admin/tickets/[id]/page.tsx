@@ -36,6 +36,7 @@ interface TicketData {
     assigned_employee: {
       name: string;
     } | null;
+    circuit_description: string | null;
     rca: string | null;
   };
   events: TicketEvent[];
@@ -216,14 +217,14 @@ export default function TicketDetailPage() {
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto px-0 py-8 border-r border-slate-100 flex flex-col">
+        <main className="flex-1 overflow-y-auto px-5 py-8 border-r border-slate-100 flex flex-col">
           <div className="max-w-4xl mx-auto w-full flex-1">
             <Timeline events={events} />
           </div>
 
           {/* Dynamic Action Section: Reply or RCA */}
           {!["RESOLVED", "CLOSED"].includes(ticket.status) ? (
-            <div className="max-w-4xl mx-auto w-full mt-10 pt-10 border-t border-slate-100 pb-10">
+            <div className="max-w-4xl mx-auto w-full mt-10 pt-10 px-5 border-t border-slate-100 pb-10">
               <div className="mb-6 flex items-center gap-2">
                 <Zap size={18} className="text-amber-500" />
                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Intelligent Quick Replies</h3>
@@ -348,6 +349,14 @@ export default function TicketDetailPage() {
                   label="Opened On" 
                   value={format(new Date(ticket.created_at), "MMM d, yyyy")} 
                 />
+
+                {ticket.circuit_description && (
+                  <PropertyItem 
+                    icon={<Info size={16} className="text-slate-400" />}
+                    label="Circuit ID" 
+                    value={ticket.circuit_description} 
+                  />
+                )}
               </div>
 
               <hr className="border-slate-100" />

@@ -12,13 +12,19 @@ import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setAuth, isAuthenticated, _hasHydrated, getDashboardPath } = useAuthStore();
+  const {
+    setAuth,
+    isAuthenticated,
+    _hasHydrated,
+    isSessionChecked,
+    getDashboardPath,
+  } = useAuthStore();
 
   useEffect(() => {
-    if (_hasHydrated && isAuthenticated) {
+    if (_hasHydrated && isSessionChecked && isAuthenticated) {
       router.replace(getDashboardPath());
     }
-  }, [isAuthenticated, _hasHydrated, router, getDashboardPath]);
+  }, [isAuthenticated, isSessionChecked, _hasHydrated, router, getDashboardPath]);
 
   const [formData, setFormData] = useState({
     email: "",
