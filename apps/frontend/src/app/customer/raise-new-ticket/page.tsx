@@ -33,7 +33,7 @@ export default function CreateTicketPage() {
     fetchCategories();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -113,6 +113,23 @@ export default function CreateTicketPage() {
 
           {/* Form */}
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+
+          {/* Circuit Description */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="circuitDescription" className="text-sm font-medium text-slate-700">
+                Circuit Description
+              </label>
+              <input
+                type="text"
+                id="circuitDescription"
+                name="circuitDescription"
+                value={formData.circuitDescription}
+                onChange={handleChange}
+                placeholder="Circuit or BEND ID"
+                required
+                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
+              />
+            </div>
             
             {/* Category */}
             <div className="flex flex-col gap-2">
@@ -146,22 +163,6 @@ export default function CreateTicketPage() {
               </div>
             </div>
 
-            {/* Circuit Description */}
-            <div className="flex flex-col gap-2">
-              <label htmlFor="circuitDescription" className="text-sm font-medium text-slate-700">
-                Circuit Description
-              </label>
-              <input
-                type="text"
-                id="circuitDescription"
-                name="circuitDescription"
-                value={formData.circuitDescription}
-                onChange={handleChange}
-                placeholder="Circuit or BEND ID"
-                required
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
-              />
-            </div>
 
             {/* Description */}
             <div className="flex flex-col gap-2">
@@ -174,7 +175,7 @@ export default function CreateTicketPage() {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Tell us exactly what's happening. Include light colors on your router if possible."
+                placeholder="Tell us exactly what's happening..."
                 className="h-[160px] w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
               />
             </div>
