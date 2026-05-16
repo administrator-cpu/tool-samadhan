@@ -45,6 +45,11 @@ export default function CreateTicketPage() {
       return;
     }
 
+    if (!formData.circuitDescription.trim()) {
+      toast.error("Circuit description is required");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -153,6 +158,7 @@ export default function CreateTicketPage() {
                 value={formData.circuitDescription}
                 onChange={handleChange}
                 placeholder="Circuit or BEND ID"
+                required
                 className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
               />
             </div>

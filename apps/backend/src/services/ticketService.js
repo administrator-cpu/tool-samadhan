@@ -158,6 +158,10 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
       throw new AppError(403, "Only customers can create tickets", "FORBIDDEN");
     }
 
+    if (!circuitDescription || circuitDescription.trim() === "") {
+      throw new AppError(400, "Circuit description is required", "BAD_REQUEST");
+    }
+
     const priority = pickPriorityFromText(message);
     const assignment = await findBestAgentForCategory(client, issueCategoryId);
     const assignedEmployeeId = assignment?.employee_id || null;
