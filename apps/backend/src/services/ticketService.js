@@ -150,7 +150,7 @@ const insertTicketEvent = async (client, event) => {
   return rows[0];
 };
 
-export const createTicket = async ({ userId, message, issueCategoryId }) => {
+export const createTicket = async ({ userId, message, circuitDescription, issueCategoryId }) => {
   return runInTransaction(async (client) => {
     const customer = await getCustomerProfileByUserId(client, userId);
 
@@ -169,11 +169,12 @@ export const createTicket = async ({ userId, message, issueCategoryId }) => {
         current_assigned_employee_id,
         primary_issue_category_id,
         status,
-        priority
+        priority,
+        circuit_description
       )
-      VALUES ($1, $2, $3, $4, 'OPEN', $5)
-      RETURNING id, ticket_no, customer_id, created_by_user_id, current_assigned_employee_id, primary_issue_category_id, status, priority, created_at, updated_at, resolved_at, closed_at`,
-      [customer.id, userId, assignedEmployeeId, issueCategoryId, priority],
+      VALUES ($1, $2, $3, $4, 'OPEN', $5, $6)
+      RETURNING id, ticket_no, customer_id, created_by_user_id, current_assigned_employee_id, primary_issue_category_id, status, priority, circuit_description, created_at, updated_at, resolved_at, closed_at`,
+      [customer.id, userId, assignedEmployeeId, issueCategoryId, priority, circuitDescription],
     );
 
     const ticket = ticketResult.rows[0];
@@ -410,6 +411,7 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         cu.name AS customer_name,
         t.current_assigned_employee_id,
         eu.name AS assigned_employee_name,
+        t.circuit_description,
         t.rca
       FROM tickets t
       JOIN customers c ON c.id = t.customer_id
@@ -501,6 +503,7 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         status: ticket.status,
         priority: ticket.priority,
         subject: ticket.subject,
+        circuit_description: ticket.circuit_description,
         created_at: ticket.created_at,
         updated_at: ticket.updated_at,
         resolved_at: ticket.resolved_at,

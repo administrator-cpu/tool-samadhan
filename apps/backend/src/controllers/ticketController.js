@@ -36,6 +36,7 @@ export const createCustomerTicket = async (req, res) => {
     userId: req.user.userId,
     subject: req.body.subject,
     message: req.body.message,
+    circuitDescription: req.body.circuitDescription,
     issueCategoryId: req.body.issueCategoryId,
   });
 
