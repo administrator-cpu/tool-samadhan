@@ -66,7 +66,7 @@ export default function TicketWorkflowStepper() {
   }, []);
 
   // const progress = activeIndex / (steps.length - 1);
-  const progressCount:number[] = [0.1, 0.3, 0.5, 0.7, 1]
+  const progressCount: number[] = [0.1, 0.3, 0.5, 0.7, 1]
   const progress = progressCount[activeIndex];
 
   return (
@@ -89,8 +89,8 @@ export default function TicketWorkflowStepper() {
             />
 
             {/* mobile line */}
-              <div className="absolute bottom-0 left-12 top-0 w-1 rounded-full bg-slate-200 md:hidden" />
-              <div className="absolute left-12 top-0 w-1 rounded-full bg-emerald-500 md:hidden"
+            <div className="absolute bottom-0 left-12 top-0 w-1 rounded-full bg-slate-200 md:hidden" />
+            <div className="absolute left-12 top-0 w-1 rounded-full bg-emerald-500 md:hidden"
               style={{
                 height: `${progress * 100}%`,
               }}
@@ -118,7 +118,7 @@ export default function TicketWorkflowStepper() {
                           ? "border-emerald-500 bg-emerald-100 text-slate-700 shadow-lg"
                           : "border-slate-200 text-slate-400 bg-white ",
                       ].join(" ")}
-                    >   
+                    >
                       <Icon size={28} />
                     </motion.div>
 

@@ -53,35 +53,6 @@ const runInTransaction = async (work) => {
   }
 };
 
-const pickPriorityFromText = (message) => {
-  const text = `${message}`.toLowerCase();
-
-  if (
-    text.includes("down") ||
-    text.includes("outage") ||
-    text.includes("no internet") ||
-    text.includes("internet not working") ||
-    text.includes("critical") ||
-    text.includes("urgent")
-  ) {
-    return "URGENT";
-  }
-
-  if (
-    text.includes("slow") ||
-    text.includes("lag") ||
-    text.includes("packet loss") ||
-    text.includes("disconnect")
-  ) {
-    return "HIGH";
-  }
-
-  if (text.includes("billing") || text.includes("payment") || text.includes("invoice")) {
-    return "MEDIUM";
-  }
-
-  return "LOW";
-};
 
 const getCustomerProfileByUserId = async (client, userId) => {
   const result = await client.query(
@@ -162,7 +133,6 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
       throw new AppError(400, "Circuit description is required", "BAD_REQUEST");
     }
 
-    const priority = pickPriorityFromText(message);
     const assignment = await findBestAgentForCategory(client, issueCategoryId);
     const assignedEmployeeId = assignment?.employee_id || null;
 
@@ -173,12 +143,11 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
         current_assigned_employee_id,
         primary_issue_category_id,
         status,
-        priority,
         circuit_description
       )
-      VALUES ($1, $2, $3, $4, 'OPEN', $5, $6)
-      RETURNING id, ticket_no, customer_id, created_by_user_id, current_assigned_employee_id, primary_issue_category_id, status, priority, circuit_description, created_at, updated_at, resolved_at, closed_at`,
-      [customer.id, userId, assignedEmployeeId, issueCategoryId, priority, circuitDescription],
+      VALUES ($1, $2, $3, $4, 'OPEN', $5)
+      RETURNING id, ticket_no, customer_id, created_by_user_id, current_assigned_employee_id, primary_issue_category_id, status, circuit_description, created_at, updated_at, resolved_at, closed_at`,
+      [customer.id, userId, assignedEmployeeId, issueCategoryId, circuitDescription],
     );
 
     const ticket = ticketResult.rows[0];
@@ -193,14 +162,6 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
       visibleToCustomer: true,
     });
 
-    pendingEvents.push({
-      ticketId: ticket.id,
-      actorUserId: null,
-      eventType: "PRIORITY_ASSIGNED",
-      message: `Priority set to ${priority}`,
-      metadata: { priority, source: "auto-routing" },
-      visibleToCustomer: true,
-    });
 
     if (assignedEmployeeId) {
       const employeeResult = await client.query(
@@ -626,7 +587,7 @@ export const listUserTickets = async ({ userId, ownership, page = 1, limit = 10 
   }
 };
 
-export const updateTicket = async ({ ticketId, status, priority, actorUserId }) => {
+export const updateTicket = async ({ ticketId, status, actorUserId }) => {
   return runInTransaction(async (client) => {
     // 1. Fetch current ticket state
     const currentTicketRes = await client.query(
@@ -688,15 +649,11 @@ export const updateTicket = async ({ ticketId, status, priority, actorUserId }) 
       }
     }
 
-    if (priority) {
-      fields.push(`priority = $${paramIdx++}`);
-      params.push(priority);
-    }
 
     if (fields.length === 0) return null;
 
     params.push(ticketId);
-    const query = `UPDATE tickets SET ${fields.join(", ")}, updated_at = NOW() WHERE id = $${paramIdx} RETURNING id, status, priority`;
+    const query = `UPDATE tickets SET ${fields.join(", ")}, updated_at = NOW() WHERE id = $${paramIdx} RETURNING id, status`;
     
     const result = await client.query(query, params);
     const updatedTicket = result.rows[0];
@@ -713,16 +670,6 @@ export const updateTicket = async ({ ticketId, status, priority, actorUserId }) 
       });
     }
 
-    if (priority) {
-      await insertTicketEvent(client, {
-        ticketId,
-        actorUserId,
-        eventType: "PRIORITY_ASSIGNED",
-        message: `Priority updated to ${priority}`,
-        metadata: { priority },
-        visibleToCustomer: true
-      });
-    }
 
     // Send notification email for status changes
     if (status && status !== currentTicket.status) {
@@ -774,7 +721,6 @@ export const getAdminStats = async () => {
         (SELECT COUNT(*) FROM tickets WHERE status IN ('RESOLVED', 'CLOSED') AND updated_at >= NOW() - INTERVAL '24 hours') as resolved_today,
         (SELECT COUNT(*) FROM tickets WHERE created_at >= NOW() - INTERVAL '24 hours') as tickets_last_24h,
         (SELECT COUNT(*) FROM tickets WHERE created_at >= NOW() - INTERVAL '48 hours' AND created_at < NOW() - INTERVAL '24 hours') as tickets_previous_24h,
-        (SELECT COUNT(*) FROM tickets WHERE priority = 'URGENT' AND status != 'CLOSED') as urgent_tickets,
         (SELECT COUNT(DISTINCT current_assigned_employee_id) FROM tickets WHERE status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')) as active_agents,
         (SELECT COUNT(*) FROM employees e JOIN users u ON u.id = e.user_id WHERE u.role = 'SUPPORT_AGENT') as total_agents
     `;
@@ -788,31 +734,14 @@ export const getAdminStats = async () => {
       ORDER BY count DESC, ic.name ASC
     `;
 
-    const priorityQuery = `
-      SELECT priority, COUNT(*) as count
-      FROM tickets
-      WHERE status != 'CLOSED'
-      GROUP BY priority
-    `;
-
-    const priorityVolumeQuery = `
-      SELECT priority, COUNT(*) as count
-      FROM tickets
-      GROUP BY priority
-      ORDER BY count DESC
-    `;
 
     const statsRes = await client.query(statsQuery);
     const categoryRes = await client.query(categoryQuery);
-    const priorityRes = await client.query(priorityQuery);
-    const priorityVolumeRes = await client.query(priorityVolumeQuery);
     console.log("CategoryRes: ", categoryRes.rows)
 
     return {
       summary: statsRes.rows[0],
       categories: categoryRes.rows,
-      priorities: priorityRes.rows,
-      priorityVolume: priorityVolumeRes.rows,
       volumeMix: categoryRes.rows // Alias for clarity in frontend
     };
   } finally {
@@ -839,9 +768,8 @@ export const getAgentStats = async (actorUserId) => {
         (SELECT COUNT(*) FROM tickets WHERE current_assigned_employee_id = $1) as total_assigned,
         (SELECT COUNT(*) FROM tickets WHERE current_assigned_employee_id = $1 AND status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')) as active_tickets,
         (SELECT COUNT(*) FROM tickets WHERE current_assigned_employee_id = $1 AND status IN ('RESOLVED', 'CLOSED')) as total_resolved,
-        (SELECT COUNT(*) FROM tickets WHERE current_assigned_employee_id = $1 AND status IN ('RESOLVED', 'CLOSED') AND updated_at >= NOW() - INTERVAL '24 hours') as resolved_today,
-        (SELECT COUNT(*) FROM tickets WHERE current_assigned_employee_id = $1 AND priority = 'URGENT' AND status != 'CLOSED') as urgent_count
-    `;
+        (SELECT COUNT(*) FROM tickets WHERE current_assigned_employee_id = $1 AND status IN ('RESOLVED', 'CLOSED') AND updated_at >= NOW() - INTERVAL '24 hours') as resolved_today
+      `;
 
     // const recentTicketsQuery = `
     //   SELECT
@@ -849,7 +777,6 @@ export const getAgentStats = async (actorUserId) => {
     //     t.ticket_no,
     //     ic.name AS subject,
     //     t.status,
-    //     t.priority,
     //     t.created_at,
     //     cu.name as customer_name
     //   FROM tickets t
@@ -867,7 +794,6 @@ export const getAgentStats = async (actorUserId) => {
         t.ticket_no, 
         ic.name AS subject, 
         t.status, 
-        t.priority, 
         t.created_at,
         cu.name AS customer_name
       FROM tickets t
@@ -949,7 +875,6 @@ export const reassignTicket = async ({ ticketId, employeeId, actorUserId }) => {
           agentEmail: agent.email,
           ticketNo: contact.ticket_no,
           category: contact.category,
-          priority: "HIGH", // Defaulting to high for manual reassignments if not in contact
           message: contact.message || "Manual reassignment update.",
         }).catch(err => console.error("[EMAIL] Reassignment notification failed:", err));
       }

@@ -64,9 +64,9 @@ export const sendStaffWelcomeEmail = async ({ name, email, password, role }) => 
 /**
  * Sends a ticket creation confirmation email
  */
-export const sendTicketConfirmationEmail = async ({ name, email, ticketNo, category, priority }) => {
+export const sendTicketConfirmationEmail = async ({ name, email, ticketNo, category }) => {
   const { ticketCreatedTemplate } = await import("./emailTemplates.js");
-  const { subject, html } = ticketCreatedTemplate({ ticketNo, customerName: name, category, priority });
+  const { subject, html } = ticketCreatedTemplate({ ticketNo, customerName: name, category });
   await sendEmail({
     toEmail: email,
     toName: name,
@@ -102,19 +102,16 @@ export const sendPasswordResetEmail = async ({ name, email, otpCode }) => {
   });
 };
 
-/**
- * Sends ticket assignment emails to both customer and agent
- */
 export const sendTicketAssignmentEmails = async ({ 
   customerName, customerEmail, customerId, 
   agentName, agentEmail, 
-  ticketNo, category, priority, message 
+  ticketNo, category, message 
 }) => {
   const { ticketAssignedToCustomerTemplate, ticketAssignedToAgentTemplate } = await import("./emailTemplates.js");
 
   // 1. Notify Customer
   const customerEmailObj = ticketAssignedToCustomerTemplate({ 
-    ticketNo, customerName, agentName, category, priority 
+    ticketNo, customerName, agentName, category 
   });
   
   const p1 = sendEmail({
@@ -126,7 +123,7 @@ export const sendTicketAssignmentEmails = async ({
 
   // 2. Notify Agent
   const agentEmailObj = ticketAssignedToAgentTemplate({ 
-    ticketNo, agentName, customerName, customerId, category, message, priority 
+    ticketNo, agentName, customerName, customerId, category, message 
   });
   
   const p2 = sendEmail({

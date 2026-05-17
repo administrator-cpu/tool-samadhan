@@ -116,16 +116,6 @@ export const createTicketTable = async () => {
         WHEN duplicate_object THEN null;
     END $$;
 
-    DO $$ BEGIN
-        CREATE TYPE ticket_priority AS ENUM (
-            'LOW',
-            'MEDIUM',
-            'HIGH',
-            'URGENT'
-        );
-    EXCEPTION
-        WHEN duplicate_object THEN null;
-    END $$;
 
 
     -- 3. Create sequence for ticket number
@@ -141,7 +131,6 @@ export const createTicketTable = async () => {
         primary_issue_category_id BIGINT NULL,
 
         status ticket_status NOT NULL DEFAULT 'OPEN',
-        priority ticket_priority NOT NULL DEFAULT 'LOW',
 
         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

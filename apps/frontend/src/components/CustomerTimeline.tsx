@@ -22,7 +22,7 @@ export default function Timeline({ events }: TimelineProps) {
   const visibleEvents = events.filter(e => {
     if (isEmployee) return true; // Employees see everything
     return (
-      e.event_type !== "PRIORITY_ASSIGNED" && 
+      e.event_type !== "PRIORITY_ASSIGNED" &&
       e.event_type !== "PRIORITY_CHANGED"
     );
   });
@@ -94,7 +94,7 @@ export default function Timeline({ events }: TimelineProps) {
         {visibleEvents.map((event, index) => {
           const isUser = event.event_type === "TICKET_CREATED";
           const isLast = index === visibleEvents.length - 1 && events[0].event_type === "CLOSED";
-          
+
           return (
             <div key={event.id} className="relative mb-12 timeline-item z-10">
               {/* Spine Line - Only show if not the very last overall node */}
@@ -122,8 +122,8 @@ export default function Timeline({ events }: TimelineProps) {
                     <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} gap-1 text-slate-500 mb-1 font-semibold leading-normal`}>
                       <div className={`flex flex-row items-center gap-2 ${isUser ? "flex-row-reverse" : ""}`}>
                         <span className="text-xs font-body font-semibold">
-                          {isUser 
-                            ? (isEmployee ? (event.actor_name || "Customer") : "You") 
+                          {isUser
+                            ? (isEmployee ? (event.actor_name || "Customer") : "You")
                             : (event.actor_name || "Samadhan AI")}
                         </span>
                         {["AGENT_REPLY", "MANAGER_REPLY", "ADMIN_REPLY"].includes(event.event_type) && (
@@ -135,9 +135,8 @@ export default function Timeline({ events }: TimelineProps) {
                           {format(new Date(event.created_at), "MMM d, h:mm a")}
                         </span>
                       </div>
-                      <div className={`p-3 rounded-2xl shadow-xs border overflow-hidden w-full ${
-                        isUser 
-                          ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm" 
+                      <div className={`p-3 rounded-2xl shadow-xs border overflow-hidden w-full ${isUser
+                          ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm"
                           : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
                         }`}>
                         <p className="text-[15px] leading-relaxed font-body font-medium  whitespace-pre-wrap">

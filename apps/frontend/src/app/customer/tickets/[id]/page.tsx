@@ -84,11 +84,11 @@ export default function TicketDetailPage() {
           if (prev.some((e) => e.id === data.event.id)) return prev;
           return [...prev, data.event].sort((a, b) => a.id - b.id);
         });
-        
+
         markEventSeen(Number(id), data.event.id);
-        
+
         if (data.event.event_type !== "INTERNAL_NOTE") {
-           toast.info(`New message: ${data.event.message.substring(0, 50)}...`);
+          toast.info(`New message: ${data.event.message.substring(0, 50)}...`);
         }
       } else if (data.type === "TICKET_STATUS_UPDATED") {
         setTicket((prev) => {
@@ -107,22 +107,22 @@ export default function TicketDetailPage() {
 
     const handleMissedEvents = (data: { ticketId: number, events: TicketEvent[] }) => {
       if (Number(data.ticketId) !== Number(id)) return;
-      
+
       console.log(`[SOCKET] Received ${data.events.length} missed events`);
       setEvents((prev) => {
         const newEvents = data.events.filter(e => !prev.some(p => p.id === e.id));
         if (newEvents.length === 0) return prev;
-        
+
         const combined = [...prev, ...newEvents].sort((a, b) => a.id - b.id);
-        
+
         const lastEvent = combined[combined.length - 1];
         if (lastEvent) {
           markEventSeen(Number(id), lastEvent.id);
         }
-        
+
         return combined;
       });
-      
+
       toast.info(`Synced ${data.events.length} new updates`);
     };
 
@@ -231,7 +231,7 @@ export default function TicketDetailPage() {
               const closedAt = new Date(ticket.closed_at || ticket.updated_at);
               const now = new Date();
               const diffHours = (now.getTime() - closedAt.getTime()) / (1000 * 60 * 60);
-              
+
               if (diffHours <= 24) {
                 return (
                   <button
@@ -255,7 +255,7 @@ export default function TicketDetailPage() {
         <section className="flex-1 flex flex-col relative px-5 overflow-y-auto">
           <Timeline events={events} />
         </section>
-        
+
         <div className="hidden lg:block w-[300px] xl:w-[340px] shrink-0 p-6 bg-surface border-l border-gray-100 overflow-y-auto">
           {/* Status Stepper */}
           <div className="mb-10">
@@ -270,8 +270,8 @@ export default function TicketDetailPage() {
               <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
-                  style={{ 
-                    width: ticket.status === "OPEN" ? "33%" : ticket.status === "IN_PROGRESS" ? "50%" : "100%" 
+                  style={{
+                    width: ticket.status === "OPEN" ? "33%" : ticket.status === "IN_PROGRESS" ? "50%" : "100%"
                   }}
                 />
               </div>

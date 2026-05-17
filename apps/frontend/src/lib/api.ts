@@ -22,27 +22,64 @@ export class ApiError extends Error {
 
 let refreshPromise: Promise<any> | null = null;
 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const refreshToken = async () => {
   if (!refreshPromise) {
     refreshPromise = (async () => {
+      let lastNetworkError: unknown = null;
+
       try {
-        console.log("[API] Attempting background token refresh...");
-        const res = await fetch(`${API_URL}/refresh`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        
-        if (!res.ok) return null;
-        
-        const data = await res.json();
-        if (data && data.data?.accessToken) {
-          useAuthStore.getState().setAuth(data.data.user, data.data.accessToken);
+        for (let attempt = 1; attempt <= 2; attempt += 1) {
+          try {
+            console.log("[API] Attempting background token refresh...");
+            const res = await fetch(`${API_URL}/refresh`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+            });
+
+            if (res.status === 401 || res.status === 403) {
+              return null;
+            }
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+              throw new ApiError(
+                data.message || "Unable to refresh session. Please try again.",
+                res.status,
+                data.code,
+                data.details,
+              );
+            }
+
+            if (data?.data?.accessToken) {
+              useAuthStore.getState().setAuth(data.data.user, data.data.accessToken);
+            }
+
+            return data;
+          } catch (error) {
+            if (error instanceof ApiError) {
+              throw error;
+            }
+
+            lastNetworkError = error;
+
+            if (attempt === 1) {
+              console.warn("[API] Refresh network failed. Retrying once...");
+              await wait(500);
+              continue;
+            }
+          }
         }
-        return data;
-      } catch (e) {
-        console.error("[API] Refresh fetch failed:", e);
-        return null;
+
+        throw new ApiError(
+          "Network error while refreshing session. Please check your connection.",
+          0,
+          "NETWORK_ERROR",
+          lastNetworkError,
+        );
       } finally {
         refreshPromise = null;
       }

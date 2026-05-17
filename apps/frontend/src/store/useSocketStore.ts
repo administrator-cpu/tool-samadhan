@@ -85,11 +85,10 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     });
 
     s.on("connect_error", async (err) => {
-      console.error("[SOCKET-STORE] Connection error:", err.message);
       set({ isConnected: false });
       
       if (err.message.includes("Authentication error")) {
-        console.log("[SOCKET-STORE] Auth error detected. Refreshing token...");
+        console.warn("[SOCKET-STORE] Socket auth expired. Refreshing token...");
 
         try {
           if (!socketTokenRefresh) {
@@ -119,14 +118,12 @@ export const useSocketStore = create<SocketState>((set, get) => ({
           }
         } catch (refreshError) {
           console.error("[SOCKET-STORE] Socket token refresh failed:", refreshError);
-          get().disconnect();
-          useAuthStore.getState().clearAuth();
-
-          if (typeof window !== "undefined") {
-            window.dispatchEvent(new CustomEvent("auth-session-expired"));
-          }
         }
+
+        return;
       }
+
+      console.error("[SOCKET-STORE] Connection error:", err.message);
     });
 
     s.on("reconnect_attempt", (attempt) => {
@@ -155,8 +152,8 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       console.log("[SOCKET-STORE] Updating global auth token");
       socket.auth = { token };
       
-      // If we are currently disconnected (possibly due to old token), try connecting now
-      if (!isConnected) {
+      // During socket auth recovery, the connect_error handler owns reconnecting.
+      if (!isConnected && !socketTokenRefresh) {
         console.log("[SOCKET-STORE] Socket disconnected, attempting to connect with new token...");
         socket.connect();
       }

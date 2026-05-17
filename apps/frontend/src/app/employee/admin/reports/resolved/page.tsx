@@ -4,16 +4,16 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { 
-  History, 
-  Download, 
-  ChevronLeft, 
-  ChevronRight, 
-  Eye, 
-  X, 
-  User, 
-  Calendar, 
-  CheckCircle2, 
+import {
+  History,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  X,
+  User,
+  Calendar,
+  CheckCircle2,
   AlertCircle,
   Hash,
   ShieldCheck
@@ -48,7 +48,7 @@ export default function ResolvedTicketsPage() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // RCA Modal state
   const [selectedRca, setSelectedRca] = useState<Ticket | null>(null);
 
@@ -119,7 +119,7 @@ export default function ResolvedTicketsPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       toast.success("Resolution Log exported successfully");
     } catch (err: any) {
       toast.error("Failed to export data");
@@ -238,7 +238,7 @@ export default function ResolvedTicketsPage() {
                           <p className="text-xs font-medium text-slate-600 line-clamp-2 leading-relaxed">
                             {ticket.rca || "No root cause analysis documented for this resolution."}
                           </p>
-                          <button 
+                          <button
                             onClick={() => setSelectedRca(ticket)}
                             className="text-[10px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest flex items-center gap-1 w-fit"
                           >
@@ -291,11 +291,10 @@ export default function ResolvedTicketsPage() {
                     <button
                       key={i}
                       onClick={() => setCurrentPage(i + 1)}
-                      className={`h-9 w-9 rounded-xl text-xs font-black transition-all ${
-                        currentPage === i + 1
+                      className={`h-9 w-9 rounded-xl text-xs font-black transition-all ${currentPage === i + 1
                           ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
                           : "bg-white border border-slate-200 text-slate-600 hover:border-indigo-300"
-                      }`}
+                        }`}
                     >
                       {i + 1}
                     </button>
@@ -317,8 +316,8 @@ export default function ResolvedTicketsPage() {
       {/* RCA Detail Modal */}
       {selectedRca && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-          <div 
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
             onClick={() => setSelectedRca(null)}
           />
           <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl shadow-slate-900/20 overflow-hidden animate-in fade-in zoom-in duration-300">
@@ -336,7 +335,7 @@ export default function ResolvedTicketsPage() {
                     </div>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setSelectedRca(null)}
                   className="h-10 w-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all"
                 >
@@ -376,7 +375,7 @@ export default function ResolvedTicketsPage() {
               </div>
 
               <div className="mt-10 flex justify-end">
-                <button 
+                <button
                   onClick={() => setSelectedRca(null)}
                   className="px-8 py-3 rounded-2xl bg-slate-900 text-white text-sm font-black hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
                 >

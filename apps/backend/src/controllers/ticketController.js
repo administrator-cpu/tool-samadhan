@@ -95,7 +95,6 @@ export const updateTicketController = async (req, res) => {
   const result = await updateTicket({
     ticketId: Number(req.params.ticketId),
     status: req.body.status,
-    priority: req.body.priority,
     actorUserId: req.user.userId,
   });
 
