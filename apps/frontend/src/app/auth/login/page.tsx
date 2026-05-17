@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
-import { ArrowRight, Leaf, Lock, Mail, Loader2 } from "lucide-react";
+import { ArrowRight, Lock, Mail, Loader2 } from "lucide-react";
 import icon from "@/assets/Samadhan-Logo.png";
 import Image from "next/image";
 
