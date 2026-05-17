@@ -16,13 +16,10 @@ interface AdminStats {
     resolved_today: string;
     tickets_last_24h: string;
     tickets_previous_24h: string;
-    urgent_tickets: string;
     active_agents: string;
     total_agents: string;
   };
   categories: { name: string; count: string }[];
-  priorities: { priority: string; count: string }[];
-  priorityVolume: { priority: string; count: string }[];
   volumeMix: { name: string; count: string }[];
 }
 
@@ -73,7 +70,7 @@ export default function AdminDashboard() {
   const stats = dashboardStats as AdminStats;
   if (!stats) return null;
 
-  const { summary, categories, priorities } = stats;
+  const { summary, categories } = stats;
 
   // Dynamic Trend Calculation
   const last24 = Number(summary.tickets_last_24h);
@@ -196,27 +193,6 @@ export default function AdminDashboard() {
 
           {/* Priority Heatmap & Quick Access */}
           <div className="space-y-8">
-            <div className="rounded-[1rem] border border-slate-100 bg-white p-8 shadow-xl shadow-slate-200/30">
-              <h3 className="text-xl font-black tracking-tight text-slate-900 mb-6 flex items-center gap-2">
-                <AlertTriangle size={20} className="text-amber-500" />
-                Response Pipeline
-              </h3>
-              <div className="grid grid-cols-1 gap-4">
-                {priorities.map(p => (
-                  <div key={p.priority} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-white hover:shadow-md transition-all">
-                    <div className="flex items-center gap-3">
-                      <div className={`h-2 w-2 rounded-full ${
-                        p.priority === 'URGENT' ? 'bg-red-500 animate-pulse' :
-                        p.priority === 'HIGH' ? 'bg-amber-500' :
-                        'bg-slate-400'
-                      }`} />
-                      <span className="text-sm font-bold text-slate-700">{p.priority}</span>
-                    </div>
-                    <span className="text-lg font-black text-slate-900">{p.count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             <div className="rounded-[1rem] bg-indigo-900 p-8 text-white shadow-2xl shadow-indigo-200/50 relative overflow-hidden group">
               <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-indigo-500/20 blur-3xl transition-transform group-hover:scale-110" />

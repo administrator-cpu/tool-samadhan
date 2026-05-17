@@ -32,9 +32,6 @@ export const SocketInitializer = () => {
         }
       } catch (error) {
         console.error("[AUTH] Session restore failed:", error);
-        if (isActive) {
-          clearAuth();
-        }
       } finally {
         if (isActive) {
           setSessionChecked(true);

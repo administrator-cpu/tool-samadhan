@@ -3,6 +3,7 @@ import { requireAuth, requireRole } from "../middlewares/auth.js";
 import {
   validateCreateTicket,
   validateAddTicketEvent,
+  validateUpdateOutageDetails,
 } from "../middlewares/ticketValidator.js";
 import {
   createCustomerTicket,
@@ -15,6 +16,7 @@ import {
   fetchAgentStats,
   updateRcaController,
   fetchResolvedTickets,
+  updateOutageController,
 } from "../controllers/ticketController.js";
 
 const router = express.Router();
@@ -78,6 +80,14 @@ router.patch(
   requireAuth,
   requireRole("SUPPORT_AGENT", "MANAGER", "ADMIN"),
   updateRcaController,
+);
+
+router.patch(
+  "/:ticketId/outage-details",
+  requireAuth,
+  requireRole("SUPPORT_AGENT", "MANAGER", "ADMIN"),
+  validateUpdateOutageDetails,
+  updateOutageController,
 );
 
 export default router;
