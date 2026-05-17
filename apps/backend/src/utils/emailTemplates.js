@@ -38,7 +38,7 @@ export const welcomeStaffTemplate = ({ name, email, password, role }) => ({
   `
 });
 
-export const ticketCreatedTemplate = ({ ticketNo, customerName, category, priority }) => ({
+export const ticketCreatedTemplate = ({ ticketNo, customerName, category }) => ({
   subject: `Samadhan - Ticket Created: #${ticketNo}`,
   html: `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
@@ -170,7 +170,7 @@ export const passwordResetOtpTemplate = ({ name, otpCode }) => ({
   `
 });
 
-export const ticketAssignedToCustomerTemplate = ({ ticketNo, customerName, agentName, category, priority }) => ({
+export const ticketAssignedToCustomerTemplate = ({ ticketNo, customerName, agentName, category }) => ({
   subject: `Samadhan - Ticket Assigned: #${ticketNo}`,
   html: `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
@@ -205,7 +205,7 @@ export const ticketAssignedToCustomerTemplate = ({ ticketNo, customerName, agent
   `
 });
 
-export const ticketAssignedToAgentTemplate = ({ ticketNo, agentName, customerName, customerId, category, message, priority }) => ({
+export const ticketAssignedToAgentTemplate = ({ ticketNo, agentName, customerName, customerId, category, message }) => ({
   subject: `Samadhan - New Ticket Assigned: #${ticketNo}`,
   html: `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
@@ -234,10 +234,6 @@ export const ticketAssignedToAgentTemplate = ({ ticketNo, agentName, customerNam
             <tr>
               <td style="padding: 8px 0; color: #64748b;">Category</td>
               <td style="padding: 8px 0; color: #1e293b; font-weight: 700; text-align: right;">${category}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #64748b;">Priority</td>
-              <td style="padding: 8px 0; color: ${priority === 'URGENT' ? '#dc2626' : '#10b981'}; font-weight: 700; text-align: right;">${priority}</td>
             </tr>
           </table>
           

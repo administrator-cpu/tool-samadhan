@@ -61,7 +61,7 @@ export default function TicketDetailPage() {
     try {
       const res = await api.get(`/tickets/${id}`);
       setData(res.data);
-     } catch (err: any) {
+    } catch (err: any) {
       if (err.code === "SESSION_CLEARED_SILENT") return;
       toast.error(err.message || "Failed to load ticket details");
     } finally {
@@ -93,18 +93,18 @@ export default function TicketDetailPage() {
             events: [...prev.events, data.event].sort((a, b) => a.id - b.id)
           };
         });
-        
+
         markEventSeen(Number(id), data.event.id);
-        
+
         if (data.event.event_type !== "INTERNAL_NOTE") {
-           toast.info(`New update: ${data.event.message.substring(0, 50)}...`);
+          toast.info(`New update: ${data.event.message.substring(0, 50)}...`);
         }
       } else if (data.type === "TICKET_STATUS_UPDATED") {
         setData((prev) => {
           if (!prev) return null;
-          return { 
-            ...prev, 
-            ticket: { ...prev.ticket, ...data.ticket } 
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, ...data.ticket }
           };
         });
         toast.success(`Ticket status updated to ${data.ticket.status}`);
@@ -113,26 +113,26 @@ export default function TicketDetailPage() {
 
     const handleMissedEvents = (data: { ticketId: number, events: TicketEvent[] }) => {
       if (Number(data.ticketId) !== Number(id)) return;
-      
+
       console.log(`[SOCKET] Received ${data.events.length} missed events for agent`);
       setData((prev) => {
         if (!prev) return null;
         const newEvents = data.events.filter(e => !prev.events.some(p => p.id === e.id));
         if (newEvents.length === 0) return prev;
-        
+
         const combinedEvents = [...prev.events, ...newEvents].sort((a, b) => a.id - b.id);
-        
+
         const lastEvent = combinedEvents[combinedEvents.length - 1];
         if (lastEvent) {
           markEventSeen(Number(id), lastEvent.id);
         }
-        
+
         return {
           ...prev,
           events: combinedEvents
         };
       });
-      
+
       toast.info(`Synced ${data.events.length} missed updates`);
     };
 
@@ -310,7 +310,7 @@ export default function TicketDetailPage() {
                 <Zap size={18} className="text-amber-500" />
                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Intelligent Quick Replies</h3>
               </div>
-              
+
               {/* Quick Reply Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 {quickReplies.map((msg, idx) => (
@@ -402,39 +402,39 @@ export default function TicketDetailPage() {
               <Info size={14} />
               Ticket Properties
             </h3>
-            
+
             <div className="flex flex-col gap-8">
-              
+
               <div className="flex flex-col gap-6">
-                <PropertyItem 
+                <PropertyItem
                   icon={<div className="h-2 w-2 rounded-full bg-indigo-500 mt-1" />}
-                  label="Status" 
-                  value={ticket.status.replace("_", " ")} 
+                  label="Status"
+                  value={ticket.status.replace("_", " ")}
                 />
-                
-                <PropertyItem 
+
+                <PropertyItem
                   icon={<TrendingUp size={16} className="text-amber-500" />}
-                  label="Priority" 
-                  value={ticket.priority} 
+                  label="Priority"
+                  value={ticket.priority}
                 />
 
-                <PropertyItem 
+                <PropertyItem
                   icon={<UserIcon size={16} className="text-slate-400" />}
-                  label="Customer" 
-                  value={ticket.customer.name} 
+                  label="Customer"
+                  value={ticket.customer.name}
                 />
 
-                <PropertyItem 
+                <PropertyItem
                   icon={<Calendar size={16} className="text-slate-400" />}
-                  label="Opened On" 
-                  value={format(new Date(ticket.created_at), "MMM d, yyyy")} 
+                  label="Opened On"
+                  value={format(new Date(ticket.created_at), "MMM d, yyyy")}
                 />
 
                 {ticket.circuit_description && (
-                  <PropertyItem 
+                  <PropertyItem
                     icon={<Info size={16} className="text-slate-400" />}
-                    label="Circuit ID" 
-                    value={ticket.circuit_description} 
+                    label="Circuit ID"
+                    value={ticket.circuit_description}
                   />
                 )}
               </div>

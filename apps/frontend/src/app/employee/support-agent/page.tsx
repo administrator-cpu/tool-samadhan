@@ -14,14 +14,13 @@ interface AgentStats {
     active_tickets: string;
     total_resolved: string;
     resolved_today: string;
-    urgent_count: string;
   };
   recentTickets: {
     id: number;
     ticket_no: string;
     subject: string;
     status: string;
-    priority: string;
+    status: string;
     created_at: string;
     customer_name: string;
   }[];
@@ -112,15 +111,6 @@ export default function AgentDashboard() {
             highlight={Number(summary.resolved_today) > 0}
           />
           <StatCard 
-            icon={<ShieldAlert size={24} />} 
-            label="Urgent Alerts" 
-            value={summary.urgent_count} 
-            sublabel="Critical priority"
-            color="text-red-600"
-            bg="bg-red-50"
-            alert={Number(summary.urgent_count) > 0}
-          />
-          <StatCard 
             icon={<CheckCircle2 size={24} />} 
             label="Lifetime Wins" 
             value={summary.total_resolved} 
@@ -151,12 +141,8 @@ export default function AgentDashboard() {
                   className="group flex items-center justify-between p-5 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="flex items-center gap-5">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-lg font-black text-xs ${
-                      ticket.priority === 'URGENT' ? 'bg-red-100 text-red-600' :
-                      ticket.priority === 'HIGH' ? 'bg-amber-100 text-amber-600' :
-                      'bg-indigo-100 text-indigo-600'
-                    }`}>
-                      {ticket.priority.substring(0, 1)}
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 font-black text-xs">
+                      T
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-0.5">
@@ -205,7 +191,7 @@ export default function AgentDashboard() {
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
                   <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-2">Performance Tip</p>
                   <p className="text-xs font-medium text-indigo-100 leading-relaxed">
-                    Resolved tickets within 24 hours boost your efficiency score by 15%. Prioritize URGENT items first.
+                    Resolved tickets within 24 hours boost your efficiency score by 15%.
                   </p>
                 </div>
               </div>

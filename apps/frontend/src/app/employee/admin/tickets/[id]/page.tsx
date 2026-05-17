@@ -229,7 +229,7 @@ export default function TicketDetailPage() {
                 <Zap size={18} className="text-amber-500" />
                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Intelligent Quick Replies</h3>
               </div>
-              
+
               {/* Quick Reply Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 {quickReplies.map((msg, idx) => (
@@ -321,40 +321,40 @@ export default function TicketDetailPage() {
               <Info size={14} />
               Ticket Properties
             </h3>
-            
+
             <div className="flex flex-col gap-8">
-              
+
               {/* Vertical Stack of Properties */}
               <div className="flex flex-col gap-6">
-                <PropertyItem 
+                <PropertyItem
                   icon={<div className="h-2 w-2 rounded-full bg-indigo-500 mt-1" />}
-                  label="Status" 
-                  value={ticket.status.replace("_", " ")} 
+                  label="Status"
+                  value={ticket.status.replace("_", " ")}
                 />
-                
-                <PropertyItem 
+
+                <PropertyItem
                   icon={<TrendingUp size={16} className="text-amber-500" />}
-                  label="Priority" 
-                  value={ticket.priority} 
+                  label="Priority"
+                  value={ticket.priority}
                 />
 
-                <PropertyItem 
+                <PropertyItem
                   icon={<UserIcon size={16} className="text-slate-400" />}
-                  label="Customer" 
-                  value={ticket.customer.name} 
+                  label="Customer"
+                  value={ticket.customer.name}
                 />
 
-                <PropertyItem 
+                <PropertyItem
                   icon={<Calendar size={16} className="text-slate-400" />}
-                  label="Opened On" 
-                  value={format(new Date(ticket.created_at), "MMM d, yyyy")} 
+                  label="Opened On"
+                  value={format(new Date(ticket.created_at), "MMM d, yyyy")}
                 />
 
                 {ticket.circuit_description && (
-                  <PropertyItem 
+                  <PropertyItem
                     icon={<Info size={16} className="text-slate-400" />}
-                    label="Circuit ID" 
-                    value={ticket.circuit_description} 
+                    label="Circuit ID"
+                    value={ticket.circuit_description}
                   />
                 )}
               </div>
