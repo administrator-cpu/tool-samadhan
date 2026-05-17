@@ -98,7 +98,7 @@ export default function Timeline({ events }: TimelineProps) {
           return (
             <div key={event.id} className="relative mb-12 timeline-item z-10">
               {/* Spine Line - Only show if not the very last overall node */}
-              {(index < visibleEvents.length - 1 || events[0].event_type !== "CLOSED") && (
+              {index < visibleEvents.length - 1 && (
                 <div className="absolute left-[-2px] sm:left-[-17px] top-10 bottom-[-48px] w-[2px] bg-slate-200 z-0" />
               )}
 
@@ -116,37 +116,39 @@ export default function Timeline({ events }: TimelineProps) {
               </div>
 
               {/* Message Card */}
-              <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}>
-                <div className={`flex flex-col gap-3 pl-2 ${isUser ? "items-end" : "items-start"} w-full min-w-0`}>
-                  <div className={`max-w-[80%] flex flex-col gap-3 ${isUser ? "items-end text-right" : "items-start text-left"} min-w-0`}>
-                    <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} gap-1 text-slate-500 mb-1 font-semibold leading-normal`}>
-                      <div className={`flex flex-row items-center gap-2 ${isUser ? "flex-row-reverse" : ""}`}>
-                        <span className="text-xs font-body font-semibold">
-                          {isUser
-                            ? (isEmployee ? (event.actor_name || "Customer") : "You")
-                            : (event.actor_name || "Samadhan AI")}
-                        </span>
-                        {["AGENT_REPLY", "MANAGER_REPLY", "ADMIN_REPLY"].includes(event.event_type) && (
-                          <span className="text-xs font-body text-primary font-semibold bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
-                            {getRoleLabel(event.event_type)}
+              {event.message && event.message.trim() !== "" && (
+                <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}>
+                  <div className={`flex flex-col gap-3 pl-2 ${isUser ? "items-end" : "items-start"} w-full min-w-0`}>
+                    <div className={`max-w-[80%] flex flex-col gap-3 ${isUser ? "items-end text-right" : "items-start text-left"} min-w-0`}>
+                      <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} gap-1 text-slate-500 mb-1 font-semibold leading-normal`}>
+                        <div className={`flex flex-row items-center gap-2 ${isUser ? "flex-row-reverse" : ""}`}>
+                          <span className="text-xs font-body font-semibold">
+                            {isUser
+                              ? (isEmployee ? (event.actor_name || "Customer") : "You")
+                              : (event.actor_name || "Samadhan AI")}
                           </span>
-                        )}
-                        <span className="text-xs font-body text-muted font-semibold ml-1">
-                          {format(new Date(event.created_at), "MMM d, h:mm a")}
-                        </span>
-                      </div>
-                      <div className={`p-3 rounded-2xl shadow-xs border overflow-hidden w-full ${isUser
-                          ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm"
-                          : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
-                        }`}>
-                        <p className="text-[15px] leading-relaxed font-body font-medium  whitespace-pre-wrap">
-                          {event.message}
-                        </p>
+                          {["AGENT_REPLY", "MANAGER_REPLY", "ADMIN_REPLY"].includes(event.event_type) && (
+                            <span className="text-xs font-body text-primary font-semibold bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
+                              {getRoleLabel(event.event_type)}
+                            </span>
+                          )}
+                          <span className="text-xs font-body text-muted font-semibold ml-1">
+                            {format(new Date(event.created_at), "MMM d, h:mm a")}
+                          </span>
+                        </div>
+                        <div className={`p-3 rounded-2xl shadow-xs border overflow-hidden w-full ${isUser
+                            ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm"
+                            : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
+                          }`}>
+                          <p className="text-[15px] leading-relaxed font-body font-medium  whitespace-pre-wrap">
+                            {event.message}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           );
         })}
