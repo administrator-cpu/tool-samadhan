@@ -166,14 +166,12 @@ const SidebarNavbar = () => {
     { label: "Dashboard", icon: "home", href: "/customer" },
     { label: "Raise Ticket", icon: "report", href: "/customer/raise-new-ticket" },
     { label: "My Tickets", icon: "confirmation_number", href: "/customer/tickets" },
-    { label: "Help Center", icon: "question_answer", href: "/customer/help-center" },
     { label: "Profile", icon: "person", href: "/profile" },
   ];
 
   const employeeItems: NavItem[] = [
     { label: "Dashboard", icon: "dashboard", href: "/employee/support-agent" },
     { label: "All Tickets", icon: "list_alt", href: "/employee/support-agent/tickets" },
-    { label: "Help Center", icon: "support", href: "/employee/support-agent/help-center" },
     { label: "Profile", icon: "person", href: "/profile" },
   ];
 
@@ -182,7 +180,6 @@ const SidebarNavbar = () => {
     { label: "All Tickets", icon: "list_alt", href: "/employee/admin/tickets" },
     { label: "Staff", icon: "badge", href: "/employee/admin/staff" },
     { label: "Resolution Log", icon: "history_edu", href: "/employee/admin/reports/resolved" },
-    { label: "Help Center", icon: "support", href: "/employee/admin/help-center" },
     { label: "Profile", icon: "person", href: "/profile" },
   ];
 

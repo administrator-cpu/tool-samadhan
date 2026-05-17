@@ -43,12 +43,45 @@ interface TicketEvent {
   metadata: any;
 }
 
+const getStatusBadgeConfig = (status: string) => {
+  switch (status) {
+    case "OPEN":
+      return {
+        dotClass: "bg-red-500",
+        pingClass: "bg-red-400",
+        textClass: "text-red-600",
+      };
+    case "IN_PROGRESS":
+    case "ESCALATED":
+      return {
+        dotClass: "bg-amber-500",
+        pingClass: "bg-amber-400",
+        textClass: "text-amber-600",
+      };
+    case "RESOLVED":
+      return {
+        dotClass: "bg-emerald-500",
+        pingClass: "bg-emerald-400",
+        textClass: "text-emerald-600",
+      };
+    case "CLOSED":
+    default:
+      return {
+        dotClass: "bg-slate-400",
+        pingClass: "bg-slate-300",
+        textClass: "text-slate-500",
+      };
+  }
+};
+
 export default function TicketDetailPage() {
   const { id } = useParams();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [events, setEvents] = useState<TicketEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const statusConfig = ticket ? getStatusBadgeConfig(ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
   useEffect(() => {
     if (!id) return;
@@ -80,15 +113,19 @@ export default function TicketDetailPage() {
       console.log("[SOCKET] Received update:", data);
 
       if (data.type === "EVENT_ADDED") {
+        if (!data.event.visible_to_customer) {
+          return;
+        }
+
         setEvents((prev) => {
           if (prev.some((e) => e.id === data.event.id)) return prev;
           return [...prev, data.event].sort((a, b) => a.id - b.id);
         });
-        
+
         markEventSeen(Number(id), data.event.id);
-        
+
         if (data.event.event_type !== "INTERNAL_NOTE") {
-           toast.info(`New message: ${data.event.message.substring(0, 50)}...`);
+          toast.info(`New message: ${data.event.message.substring(0, 50)}...`);
         }
       } else if (data.type === "TICKET_STATUS_UPDATED") {
         setTicket((prev) => {
@@ -107,22 +144,22 @@ export default function TicketDetailPage() {
 
     const handleMissedEvents = (data: { ticketId: number, events: TicketEvent[] }) => {
       if (Number(data.ticketId) !== Number(id)) return;
-      
+
       console.log(`[SOCKET] Received ${data.events.length} missed events`);
       setEvents((prev) => {
         const newEvents = data.events.filter(e => !prev.some(p => p.id === e.id));
         if (newEvents.length === 0) return prev;
-        
+
         const combined = [...prev, ...newEvents].sort((a, b) => a.id - b.id);
-        
+
         const lastEvent = combined[combined.length - 1];
         if (lastEvent) {
           markEventSeen(Number(id), lastEvent.id);
         }
-        
+
         return combined;
       });
-      
+
       toast.info(`Synced ${data.events.length} new updates`);
     };
 
@@ -177,7 +214,7 @@ export default function TicketDetailPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf9fa] text-slate-900">
+    <div className="h-screen flex flex-col bg-[#faf9fa] text-slate-900 overflow-hidden">
       {/* Header */}
       <header className="flex items-center px-6 py-4 bg-white border-b border-gray-100 shadow-sm z-10">
         <Link
@@ -231,7 +268,7 @@ export default function TicketDetailPage() {
               const closedAt = new Date(ticket.closed_at || ticket.updated_at);
               const now = new Date();
               const diffHours = (now.getTime() - closedAt.getTime()) / (1000 * 60 * 60);
-              
+
               if (diffHours <= 24) {
                 return (
                   <button
@@ -255,7 +292,7 @@ export default function TicketDetailPage() {
         <section className="flex-1 flex flex-col relative px-5 overflow-y-auto">
           <Timeline events={events} />
         </section>
-        
+
         <div className="hidden lg:block w-[300px] xl:w-[340px] shrink-0 p-6 bg-surface border-l border-gray-100 overflow-y-auto">
           {/* Status Stepper */}
           <div className="mb-10">
@@ -270,8 +307,8 @@ export default function TicketDetailPage() {
               <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
-                  style={{ 
-                    width: ticket.status === "OPEN" ? "33%" : ticket.status === "IN_PROGRESS" ? "50%" : "100%" 
+                  style={{
+                    width: ticket.status === "OPEN" ? "33%" : ticket.status === "IN_PROGRESS" ? "50%" : "100%"
                   }}
                 />
               </div>
@@ -332,10 +369,12 @@ export default function TicketDetailPage() {
               <p className="text-muted text-xs font-bold tracking-wide uppercase mb-1">Status</p>
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                  {ticket.status !== "CLOSED" && (
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${statusConfig.pingClass}`}></span>
+                  )}
+                  <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${statusConfig.dotClass}`}></span>
                 </span>
-                <p className="text-text-main text-[15px] font-medium">{ticket.status.replace(/_/g, " ")}</p>
+                <p className={`text-[15px] font-bold uppercase ${statusConfig.textClass}`}>{ticket.status.replace(/_/g, " ")}</p>
               </div>
             </div>
             <div>

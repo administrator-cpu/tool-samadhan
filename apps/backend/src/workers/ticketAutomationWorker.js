@@ -89,7 +89,6 @@ export const ticketAutomationWorker = new Worker(
                 agentEmail: agent.email,
                 ticketNo: ticket.ticket_no,
                 category: ticket.category_name,
-                priority: ticket.priority,
                 message: ticket.initial_message,
               });
               await logEmailSent(ticketId, jobName);

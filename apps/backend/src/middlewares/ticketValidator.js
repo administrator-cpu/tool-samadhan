@@ -36,3 +36,10 @@ const validateBody = (schema) => (req, res, next) => {
 
 export const validateCreateTicket = validateBody(createTicketSchema);
 export const validateAddTicketEvent = validateBody(addTicketEventSchema);
+
+const updateOutageDetailsSchema = Joi.object({
+  problemSide: Joi.string().trim().valid("Fab5", "Airtel", "Vodafone", "Other").allow(null, ""),
+  externalTicketNo: Joi.string().trim().max(100).allow(null, ""),
+});
+
+export const validateUpdateOutageDetails = validateBody(updateOutageDetailsSchema);

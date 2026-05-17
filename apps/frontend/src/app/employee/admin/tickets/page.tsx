@@ -13,7 +13,6 @@ interface Ticket {
   ticket_no: string;
   subject: string;
   status: string;
-  priority: string;
   created_at: string;
   updated_at: string;
   customer_name: string;
@@ -30,12 +29,6 @@ const statusColors: Record<string, string> = {
   CLOSED: "bg-slate-100 text-slate-400",
 };
 
-const priorityOrder: Record<string, number> = {
-  URGENT: 4,
-  HIGH: 3,
-  MEDIUM: 2,
-  LOW: 1,
-};
 
 const statusOrder: Record<string, number> = {
   ESCALATED: 6,
@@ -56,7 +49,7 @@ export default function AdminTicketsPage() {
 
   // Search and Sort states
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<"priority" | "status" | "date">("date");
+  const [sortField, setSortField] = useState<"status" | "date">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [ownershipFilter, setOwnershipFilter] = useState<"ALL" | "ASSIGNED" | "UNASSIGNED">("ALL");
 
@@ -100,9 +93,7 @@ export default function AdminTicketsPage() {
     // Sort Logic
     result.sort((a, b) => {
       let comparison = 0;
-      if (sortField === "priority") {
-        comparison = (priorityOrder[a.priority] || 0) - (priorityOrder[b.priority] || 0);
-      } else if (sortField === "status") {
+      if (sortField === "status") {
         comparison = (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
       } else {
         comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
@@ -148,17 +139,6 @@ export default function AdminTicketsPage() {
             </div>
 
             <div className="flex h-12 items-center rounded-lg border border-slate-200 bg-white px-2 py-1">
-              <button
-                onClick={() => {
-                  if (sortField === "priority") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  else { setSortField("priority"); setSortOrder("desc"); }
-                }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "priority" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
-              >
-                <TrendingUp size={14} />
-                Priority
-                {sortField === "priority" && <ArrowUpDown size={12} className="opacity-70" />}
-              </button>
               <button
                 onClick={() => {
                   if (sortField === "status") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -242,7 +222,6 @@ export default function AdminTicketsPage() {
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Reference</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ticket & Customer</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ownership</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Priority</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
                     <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">View</th>
                   </tr>
@@ -269,14 +248,6 @@ export default function AdminTicketsPage() {
                           </span>
                           <ChevronDown size={14} className="opacity-40 group-hover/btn:opacity-100" />
                         </button>
-                      </td>
-                      <td className="px-8 py-6">
-                        <span className={`inline-flex items-center rounded-lg px-2 py-1 text-[10px] font-black tracking-widest border ${ticket.priority === 'URGENT' ? 'bg-red-50 text-red-600 border-red-100' :
-                            ticket.priority === 'HIGH' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                              'bg-slate-50 text-slate-500 border-slate-100'
-                          }`}>
-                          {ticket.priority}
-                        </span>
                       </td>
                       <td className="px-8 py-6">
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tight ${statusColors[ticket.status] || "bg-slate-100"}`}>
