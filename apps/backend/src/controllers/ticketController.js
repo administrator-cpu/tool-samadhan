@@ -9,6 +9,7 @@ import {
   getAgentStats,
   updateTicketRca,
   listResolvedTickets,
+  updateTicketOutageDetails,
 } from "../services/ticketService.js";
 
 export const fetchAgentStats = async (req, res) => {
@@ -143,6 +144,21 @@ export const fetchResolvedTickets = async (req, res) => {
   return res.status(200).json({
     statusCode: 200,
     message: "Resolved tickets fetched successfully",
+    data: result,
+  });
+};
+
+export const updateOutageController = async (req, res) => {
+  const result = await updateTicketOutageDetails({
+    ticketId: Number(req.params.ticketId),
+    problemSide: req.body.problemSide,
+    externalTicketNo: req.body.externalTicketNo,
+    actorUserId: req.user.userId,
+  });
+
+  return res.status(200).json({
+    statusCode: 200,
+    message: "Outage details updated successfully",
     data: result,
   });
 };

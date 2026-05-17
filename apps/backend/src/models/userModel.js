@@ -138,6 +138,8 @@ export const createTicketTable = async () => {
         closed_at TIMESTAMPTZ NULL,
         circuit_description TEXT NULL,
         rca TEXT NULL,
+        problem_side VARCHAR(100) NULL,
+        external_ticket_no VARCHAR(100) NULL,
 
         CONSTRAINT fk_tickets_customer
             FOREIGN KEY (customer_id)
@@ -164,6 +166,20 @@ export const createTicketTable = async () => {
     DO $$ BEGIN
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tickets' AND column_name='circuit_description') THEN
             ALTER TABLE tickets ADD COLUMN circuit_description TEXT NULL;
+        END IF;
+    END $$;
+
+    -- 6. Add problem_side column if it doesn't exist (for existing tables)
+    DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tickets' AND column_name='problem_side') THEN
+            ALTER TABLE tickets ADD COLUMN problem_side VARCHAR(100) NULL;
+        END IF;
+    END $$;
+
+    -- 7. Add external_ticket_no column if it doesn't exist (for existing tables)
+    DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tickets' AND column_name='external_ticket_no') THEN
+            ALTER TABLE tickets ADD COLUMN external_ticket_no VARCHAR(100) NULL;
         END IF;
     END $$;
   `;

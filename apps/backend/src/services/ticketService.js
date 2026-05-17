@@ -374,10 +374,13 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         c.id AS customer_row_id,
         c.customer_id,
         cu.name AS customer_name,
+        cu.email AS customer_email,
         t.current_assigned_employee_id,
         eu.name AS assigned_employee_name,
         t.circuit_description,
-        t.rca
+        t.rca,
+        t.problem_side,
+        t.external_ticket_no
       FROM tickets t
       JOIN customers c ON c.id = t.customer_id
       JOIN users cu ON cu.id = c.user_id
@@ -441,8 +444,24 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
       ticket.rca = null;
     }
 
-    const eventsResult = await client.query(
+    const eventsQuery = requester.role === "USER"
+      ? `
+      SELECT
+        te.id,
+        te.ticket_id,
+        te.actor_user_id,
+        u.name AS actor_name,
+        te.event_type,
+        te.message,
+        te.metadata,
+        te.visible_to_customer,
+        te.created_at
+      FROM ticket_events te
+      LEFT JOIN users u ON u.id = te.actor_user_id
+      WHERE te.ticket_id = $1 AND te.visible_to_customer = true
+      ORDER BY te.created_at ASC, te.id ASC
       `
+      : `
       SELECT
         te.id,
         te.ticket_id,
@@ -457,9 +476,9 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
       LEFT JOIN users u ON u.id = te.actor_user_id
       WHERE te.ticket_id = $1
       ORDER BY te.created_at ASC, te.id ASC
-      `,
-      [ticketId],
-    );
+      `;
+
+    const eventsResult = await client.query(eventsQuery, [ticketId]);
 
     return {
       ticket: {
@@ -469,6 +488,8 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         priority: ticket.priority,
         subject: ticket.subject,
         circuit_description: ticket.circuit_description,
+        problem_side: ticket.problem_side,
+        external_ticket_no: ticket.external_ticket_no,
         created_at: ticket.created_at,
         updated_at: ticket.updated_at,
         resolved_at: ticket.resolved_at,
@@ -477,6 +498,7 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
           id: ticket.customer_row_id,
           customer_id: ticket.customer_id,
           name: ticket.customer_name,
+          email: ticket.customer_email,
         },
         assigned_employee: ticket.current_assigned_employee_id
           ? {
@@ -1007,4 +1029,69 @@ export const listResolvedTickets = async ({ page = 1, limit = 10, exportAll = fa
   } finally {
     client.release();
   }
+};
+
+export const updateTicketOutageDetails = async ({ ticketId, problemSide, externalTicketNo, actorUserId }) => {
+  return runInTransaction(async (client) => {
+    // 1. Verify actor is an employee
+    const employee = await getEmployeeProfileByUserId(client, actorUserId);
+    if (!employee) {
+      throw new AppError(403, "Only employees can update outage details", "FORBIDDEN");
+    }
+
+    // 2. Fetch ticket and check existence
+    const ticketRes = await client.query(
+      "SELECT id, problem_side, external_ticket_no FROM tickets WHERE id = $1",
+      [ticketId]
+    );
+
+    if (ticketRes.rowCount === 0) {
+      throw new AppError(404, "Ticket not found", "TICKET_NOT_FOUND");
+    }
+
+    // 3. Update outage details
+    const result = await client.query(
+      `UPDATE tickets 
+       SET problem_side = $1, external_ticket_no = $2, updated_at = NOW() 
+       WHERE id = $3 
+       RETURNING id, problem_side, external_ticket_no`,
+      [problemSide || null, externalTicketNo || null, ticketId]
+    );
+
+    const updatedTicket = result.rows[0];
+
+    // 4. Add system event
+    const event = await insertTicketEvent(client, {
+      ticketId,
+      actorUserId,
+      eventType: "OUTAGE_DETAILS_CHANGED",
+      message: `Outage details updated: Problem side = ${problemSide || "None"}, Ticket No = ${externalTicketNo || "None"}`,
+      metadata: { problem_side: problemSide, external_ticket_no: externalTicketNo },
+      visibleToCustomer: false
+    });
+
+    const actorRes = await client.query("SELECT name FROM users WHERE id = $1", [actorUserId]);
+    const actorName = actorRes.rowCount > 0 ? actorRes.rows[0].name : null;
+    const socketEvent = {
+      id: Number(event.id),
+      event_type: event.event_type,
+      message: event.message,
+      actor_name: actorName,
+      created_at: event.created_at,
+      metadata: event.metadata,
+      visible_to_customer: event.visible_to_customer
+    };
+
+    // 5. Emit socket event
+    ticketEventEmitter.emit("ticket_updated", {
+      ticketId,
+      data: {
+        type: "TICKET_OUTAGE_UPDATED",
+        ticket: updatedTicket,
+        event: socketEvent
+      }
+    });
+
+    return updatedTicket;
+  });
 };
