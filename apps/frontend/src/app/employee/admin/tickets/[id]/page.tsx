@@ -11,6 +11,7 @@ import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { ChevronDown, CheckCircle2, XCircle, TrendingUp, User as UserIcon, Calendar, Info, Send, MessageSquare, Zap } from "lucide-react";
+import ProviderOutageTracker from "@/components/ProviderOutageTracker";
 
 interface TicketEvent {
   id: number;
@@ -26,23 +27,55 @@ interface TicketData {
     id: number;
     ticket_no: string;
     status: string;
-    priority: string;
     subject: string;
     created_at: string;
     updated_at: string;
     customer: {
       name: string;
+      customer_id?: string;
+      email?: string;
     };
     assigned_employee: {
       name: string;
     } | null;
     circuit_description: string | null;
     rca: string | null;
+    problem_side: string | null;
+    external_ticket_no: string | null;
   };
   events: TicketEvent[];
 }
 
-const priorities = ["LOW", "MEDIUM", "HIGH", "URGENT"];
+const getStatusBadgeConfig = (status: string) => {
+  switch (status) {
+    case "OPEN":
+      return {
+        dotClass: "bg-red-500",
+        pingClass: "bg-red-400",
+        textClass: "text-red-600",
+      };
+    case "IN_PROGRESS":
+    case "ESCALATED":
+      return {
+        dotClass: "bg-amber-500",
+        pingClass: "bg-amber-400",
+        textClass: "text-amber-600",
+      };
+    case "RESOLVED":
+      return {
+        dotClass: "bg-emerald-500",
+        pingClass: "bg-emerald-400",
+        textClass: "text-emerald-600",
+      };
+    case "CLOSED":
+    default:
+      return {
+        dotClass: "bg-slate-400",
+        pingClass: "bg-slate-300",
+        textClass: "text-slate-500",
+      };
+  }
+};
 
 export default function TicketDetailPage() {
   const { id } = useParams();
@@ -53,6 +86,8 @@ export default function TicketDetailPage() {
   const [sending, setSending] = useState(false);
   const [rcaText, setRcaText] = useState("");
   const [savingRca, setSavingRca] = useState(false);
+
+  const statusConfig = data?.ticket ? getStatusBadgeConfig(data.ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
   const fetchTicket = useCallback(async () => {
     try {
@@ -97,7 +132,7 @@ export default function TicketDetailPage() {
     }
   };
 
-  const handleUpdate = async (updates: { status?: string; priority?: string }) => {
+  const handleUpdate = async (updates: { status?: string }) => {
     setUpdating(true);
     try {
       await api.patch(`/tickets/${id}`, updates);
@@ -141,7 +176,7 @@ export default function TicketDetailPage() {
   const { ticket, events } = data;
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-slate-900 antialiased">
+    <div className="h-screen flex flex-col bg-white text-slate-900 antialiased overflow-hidden">
       {/* Header */}
       <header className="sticky top-0 z-20 flex items-center px-6 py-4 bg-white border-b border-slate-200 shadow-xs">
         <Link
@@ -315,98 +350,89 @@ export default function TicketDetailPage() {
         </main>
 
         {/* Sidebar */}
-        <aside className="w-[320px] bg-white overflow-y-auto p-8 flex flex-col gap-10 shrink-0">
-          <section>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8 flex items-center gap-2">
-              <Info size={14} />
-              Ticket Properties
-            </h3>
+        <aside className="w-[260px] bg-white overflow-y-auto p-6 flex flex-col gap-6 shrink-0">
+          <section className="space-y-6">
+            <div>
+              <h3 className="text-sm font-black text-slate-900 tracking-widest flex items-center gap-2 mb-4">
+                Ticket Details
+              </h3>
 
-            <div className="flex flex-col gap-8">
-
-              {/* Vertical Stack of Properties */}
-              <div className="flex flex-col gap-6">
-                <PropertyItem
-                  icon={<div className="h-2 w-2 rounded-full bg-indigo-500 mt-1" />}
-                  label="Status"
-                  value={ticket.status.replace("_", " ")}
-                />
-
-                <PropertyItem
-                  icon={<TrendingUp size={16} className="text-amber-500" />}
-                  label="Priority"
-                  value={ticket.priority}
-                />
-
-                <PropertyItem
-                  icon={<UserIcon size={16} className="text-slate-400" />}
-                  label="Customer"
-                  value={ticket.customer.name}
-                />
-
-                <PropertyItem
-                  icon={<Calendar size={16} className="text-slate-400" />}
-                  label="Opened On"
-                  value={format(new Date(ticket.created_at), "MMM d, yyyy")}
-                />
-
-                {ticket.circuit_description && (
-                  <PropertyItem
-                    icon={<Info size={16} className="text-slate-400" />}
-                    label="Circuit ID"
-                    value={ticket.circuit_description}
-                  />
-                )}
-              </div>
-
-              <hr className="border-slate-100" />
-
-              {/* Priority Selector */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Update Priority</label>
-                <div className="relative">
-                  <select
-                    value={ticket.priority}
-                    onChange={(e) => handleUpdate({ priority: e.target.value })}
-                    disabled={updating}
-                    className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer"
-                  >
-                    {priorities.map(p => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                </div>
-              </div>
-
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Assigned Agent</p>
-                <div className="flex items-center gap-3">
-                  <Image src={AgentImage} alt="" width={36} height={36} className="rounded-full shadow-xs ring-2 ring-slate-100" />
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">{ticket.assigned_employee?.name || "Not Assigned"}</p>
-                    <p className="text-[10px] font-medium text-slate-500">Support Specialist</p>
+              <div className="space-y-5">
+                {/* Status */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Status</p>
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      {ticket.status !== "CLOSED" && (
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${statusConfig.pingClass}`}></span>
+                      )}
+                      <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${statusConfig.dotClass}`}></span>
+                    </span>
+                    <span className={`text-sm font-bold uppercase ${statusConfig.textClass}`}>{ticket.status.replace(/_/g, " ")}</span>
                   </div>
                 </div>
-              </div>
 
+                {/* Customer */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Customer</p>
+                  <p className="text-[14px] font-bold text-slate-900">{ticket.customer.name}</p>
+                  {ticket.customer.email && (
+                    <span className="text-[10px] font-bold text-slate-400 lowercase block mt-0.5">
+                      {ticket.customer.email}
+                    </span>
+                  )}
+                </div>
+
+                {/* Opened On */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Opened On</p>
+                  <p className="text-[14px] font-bold text-slate-900">
+                    {format(new Date(ticket.created_at), "MMM d, yyyy, h:mm a")}
+                  </p>
+                </div>
+
+                {/* Last Updated */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Last Updated</p>
+                  <p className="text-[14px] font-bold text-slate-900">
+                    {format(new Date(ticket.updated_at), "MMM d, yyyy, h:mm a")}
+                  </p>
+                </div>
+
+                {/* Circuit ID */}
+                {ticket.circuit_description && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Circuit ID</p>
+                    <p className="text-[14px] font-bold text-slate-900">{ticket.circuit_description}</p>
+                  </div>
+                )}
+
+                {/* Outage Details */}
+                <ProviderOutageTracker
+                  ticketId={ticket.id}
+                  problemSide={ticket.problem_side}
+                  externalTicketNo={ticket.external_ticket_no}
+                  onUpdate={() => {
+                    fetchTicket();
+                  }}
+                />
+              </div>
+            </div>
+
+            <hr className="border-slate-100" />
+
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Assigned Agent</p>
+              <div className="flex items-center gap-3">
+                <Image src={AgentImage} alt="" width={36} height={36} className="rounded-full shadow-xs ring-2 ring-slate-100" />
+                <div>
+                  <p className="text-sm font-bold text-slate-900">{ticket.assigned_employee?.name || "Not Assigned"}</p>
+                  <p className="text-[10px] font-medium text-slate-500">Support Specialist</p>
+                </div>
+              </div>
             </div>
           </section>
         </aside>
-      </div>
-    </div>
-  );
-}
-
-function PropertyItem({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
-  return (
-    <div className="flex items-start gap-4">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-50">
-        {icon}
-      </div>
-      <div className="flex flex-col">
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">{label}</span>
-        <span className="text-sm font-bold text-slate-900 leading-tight">{value}</span>
       </div>
     </div>
   );

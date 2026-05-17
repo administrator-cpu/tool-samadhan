@@ -20,7 +20,6 @@ interface AgentStats {
     ticket_no: string;
     subject: string;
     status: string;
-    status: string;
     created_at: string;
     customer_name: string;
   }[];

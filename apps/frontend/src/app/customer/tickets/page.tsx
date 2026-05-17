@@ -10,7 +10,6 @@ interface Ticket {
   ticket_no: string;
   subject: string;
   status: string;
-  status: string;
   created_at: string;
   updated_at: string;
 }

@@ -43,12 +43,45 @@ interface TicketEvent {
   metadata: any;
 }
 
+const getStatusBadgeConfig = (status: string) => {
+  switch (status) {
+    case "OPEN":
+      return {
+        dotClass: "bg-red-500",
+        pingClass: "bg-red-400",
+        textClass: "text-red-600",
+      };
+    case "IN_PROGRESS":
+    case "ESCALATED":
+      return {
+        dotClass: "bg-amber-500",
+        pingClass: "bg-amber-400",
+        textClass: "text-amber-600",
+      };
+    case "RESOLVED":
+      return {
+        dotClass: "bg-emerald-500",
+        pingClass: "bg-emerald-400",
+        textClass: "text-emerald-600",
+      };
+    case "CLOSED":
+    default:
+      return {
+        dotClass: "bg-slate-400",
+        pingClass: "bg-slate-300",
+        textClass: "text-slate-500",
+      };
+  }
+};
+
 export default function TicketDetailPage() {
   const { id } = useParams();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [events, setEvents] = useState<TicketEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const statusConfig = ticket ? getStatusBadgeConfig(ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
   useEffect(() => {
     if (!id) return;
@@ -80,6 +113,10 @@ export default function TicketDetailPage() {
       console.log("[SOCKET] Received update:", data);
 
       if (data.type === "EVENT_ADDED") {
+        if (!data.event.visible_to_customer) {
+          return;
+        }
+
         setEvents((prev) => {
           if (prev.some((e) => e.id === data.event.id)) return prev;
           return [...prev, data.event].sort((a, b) => a.id - b.id);
@@ -177,7 +214,7 @@ export default function TicketDetailPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf9fa] text-slate-900">
+    <div className="h-screen flex flex-col bg-[#faf9fa] text-slate-900 overflow-hidden">
       {/* Header */}
       <header className="flex items-center px-6 py-4 bg-white border-b border-gray-100 shadow-sm z-10">
         <Link
@@ -332,10 +369,12 @@ export default function TicketDetailPage() {
               <p className="text-muted text-xs font-bold tracking-wide uppercase mb-1">Status</p>
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                  {ticket.status !== "CLOSED" && (
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${statusConfig.pingClass}`}></span>
+                  )}
+                  <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${statusConfig.dotClass}`}></span>
                 </span>
-                <p className="text-text-main text-[15px] font-medium">{ticket.status.replace(/_/g, " ")}</p>
+                <p className={`text-[15px] font-bold uppercase ${statusConfig.textClass}`}>{ticket.status.replace(/_/g, " ")}</p>
               </div>
             </div>
             <div>
