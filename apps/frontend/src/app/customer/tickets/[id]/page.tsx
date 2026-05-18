@@ -19,6 +19,7 @@ interface Ticket {
   priority: string;
   subject: string;
   circuit_description: string | null;
+  rca: string | null;
   created_at: string;
   updated_at: string;
   closed_at: string | null;
@@ -139,6 +140,12 @@ export default function TicketDetailPage() {
           return { ...prev, assigned_employee: data.assigned_employee };
         });
         toast.info(`Ticket reassigned to ${data.assigned_employee.name}`);
+      } else if (data.type === "TICKET_RCA_UPDATED") {
+        setTicket((prev) => {
+          if (!prev) return null;
+          return { ...prev, rca: data.rca };
+        });
+        toast.success("Root Cause Analysis (RCA) report has been published!");
       }
     };
 
@@ -230,7 +237,7 @@ export default function TicketDetailPage() {
         </div>
 
         <div className="ml-auto flex items-center gap-6">
-          <div className="relative inline-grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-100 p-1">
+          <div className="relative hidden grid-cols-2 rounded-xl border border-slate-200 bg-slate-100 p-1">
             <input
               type="radio"
               name="language"
@@ -254,43 +261,59 @@ export default function TicketDetailPage() {
             </label>
           </div>
 
-          {ticket.status !== "CLOSED" ? (
-            <button
-              onClick={() => handleStatusUpdate("CLOSED")}
-              className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-700 border border-red-100 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-red-100"
-            >
-              <span className="material-symbols-outlined text-sm">close</span>
-              Close Ticket
-            </button>
-          ) : (
-            // Only show reopen if within 24 hours
-            (() => {
-              const closedAt = new Date(ticket.closed_at || ticket.updated_at);
-              const now = new Date();
-              const diffHours = (now.getTime() - closedAt.getTime()) / (1000 * 60 * 60);
+          {ticket.status === "RESOLVED" && ticket.resolved_at && (() => {
+            const resolvedAt = new Date(ticket.resolved_at);
+            const now = new Date();
+            const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
 
-              if (diffHours <= 24) {
-                return (
-                  <button
-                    onClick={() => handleStatusUpdate("OPEN")}
-                    className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-emerald-100"
-                  >
-                    <span className="material-symbols-outlined text-sm">restart_alt</span>
-                    Reopen Ticket
-                  </button>
-                );
-              }
-              return null;
-            })()
-          )}
+            if (diffHours <= 24) {
+              return (
+                <button
+                  onClick={() => handleStatusUpdate("OPEN")}
+                  className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-emerald-100"
+                >
+                  <span className="material-symbols-outlined text-sm">restart_alt</span>
+                  Reopen Ticket
+                </button>
+              );
+            }
+            return null;
+          })()}
         </div>
       </header>
 
       {/* Layout */}
       <main className="flex flex-1 overflow-hidden max-w-[1400px] mx-auto w-full">
-        {/* Timeline */}
-        <section className="flex-1 flex flex-col relative px-5 overflow-y-auto">
+        <section className="flex-1 flex flex-col relative px-5 overflow-y-auto pt-6">
           <Timeline events={events} />
+          {ticket.rca && (
+            <div className="mt-0 mb-6 rounded-lg border border-emerald-100 bg-emerald-50/30 p-6 shadow-xs backdrop-blur-xs shrink-0">
+              <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-2xl font-bold text-emerald-500">verified</span>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-emerald-900">Root Cause Analysis (RCA)</h3>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                      OFFICIAL REPORT
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[10px] font-bold text-slate-400 leading-snug uppercase tracking-widest">
+                    Technical Resolution Summary
+                  </p>
+                  <div className="mt-3 rounded-lg bg-white/80 border border-emerald-50 px-4 py-2 shadow-2xs">
+                    <p className="whitespace-pre-line text-sm font-medium text-slate-800 leading-relaxed">
+                      {ticket.rca}
+                    </p>
+                    {ticket.resolved_at && (
+                      <span className="flex justify-end text-[11px] font-bold text-emerald-700/80">
+                        Resolved on {format(new Date(ticket.resolved_at), "MMM d, yyyy, h:mm a")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
         <div className="hidden lg:block w-[300px] xl:w-[340px] shrink-0 p-6 bg-surface border-l border-gray-100 overflow-y-auto">
