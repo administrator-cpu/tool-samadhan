@@ -48,7 +48,7 @@ export default function Home() {
               className="text-3xl font-bold tracking-tight text-slate-900"
               style={{ fontFamily: "'Outfit', sans-serif" }}
             >
-              Samadhan
+              Samadhan Support Portal
             </h2>
             <div className="relative flex h-4 w-4 items-center justify-center">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-40" />
