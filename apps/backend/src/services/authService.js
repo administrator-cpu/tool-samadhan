@@ -184,7 +184,7 @@ export const createCustomer = async ({ name, email, password, phone }) => {
 };
 
 export const createEmployee = async ({ name, email, password, role, issueCategoryNames = [] }) => {
-  const allowedRoles = ["SUPPORT_AGENT", "MANAGER", "ADMIN"];
+  const allowedRoles = ["SUPPORT_AGENT", "MANAGER", "ADMIN", "SALES"];
   if (!allowedRoles.includes(role)) {
     throw new AppError(400, "Invalid employee role", "INVALID_ROLE");
   }
@@ -223,8 +223,8 @@ export const createEmployee = async ({ name, email, password, role, issueCategor
 
     const employee = employeeResult.rows[0];
 
-    // Handle issue categories by name in bulk
-    if (issueCategoryNames && issueCategoryNames.length > 0) {
+    // Handle issue categories by name in bulk (skip for SALES)
+    if (role !== "SALES" && issueCategoryNames && issueCategoryNames.length > 0) {
       await client.query(
         `INSERT INTO employee_issue_categories (employee_id, issue_category_id)
          SELECT $1, id FROM issue_categories WHERE name = ANY($2)`,

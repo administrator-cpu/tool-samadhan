@@ -1,10 +1,16 @@
 import postgresPool from "../config/db.js";
 
 export const createUserTable = async () => {
+  try {
+    await postgresPool.query("ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'SALES'");
+  } catch (err) {
+    // Ignore error if user_role enum type doesn't exist yet
+  }
+
   const query = `
     -- 1. Create enum for role
     DO $$ BEGIN
-        CREATE TYPE user_role AS ENUM ('USER', 'SUPPORT_AGENT', 'MANAGER', 'ADMIN');
+        CREATE TYPE user_role AS ENUM ('USER', 'SUPPORT_AGENT', 'MANAGER', 'ADMIN', 'SALES');
     EXCEPTION
         WHEN duplicate_object THEN null;
     END $$;
