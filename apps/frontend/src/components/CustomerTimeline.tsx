@@ -18,7 +18,7 @@ interface TimelineProps {
 
 export default function Timeline({ events }: TimelineProps) {
   const { user } = useAuthStore();
-  const isEmployee = user?.role !== "USER";
+  const isEmployee = !!user && user.role !== "USER";
 
   // Filter out internal priority messages only for customers
   const visibleEvents = events.filter((e) => {
@@ -80,10 +80,12 @@ export default function Timeline({ events }: TimelineProps) {
       case "ADMIN_REPLY":
       case "MANAGER_REPLY":
       case "USER_REPLY": {
-        if (event.actor_name) {
-          const firstName = event.actor_name.split(" ")[0];
+        const actorName = event.actor_name || event.metadata?.actor_name;
+        if (actorName) {
+          const firstName = actorName.split(" ")[0];
           return `${firstName} Reply`;
-        } else return "Customer Reply";
+        }
+        return event.event_type === "USER_REPLY" ? "Customer Reply" : "Support Reply";
       }
       default:
         return "System Update";
@@ -129,90 +131,90 @@ export default function Timeline({ events }: TimelineProps) {
               </div>
 
               {/* Message Card */}
-              {event.message && event.message.trim() !== "" && !(event.event_type === "TICKET_ASSIGNED" && (event.metadata?.is_reassign || /reassigned/i.test(event.message)) && !isEmployee) && (
-                <div
-                  className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}
-                >
+
+              {event.message && event.message.trim() !== "" && (
                   <div
-                    className={`flex flex-col gap-3 pl-2 ${isUser ? "items-end" : "items-start"} w-full min-w-0`}
+                    className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}
                   >
                     <div
-                      className={`max-w-[80%] flex flex-col gap-3 ${isUser ? "items-end text-right" : "items-start text-left"} min-w-0`}
+                      className={`flex flex-col gap-3 pl-2 ${isUser ? "items-end" : "items-start"} w-full min-w-0`}
                     >
                       <div
-                        className={`flex flex-col ${isUser ? "items-end" : "items-start"} gap-1 text-slate-500 mb-1 font-semibold leading-normal`}
+                        className={`max-w-[80%] flex flex-col gap-3 ${isUser ? "items-end text-right" : "items-start text-left"} min-w-0`}
                       >
-                        {![
-                          "AGENT_REPLY",
-                          "MANAGER_REPLY",
-                          "ADMIN_REPLY",
-                        ].includes(event.event_type) ? (
-                          <div
-                            className={`flex flex-row items-center gap-2 ${isUser ? "flex-row-reverse" : ""}`}
-                          >
-                            <span className="text-xs font-body font-semibold">
-                              {isUser
-                                ? isEmployee
-                                  ? event.actor_name || "Customer"
-                                  : "You"
-                                : event.actor_name || "Samadhan AI"}
-                            </span>
-                            {/*{["AGENT_REPLY", "MANAGER_REPLY", "ADMIN_REPLY"].includes(event.event_type) && (
-                            <span className="text-xs font-body text-primary font-semibold bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
-                              {getRoleLabel(event.event_type)}
-                            </span>
-                          )}*/}
-                            <span className="text-xs font-body text-muted font-semibold ml-1">
-                              {format(
-                                new Date(event.created_at),
-                                "MMM d, h:mm a",
-                              )}
-                            </span>
-                          </div>
-                        ) : (
-                          ""
-                        )}
-
                         <div
-                          className={`pt-2 pb-3 px-3  rounded-2xl shadow-xs border overflow-hidden w-full ${
-                            isUser
-                              ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm"
-                              : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
-                          }`}
+                          className={`flex flex-col ${isUser ? "items-end" : "items-start"} gap-1 text-slate-500 mb-1 font-semibold leading-normal`}
                         >
-                          {!isUser &&
-                          [
+                          {![
                             "AGENT_REPLY",
                             "MANAGER_REPLY",
                             "ADMIN_REPLY",
                           ].includes(event.event_type) ? (
-                            <div className="flex items-center gap-2 justify-end mb-2 align-middle">
+                            <div
+                              className={`flex flex-row items-center gap-2 ${isUser ? "flex-row-reverse" : ""}`}
+                            >
+                              <span className="text-xs font-body font-semibold">
+                                {isUser
+                                  ? isEmployee
+                                    ? event.actor_name || "Customer"
+                                    : "You"
+                                  : event.actor_name || "Samadhan AI"}
+                              </span>
+                              {/*{["AGENT_REPLY", "MANAGER_REPLY", "ADMIN_REPLY"].includes(event.event_type) && (
+                            <span className="text-xs font-body text-primary font-semibold bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
+                              {getRoleLabel(event.event_type)}
+                            </span>
+                          )}*/}
                               <span className="text-xs font-body text-muted font-semibold ml-1">
                                 {format(
                                   new Date(event.created_at),
-                                  "MMM d, yyyy, h:mm a",
+                                  "MMM d, h:mm a",
                                 )}
                               </span>
-                              <Image
-                                src={FAB5Logo.src}
-                                alt="FAB5 Logo"
-                                width={30}
-                                height={30}
-                                className="bg-transparent"
-                              />
                             </div>
                           ) : (
                             ""
                           )}
-                          <p className="text-[15px] leading-relaxed font-body font-medium  whitespace-pre-wrap">
-                            {event.message}
-                          </p>
+
+                          <div
+                            className={`pt-2 pb-3 px-3  rounded-2xl shadow-xs border overflow-hidden w-full ${isUser
+                                ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm"
+                                : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
+                              }`}
+                          >
+                            {!isUser &&
+                              [
+                                "AGENT_REPLY",
+                                "MANAGER_REPLY",
+                                "ADMIN_REPLY",
+                              ].includes(event.event_type) ? (
+                              <div className="flex items-center gap-2 justify-end mb-2 align-middle">
+                                <span className="text-xs font-body text-muted font-semibold ml-1">
+                                  {format(
+                                    new Date(event.created_at),
+                                    "MMM d, yyyy, h:mm a",
+                                  )}
+                                </span>
+                                <Image
+                                  src={FAB5Logo.src}
+                                  alt="FAB5 Logo"
+                                  width={30}
+                                  height={30}
+                                  className="bg-transparent"
+                                />
+                              </div>
+                            ) : (
+                              ""
+                            )}
+                            <p className="text-[15px] leading-relaxed font-body font-medium  whitespace-pre-wrap">
+                              {event.message}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           );
         })}
