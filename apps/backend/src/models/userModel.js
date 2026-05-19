@@ -206,6 +206,13 @@ export const createTicketTable = async () => {
             ALTER TABLE tickets ADD COLUMN rating_feedback TEXT NULL;
         END IF;
     END $$;
+
+    -- 9. Add allow_customer_reply column if it doesn't exist
+    DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tickets' AND column_name='allow_customer_reply') THEN
+            ALTER TABLE tickets ADD COLUMN allow_customer_reply BOOLEAN NOT NULL DEFAULT FALSE;
+        END IF;
+    END $$;
   `;
   await postgresPool.query(query);
 };

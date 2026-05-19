@@ -249,7 +249,7 @@ export const addTicketEvent = async ({
 }) => {
   return runInTransaction(async (client) => {
     const ticketResult = await client.query(
-      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status
+      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply
        FROM tickets
        WHERE id = $1
        FOR UPDATE`,
@@ -278,7 +278,16 @@ export const addTicketEvent = async ({
     const actor = actorResult.rows[0];
 
     if (actor.role === "USER") {
-      throw new AppError(403, "Customers cannot add ticket events after creation", "FORBIDDEN");
+      if (!ticket.allow_customer_reply) {
+        throw new AppError(403, "Customers cannot add ticket events at this time", "FORBIDDEN");
+      }
+      const isCustomerOwner = await client.query(
+        `SELECT 1 FROM customers c JOIN tickets t ON t.customer_id = c.id WHERE t.id = $1 AND c.user_id = $2`,
+        [ticketId, actorUserId]
+      );
+      if (isCustomerOwner.rowCount === 0) {
+        throw new AppError(403, "You do not have access to this ticket", "FORBIDDEN");
+      }
     }
 
     if (actor.role === "SUPPORT_AGENT") {
@@ -292,17 +301,19 @@ export const addTicketEvent = async ({
     }
 
     const eventType =
-      actor.role === "SUPPORT_AGENT"
-        ? visibleToCustomer
-          ? "AGENT_REPLY"
-          : "INTERNAL_NOTE"
-        : actor.role === "MANAGER"
+      actor.role === "USER"
+        ? "USER_REPLY"
+        : actor.role === "SUPPORT_AGENT"
           ? visibleToCustomer
-            ? "MANAGER_REPLY"
+            ? "AGENT_REPLY"
             : "INTERNAL_NOTE"
-          : visibleToCustomer
-            ? "ADMIN_REPLY"
-            : "INTERNAL_NOTE";
+          : actor.role === "MANAGER"
+            ? visibleToCustomer
+              ? "MANAGER_REPLY"
+              : "INTERNAL_NOTE"
+            : visibleToCustomer
+              ? "ADMIN_REPLY"
+              : "INTERNAL_NOTE";
 
     const event = await insertTicketEvent(client, {
       ticketId: ticket.id,
@@ -382,7 +393,8 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         t.problem_side,
         t.external_ticket_no,
         t.rating,
-        t.rating_feedback
+        t.rating_feedback,
+        t.allow_customer_reply
       FROM tickets t
       JOIN customers c ON c.id = t.customer_id
       JOIN users cu ON cu.id = c.user_id
@@ -525,6 +537,7 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         closed_at: ticket.closed_at,
         rating: ticket.rating,
         rating_feedback: ticket.rating_feedback,
+        allow_customer_reply: ticket.allow_customer_reply,
         customer: {
           id: ticket.customer_row_id,
           customer_id: ticket.customer_id,
@@ -552,7 +565,7 @@ const bulkCloseExpiredResolvedTickets = async (client) => {
   if (expiredTicketsRes.rowCount > 0) {
     for (const row of expiredTicketsRes.rows) {
       await client.query(
-        `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW() WHERE id = $1`,
+        `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW(), allow_customer_reply = FALSE WHERE id = $1`,
         [row.id]
       );
       await client.query(
@@ -720,9 +733,8 @@ export const updateTicket = async ({ ticketId, status, actorUserId }) => {
           const diffHours = (now.getTime() - pastTime.getTime()) / (1000 * 60 * 60);
 
           if (diffHours > 24) {
-            // Auto-close in DB
             await client.query(
-              `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW() WHERE id = $1`,
+              `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW(), allow_customer_reply = FALSE WHERE id = $1`,
               [ticketId]
             );
             await client.query(
@@ -766,16 +778,18 @@ export const updateTicket = async ({ ticketId, status, actorUserId }) => {
       
       if (status === "RESOLVED") {
         fields.push(`resolved_at = NOW()`);
+        fields.push(`allow_customer_reply = FALSE`);
       }
       if (status === "CLOSED") {
         fields.push(`closed_at = NOW()`);
+        fields.push(`allow_customer_reply = FALSE`);
       }
     }
 
     if (fields.length === 0) return null;
 
     params.push(ticketId);
-    const query = `UPDATE tickets SET ${fields.join(", ")}, updated_at = NOW() WHERE id = $${paramIdx} RETURNING id, status, resolved_at, closed_at, updated_at`;
+    const query = `UPDATE tickets SET ${fields.join(", ")}, updated_at = NOW() WHERE id = $${paramIdx} RETURNING id, status, resolved_at, closed_at, updated_at, allow_customer_reply`;
     
     const result = await client.query(query, params);
     const updatedTicket = result.rows[0];
@@ -1269,19 +1283,6 @@ export const updateTicketRating = async ({ ticketId, rating, feedback, actorUser
       [rating, feedback || null, ticketId]
     );
 
-    // 3. Add event
-    await insertTicketEvent(client, {
-      ticketId,
-      actorUserId,
-      eventType: "TICKET_RATED",
-      message: `Customer rated this ticket ${rating} Star(s) with comment: "${feedback || "No feedback left."}"`,
-      metadata: {
-        rating,
-        rating_feedback: feedback || "",
-      },
-      visibleToCustomer: true
-    });
-
     const resultTicket = updateResult.rows[0];
 
     // 4. Emit socket event
@@ -1295,5 +1296,35 @@ export const updateTicketRating = async ({ ticketId, rating, feedback, actorUser
     });
 
     return resultTicket;
+  });
+};
+
+export const toggleCustomerReply = async ({ ticketId, allowReply, actorUserId }) => {
+  return runInTransaction(async (client) => {
+    const ticketResult = await client.query(
+      `SELECT id, status FROM tickets WHERE id = $1`,
+      [ticketId]
+    );
+
+    if (ticketResult.rowCount === 0) {
+      throw new AppError(404, "Ticket not found", "NOT_FOUND");
+    }
+
+    const result = await client.query(
+      `UPDATE tickets SET allow_customer_reply = $1, updated_at = NOW() WHERE id = $2 RETURNING id, allow_customer_reply, updated_at`,
+      [allowReply, ticketId]
+    );
+
+    const updatedTicket = result.rows[0];
+
+    ticketEventEmitter.emit("ticket_updated", {
+      ticketId,
+      data: {
+        type: "REPLY_TOGGLED",
+        allow_customer_reply: allowReply
+      }
+    });
+
+    return updatedTicket;
   });
 };
