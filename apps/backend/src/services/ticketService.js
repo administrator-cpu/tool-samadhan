@@ -380,7 +380,9 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         t.circuit_description,
         t.rca,
         t.problem_side,
-        t.external_ticket_no
+        t.external_ticket_no,
+        t.rating,
+        t.rating_feedback
       FROM tickets t
       JOIN customers c ON c.id = t.customer_id
       JOIN users cu ON cu.id = c.user_id
@@ -521,6 +523,8 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         updated_at: ticket.updated_at,
         resolved_at: ticket.resolved_at,
         closed_at: ticket.closed_at,
+        rating: ticket.rating,
+        rating_feedback: ticket.rating_feedback,
         customer: {
           id: ticket.customer_row_id,
           customer_id: ticket.customer_id,
@@ -1219,5 +1223,77 @@ export const updateTicketOutageDetails = async ({ ticketId, problemSide, externa
     });
 
     return updatedTicket;
+  });
+};
+
+export const updateTicketRating = async ({ ticketId, rating, feedback, actorUserId }) => {
+  return runInTransaction(async (client) => {
+    // 1. Verify ticket exists and belongs to customer matching actorUserId
+    const ticketResult = await client.query(
+      `SELECT t.id, t.status, t.customer_id, c.user_id
+       FROM tickets t
+       JOIN customers c ON c.id = t.customer_id
+       WHERE t.id = $1`,
+      [ticketId]
+    );
+
+    if (ticketResult.rowCount === 0) {
+      throw new AppError(404, "Ticket not found", "TICKET_NOT_FOUND");
+    }
+
+    const ticket = ticketResult.rows[0];
+
+    // Verify requesting user is the customer
+    if (ticket.user_id !== actorUserId) {
+      throw new AppError(403, "Only the ticket owner can rate this ticket", "FORBIDDEN");
+    }
+
+    // Verify ticket status is RESOLVED or CLOSED
+    if (ticket.status !== "RESOLVED" && ticket.status !== "CLOSED") {
+      throw new AppError(400, "Only resolved or closed tickets can be rated", "INVALID_STATUS");
+    }
+
+    // Verify rating is between 1 and 5
+    if (typeof rating !== "number" || rating < 1 || rating > 5) {
+      throw new AppError(400, "Rating must be an integer between 1 and 5", "INVALID_RATING");
+    }
+
+    // 2. Update ticket
+    const updateResult = await client.query(
+      `UPDATE tickets
+       SET rating = $1,
+           rating_feedback = $2,
+           updated_at = NOW()
+       WHERE id = $3
+       RETURNING id, ticket_no, rating, rating_feedback`,
+      [rating, feedback || null, ticketId]
+    );
+
+    // 3. Add event
+    await insertTicketEvent(client, {
+      ticketId,
+      actorUserId,
+      eventType: "TICKET_RATED",
+      message: `Customer rated this ticket ${rating} Star(s) with comment: "${feedback || "No feedback left."}"`,
+      metadata: {
+        rating,
+        rating_feedback: feedback || "",
+      },
+      visibleToCustomer: true
+    });
+
+    const resultTicket = updateResult.rows[0];
+
+    // 4. Emit socket event
+    ticketEventEmitter.emit("ticket_updated", {
+      ticketId,
+      data: {
+        type: "TICKET_RATING_UPDATED",
+        rating: resultTicket.rating,
+        rating_feedback: resultTicket.rating_feedback,
+      },
+    });
+
+    return resultTicket;
   });
 };

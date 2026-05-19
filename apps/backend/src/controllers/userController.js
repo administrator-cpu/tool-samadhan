@@ -1,4 +1,4 @@
-import { registerCustomer, createEmployee, loginUser, refreshSession, logoutSession, getCurrentUserDetails, listAllEmployees, listAllAgents, deleteEmployee, updatePassword, requestPasswordReset, verifyOtp, completePasswordReset } from "../services/authService.js";
+import { registerCustomer, createEmployee, loginUser, refreshSession, logoutSession, getCurrentUserDetails, listAllEmployees, listAllAgents, deleteEmployee, updatePassword, requestPasswordReset, verifyOtp, completePasswordReset, updateUserProfile } from "../services/authService.js";
 import { listIssueCategories } from "../services/ticketService.js";
 import AppError from "../utils/AppError.js";
 import { REFRESH_TOKEN_MAX_AGE_MS } from "../services/jwt.js";
@@ -226,5 +226,20 @@ export const resetUserPassword = async (req, res) => {
   return res.status(200).json({
     statusCode: 200,
     message: "Password reset successfully",
+  });
+};
+
+export const updateMe = async (req, res) => {
+  const { name, phone } = req.body;
+  const result = await updateUserProfile({
+    userId: req.user.userId,
+    name,
+    phone,
+  });
+
+  return res.status(200).json({
+    statusCode: 200,
+    message: "Profile updated successfully",
+    data: result,
   });
 };

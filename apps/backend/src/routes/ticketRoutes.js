@@ -17,6 +17,7 @@ import {
   updateRcaController,
   fetchResolvedTickets,
   updateOutageController,
+  rateTicketController,
 } from "../controllers/ticketController.js";
 
 const router = express.Router();
@@ -71,7 +72,7 @@ router.patch(
 router.patch(
   "/:ticketId/reassign",
   requireAuth,
-  requireRole("ADMIN"),
+  requireRole("ADMIN", "SUPPORT_AGENT"),
   reassignTicketController,
 );
 
@@ -88,6 +89,12 @@ router.patch(
   requireRole("SUPPORT_AGENT", "MANAGER", "ADMIN"),
   validateUpdateOutageDetails,
   updateOutageController,
+);
+
+router.patch(
+  "/:ticketId/rate",
+  requireAuth,
+  rateTicketController,
 );
 
 export default router;

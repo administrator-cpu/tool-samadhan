@@ -21,6 +21,11 @@ export const createUserTable = async () => {
     );
   `;
   await postgresPool.query(query);
+
+  // 3. Add phone column if it doesn't exist
+  await postgresPool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
+  `);
 };
 
 export const createEmployeeTable = async () => {
@@ -180,6 +185,19 @@ export const createTicketTable = async () => {
     DO $$ BEGIN
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tickets' AND column_name='external_ticket_no') THEN
             ALTER TABLE tickets ADD COLUMN external_ticket_no VARCHAR(100) NULL;
+        END IF;
+    END $$;
+
+    -- 8. Add rating and rating_feedback columns if they don't exist
+    DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tickets' AND column_name='rating') THEN
+            ALTER TABLE tickets ADD COLUMN rating INTEGER NULL;
+        END IF;
+    END $$;
+
+    DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tickets' AND column_name='rating_feedback') THEN
+            ALTER TABLE tickets ADD COLUMN rating_feedback TEXT NULL;
         END IF;
     END $$;
   `;

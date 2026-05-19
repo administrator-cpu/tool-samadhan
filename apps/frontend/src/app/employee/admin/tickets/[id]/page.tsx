@@ -12,6 +12,8 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { ChevronDown, CheckCircle2, XCircle, TrendingUp, User as UserIcon, Calendar, Info, Send, MessageSquare, Zap } from "lucide-react";
 import ProviderOutageTracker from "@/components/ProviderOutageTracker";
+import { useSocket } from "@/hooks/useSocket";
+import { useSocketStore } from "@/store/useSocketStore";
 
 interface TicketEvent {
   id: number;
@@ -42,6 +44,8 @@ interface TicketData {
     rca: string | null;
     problem_side: string | null;
     external_ticket_no: string | null;
+    rating: number | null;
+    rating_feedback: string | null;
   };
   events: TicketEvent[];
 }
@@ -105,6 +109,116 @@ export default function TicketDetailPage() {
       fetchTicket();
     }
   }, [id, fetchTicket]);
+
+  const { socket } = useSocket(id as string);
+  const markEventSeen = useSocketStore((state) => state.markEventSeen);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = (data: any) => {
+      console.log("[SOCKET] Received update:", data);
+
+      if (data.type === "EVENT_ADDED") {
+        setData((prev) => {
+          if (!prev) return null;
+          if (prev.events.some((e) => e.id === data.event.id)) return prev;
+          return {
+            ...prev,
+            events: [...prev.events, data.event].sort((a, b) => a.id - b.id)
+          };
+        });
+
+        markEventSeen(Number(id), data.event.id);
+
+        if (data.event.event_type !== "INTERNAL_NOTE") {
+          toast.info(`New update: ${data.event.message.substring(0, 50)}...`);
+        }
+      } else if (data.type === "TICKET_STATUS_UPDATED") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, ...data.ticket }
+          };
+        });
+        toast.success(`Ticket status updated to ${data.ticket.status}`);
+      } else if (data.type === "TICKET_OUTAGE_UPDATED") {
+        setData((prev) => {
+          if (!prev) return null;
+          let updatedEvents = prev.events;
+          if (data.event && !prev.events.some(e => e.id === data.event.id)) {
+            updatedEvents = [...prev.events, data.event].sort((a, b) => a.id - b.id);
+          }
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, ...data.ticket },
+            events: updatedEvents
+          };
+        });
+        toast.info("Provider outage details updated in real-time");
+      } else if (data.type === "TICKET_RCA_UPDATED") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, rca: data.rca }
+          };
+        });
+        toast.info("Root Cause Analysis (RCA) report has been updated!");
+      } else if (data.type === "TICKET_RATING_UPDATED") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, rating: data.rating, rating_feedback: data.rating_feedback }
+          };
+        });
+        toast.info("Customer has submitted feedback rating!");
+      }
+    };
+
+    const handleMissedEvents = (data: { ticketId: number, events: TicketEvent[] }) => {
+      if (Number(data.ticketId) !== Number(id)) return;
+
+      console.log(`[SOCKET] Received ${data.events.length} missed events for admin`);
+      setData((prev) => {
+        if (!prev) return null;
+        const newEvents = data.events.filter(e => !prev.events.some(p => p.id === e.id));
+        if (newEvents.length === 0) return prev;
+
+        const combinedEvents = [...prev.events, ...newEvents].sort((a, b) => a.id - b.id);
+
+        const lastEvent = combinedEvents[combinedEvents.length - 1];
+        if (lastEvent) {
+          markEventSeen(Number(id), lastEvent.id);
+        }
+
+        return {
+          ...prev,
+          events: combinedEvents
+        };
+      });
+
+      toast.info(`Synced ${data.events.length} missed updates`);
+    };
+
+    socket.on("ticket_update", handleUpdate);
+    socket.on("missed_events", handleMissedEvents);
+
+    return () => {
+      socket.off("ticket_update", handleUpdate);
+      socket.off("missed_events", handleMissedEvents);
+    };
+  }, [socket, id, markEventSeen]);
+
+  // Mark initial events as seen
+  useEffect(() => {
+    if (data?.events?.length && id) {
+      const lastEvent = data.events[data.events.length - 1];
+      markEventSeen(Number(id), lastEvent.id);
+    }
+  }, [data?.events?.length, id, markEventSeen]);
 
   useEffect(() => {
     if (data?.ticket?.rca) {
@@ -373,6 +487,48 @@ export default function TicketDetailPage() {
                       </button>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {ticket.rating && (
+            <div className="max-w-4xl mx-auto w-full mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-xs shrink-0">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
+                  <span className="material-symbols-outlined text-[18px]">star</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Customer Rating & Feedback</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Post-Resolution Satisfaction</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const isFilled = i < (ticket.rating || 0);
+                  return (
+                    <span
+                      key={i}
+                      className={`material-symbols-outlined text-[20px] ${
+                        isFilled ? "text-amber-500" : "text-slate-200"
+                      }`}
+                      style={{ fontVariationSettings: isFilled ? "'FILL' 1" : "'FILL' 0" }}
+                    >
+                      star
+                    </span>
+                  );
+                })}
+                <span className="ml-2 text-sm font-black text-slate-700">
+                  {ticket.rating} / 5 Stars
+                </span>
+              </div>
+
+              {ticket.rating_feedback && (
+                <div className="mt-3 rounded-lg bg-slate-50 border border-slate-100 px-4 py-3">
+                  <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
+                    "{ticket.rating_feedback}"
+                  </p>
                 </div>
               )}
             </div>
