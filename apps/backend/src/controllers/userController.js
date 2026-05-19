@@ -1,4 +1,4 @@
-import { registerCustomer, createEmployee, loginUser, refreshSession, logoutSession, getCurrentUserDetails, listAllEmployees, listAllAgents, deleteEmployee, updatePassword, requestPasswordReset, verifyOtp, completePasswordReset, updateUserProfile } from "../services/authService.js";
+import { registerCustomer, createEmployee, loginUser, refreshSession, logoutSession, getCurrentUserDetails, listAllEmployees, listAllAgents, deleteEmployee, updatePassword, requestPasswordReset, verifyOtp, completePasswordReset, updateUserProfile, createCustomer, listAllCustomers, deleteCustomer } from "../services/authService.js";
 import { listIssueCategories } from "../services/ticketService.js";
 import AppError from "../utils/AppError.js";
 import { REFRESH_TOKEN_MAX_AGE_MS } from "../services/jwt.js";
@@ -28,25 +28,44 @@ const clearRefreshCookie = (res) => {
 };
 
 export const customerRegister = async (req, res) => {
-  const { name, email, password } = req.body;
+  throw new AppError(403, "Public registration is disabled. Please contact an administrator.", "REGISTRATION_DISABLED");
+};
 
-  const result = await registerCustomer({
+export const customerCreate = async (req, res) => {
+  const { name, email, password, phone } = req.body;
+
+  const result = await createCustomer({
     name,
     email,
     password,
-    userAgent: req.headers["user-agent"],
-    ipAddress: req.ip,
+    phone,
   });
-
-  setRefreshCookie(res, result.refreshToken);
 
   return res.status(201).json({
     statusCode: 201,
-    message: "Customer registered successfully",
-    data: {
-      user: result.user,
-      accessToken: result.accessToken,
-    },
+    message: "Customer created successfully",
+    data: result,
+  });
+};
+
+export const fetchAllCustomers = async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  const result = await listAllCustomers({ page, limit });
+
+  return res.status(200).json({
+    statusCode: 200,
+    message: "Customers fetched successfully",
+    data: result,
+  });
+};
+
+export const removeCustomer = async (req, res) => {
+  const { id } = req.params;
+  await deleteCustomer(id);
+
+  return res.status(200).json({
+    statusCode: 200,
+    message: "Customer account deleted successfully",
   });
 };
 

@@ -1,6 +1,6 @@
 import express from "express";
-import { customerRegister, login, refresh, logout, employeeCreate, getMe, fetchAllEmployees, fetchIssueCategories, fetchAllAgents, removeEmployee, changePassword, forgotPassword, verifyResetOtp, resetUserPassword, updateMe } from "../controllers/userController.js";
-import { validateCustomerRegister, validateLogin, validateEmployeeCreate } from "../middlewares/inputValidator.js";
+import { customerRegister, login, refresh, logout, employeeCreate, getMe, fetchAllEmployees, fetchIssueCategories, fetchAllAgents, removeEmployee, changePassword, forgotPassword, verifyResetOtp, resetUserPassword, updateMe, customerCreate, fetchAllCustomers, removeCustomer } from "../controllers/userController.js";
+import { validateCustomerRegister, validateLogin, validateEmployeeCreate, validateCustomerCreate } from "../middlewares/inputValidator.js";
 import { requireAuth, requireRole } from "../middlewares/auth.js";
 
 const router = express.Router();
@@ -17,6 +17,11 @@ router.post("/reset-password", resetUserPassword);
 router.post("/employees", requireAuth, requireRole("ADMIN"), validateEmployeeCreate, employeeCreate);
 router.get("/employees", requireAuth, requireRole("ADMIN"), fetchAllEmployees);
 router.delete("/employees/:id", requireAuth, requireRole("ADMIN"), removeEmployee);
+
+router.post("/customers", requireAuth, requireRole("ADMIN"), validateCustomerCreate, customerCreate);
+router.get("/customers", requireAuth, requireRole("ADMIN"), fetchAllCustomers);
+router.delete("/customers/:id", requireAuth, requireRole("ADMIN"), removeCustomer);
+
 router.get("/agents", requireAuth, requireRole("ADMIN", "SUPPORT_AGENT"), fetchAllAgents);
 router.get("/categories", requireAuth, fetchIssueCategories);
 

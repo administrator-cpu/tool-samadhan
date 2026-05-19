@@ -177,6 +177,7 @@ const SidebarNavbar = () => {
     { label: "Dashboard", icon: "dashboard", href: "/employee/admin" },
     { label: "All Tickets", icon: "list_alt", href: "/employee/admin/tickets" },
     { label: "Staff", icon: "badge", href: "/employee/admin/staff" },
+    { label: "Customers", icon: "groups", href: "/employee/admin/customers" },
     { label: "Resolution Log", icon: "history_edu", href: "/employee/admin/reports/resolved" },
     { label: "Profile", icon: "person", href: "/profile" },
   ];

@@ -22,6 +22,14 @@ const employeeCreateSchema = Joi.object({
   issueCategoryNames: Joi.array().items(Joi.string()).optional(),
 });
 
+const customerCreateSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(255).required(),
+  email: Joi.string().email().lowercase().trim().required(),
+  password: Joi.string().min(6).max(128).required(),
+  phone: Joi.string().trim().pattern(/^[0-9]+$/).min(5).max(15).optional().allow('', null).messages({
+    'string.pattern.base': 'Phone number must contain only digits'
+  }),
+});
 
 const validateBody = (schema) => (req, res, next) => {
   const { error, value } = schema.validate(req.body, {
@@ -47,5 +55,6 @@ const validateBody = (schema) => (req, res, next) => {
 
 
 export const validateCustomerRegister = validateBody(customerRegisterSchema);
+export const validateCustomerCreate = validateBody(customerCreateSchema);
 export const validateLogin = validateBody(loginSchema);
 export const validateEmployeeCreate = validateBody(employeeCreateSchema);
