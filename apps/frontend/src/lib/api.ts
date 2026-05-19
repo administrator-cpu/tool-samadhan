@@ -220,7 +220,7 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
 
   if (!response.ok) {
     const stillAuth = useAuthStore.getState().isAuthenticated;
-    if (!stillAuth && response.status === 401) {
+    if (!stillAuth && response.status === 401 && !publicRoutes.includes(endpoint)) {
       return { data: {}, _isSilent: true } as any;
     }
 
