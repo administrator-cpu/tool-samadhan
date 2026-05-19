@@ -1071,6 +1071,7 @@ export const reassignTicket = async ({ ticketId, employeeId, actorUserId }) => {
       metadata: {
         assigned_employee_id: employeeId,
         assigned_employee_name: employee.name,
+        is_reassign: true,
       },
       visibleToCustomer: true
     });
