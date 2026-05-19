@@ -33,13 +33,12 @@ export default function Timeline({ events }: TimelineProps) {
         return "confirmation_number";
       case "TICKET_ASSIGNED":
         return "person_add";
-      case "PRIORITY_ASSIGNED":
-      case "PRIORITY_CHANGED":
-        return "priority_high";
       case "AGENT_REPLY":
       case "MANAGER_REPLY":
       case "ADMIN_REPLY":
         return "support_agent";
+      case "USER_REPLY":
+        return "person";
       case "SYSTEM_MESSAGE":
         return "robot_2";
       case "STATUS_CHANGED":
@@ -70,19 +69,20 @@ export default function Timeline({ events }: TimelineProps) {
         return "Ticket Opened";
       case "TICKET_ASSIGNED":
         return "Agent Assigned";
-      case "PRIORITY_ASSIGNED":
-      case "PRIORITY_CHANGED":
-        return "Priority Updated";
       case "STATUS_CHANGED":
         return `Status: ${event.metadata?.new_status || "Updated"}`;
       case "TICKET_RESOLVED":
         return "Ticket Resolved";
       case "AGENT_REPLY":
-        return "Agent Reply";
-      case "MANAGER_REPLY":
-        return "Manager Reply";
       case "ADMIN_REPLY":
-        return "Admin Reply";
+      case "MANAGER_REPLY":
+      case "USER_REPLY": {
+        if (event.actor_name) {
+          const firstName = event.actor_name.split(' ')[0];
+          return `${firstName} Reply`;
+        }
+        return "Customer Reply";
+      }
       default:
         return "System Update";
     }
@@ -92,7 +92,7 @@ export default function Timeline({ events }: TimelineProps) {
     <section className="xl:col-span-2 px-0 pb-20 mt-10" data-purpose="ticket-timeline">
       <div className="relative pl-6 sm:pl-10 pb-8">
         {visibleEvents.map((event, index) => {
-          const isUser = event.event_type === "TICKET_CREATED";
+          const isUser = event.event_type === "TICKET_CREATED" || event.event_type === "USER_REPLY";
           const isLast = index === visibleEvents.length - 1 && events[0].event_type === "CLOSED";
 
           return (

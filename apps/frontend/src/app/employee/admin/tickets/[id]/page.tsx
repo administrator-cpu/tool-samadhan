@@ -46,6 +46,7 @@ interface TicketData {
     external_ticket_no: string | null;
     rating: number | null;
     rating_feedback: string | null;
+    allow_customer_reply: boolean;
   };
   events: TicketEvent[];
 }
@@ -91,6 +92,7 @@ export default function TicketDetailPage() {
   const [rcaText, setRcaText] = useState("");
   const [savingRca, setSavingRca] = useState(false);
   const [isEditingRca, setIsEditingRca] = useState(false);
+  const [togglingReply, setTogglingReply] = useState(false);
   const statusConfig = data?.ticket ? getStatusBadgeConfig(data.ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
   const fetchTicket = useCallback(async () => {
@@ -123,6 +125,7 @@ export default function TicketDetailPage() {
         setData((prev) => {
           if (!prev) return null;
           if (prev.events.some((e) => e.id === data.event.id)) return prev;
+
           return {
             ...prev,
             events: [...prev.events, data.event].sort((a, b) => a.id - b.id)
@@ -134,6 +137,15 @@ export default function TicketDetailPage() {
         if (data.event.event_type !== "INTERNAL_NOTE") {
           toast.info(`New update: ${data.event.message.substring(0, 50)}...`);
         }
+      } else if (data.type === "REPLY_TOGGLED") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, allow_customer_reply: data.allow_customer_reply }
+          };
+        });
+        toast.info(`Customer reply ${data.allow_customer_reply ? "enabled" : "disabled"}`);
       } else if (data.type === "TICKET_STATUS_UPDATED") {
         setData((prev) => {
           if (!prev) return null;
@@ -276,6 +288,21 @@ export default function TicketDetailPage() {
     }
   };
 
+  const handleToggleCustomerReply = async () => {
+    if (!data?.ticket) return;
+    setTogglingReply(true);
+    try {
+      await api.patch(`/tickets/${id}/toggle-customer-reply`, {
+        allowCustomerReply: !data.ticket.allow_customer_reply
+      });
+      await fetchTicket();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to toggle customer reply");
+    } finally {
+      setTogglingReply(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -313,6 +340,20 @@ export default function TicketDetailPage() {
         <div className="flex items-center gap-3">
           {ticket.status !== "CLOSED" && (
             <>
+              {/* Customer Reply Toggle */}
+              <button
+                onClick={handleToggleCustomerReply}
+                disabled={updating || togglingReply || ticket.status === "RESOLVED"}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all disabled:opacity-50 ${
+                  ticket.allow_customer_reply
+                    ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                <MessageSquare size={18} />
+                {ticket.allow_customer_reply ? "Customer Reply ON" : "Customer Reply OFF"}
+              </button>
+
               {ticket.status !== "RESOLVED" && (
                 <>
                   {/* Resolve Button - For everything except CLOSED/RESOLVED */}
@@ -375,7 +416,7 @@ export default function TicketDetailPage() {
                     key={idx}
                     onClick={() => setReplyMessage(msg)}
                     disabled={sending}
-                    className="text-left p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 transition-all group disabled:opacity-50"
+                    className="text-left p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 transition-all group disabled:opacity-50"
                   >
                     <p className="text-xs font-medium text-slate-600 line-clamp-3 group-hover:text-indigo-700">{msg}</p>
                   </button>
@@ -388,19 +429,19 @@ export default function TicketDetailPage() {
                   <MessageSquare size={18} className="text-indigo-600" />
                   <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Custom Response</h3>
                 </div>
-                <div className="relative rounded-3xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/50 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
+                <div className="relative rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/50 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
                   <textarea
                     value={replyMessage}
                     onChange={(e) => setReplyMessage(e.target.value)}
                     placeholder="Compose your custom tactical update..."
-                    className="w-full min-h-[120px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
+                    className="w-full min-h-[120px] resize-none border-none bg-transparent p-4 text-sm font-medium font-body text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
                   />
                   <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
                     <p className="text-[10px] font-bold text-slate-400">Pressing Send will notify the customer immediately.</p>
                     <button
                       onClick={() => handleSendReply(replyMessage)}
                       disabled={sending || !replyMessage.trim()}
-                      className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-black text-white hover:bg-indigo-700 transition-all disabled:opacity-50 shadow-lg shadow-indigo-200"
+                      className="flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-black text-white hover:bg-indigo-700 transition-all disabled:opacity-50 shadow-lg shadow-indigo-200"
                     >
                       {sending ? "Transmitting..." : "Send Reply"}
                       <Send size={16} />

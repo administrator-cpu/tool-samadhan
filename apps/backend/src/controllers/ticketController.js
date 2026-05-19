@@ -11,6 +11,7 @@ import {
   listResolvedTickets,
   updateTicketOutageDetails,
   updateTicketRating,
+  toggleCustomerReply,
 } from "../services/ticketService.js";
 
 export const fetchAgentStats = async (req, res) => {
@@ -175,6 +176,20 @@ export const rateTicketController = async (req, res) => {
   return res.status(200).json({
     statusCode: 200,
     message: "Ticket rated successfully",
+    data: result,
+  });
+};
+
+export const toggleCustomerReplyController = async (req, res) => {
+  const result = await toggleCustomerReply({
+    ticketId: Number(req.params.ticketId),
+    allowReply: req.body.allowCustomerReply,
+    actorUserId: req.user.userId,
+  });
+
+  return res.status(200).json({
+    statusCode: 200,
+    message: "Customer reply status updated successfully",
     data: result,
   });
 };

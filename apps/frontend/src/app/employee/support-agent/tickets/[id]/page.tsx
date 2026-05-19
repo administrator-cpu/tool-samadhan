@@ -47,6 +47,7 @@ interface TicketData {
     external_ticket_no: string | null;
     rating: number | null;
     rating_feedback: string | null;
+    allow_customer_reply: boolean;
   };
   events: TicketEvent[];
 }
@@ -92,6 +93,7 @@ export default function TicketDetailPage() {
   const [rcaText, setRcaText] = useState("");
   const [savingRca, setSavingRca] = useState(false);
   const [isEditingRca, setIsEditingRca] = useState(false);
+  const [togglingReply, setTogglingReply] = useState(false);
 
   const statusConfig = data?.ticket ? getStatusBadgeConfig(data.ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
@@ -126,6 +128,7 @@ export default function TicketDetailPage() {
         setData((prev) => {
           if (!prev) return null;
           if (prev.events.some((e) => e.id === data.event.id)) return prev;
+
           return {
             ...prev,
             events: [...prev.events, data.event].sort((a, b) => a.id - b.id)
@@ -137,6 +140,15 @@ export default function TicketDetailPage() {
         if (data.event.event_type !== "INTERNAL_NOTE") {
           toast.info(`New update: ${data.event.message.substring(0, 50)}...`);
         }
+      } else if (data.type === "REPLY_TOGGLED") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, allow_customer_reply: data.allow_customer_reply }
+          };
+        });
+        toast.info(`Customer reply ${data.allow_customer_reply ? "enabled" : "disabled"}`);
       } else if (data.type === "TICKET_STATUS_UPDATED") {
         setData((prev) => {
           if (!prev) return null;
@@ -280,6 +292,21 @@ export default function TicketDetailPage() {
     }
   };
 
+  const handleToggleCustomerReply = async () => {
+    if (!data?.ticket) return;
+    setTogglingReply(true);
+    try {
+      await api.patch(`/tickets/${id}/toggle-customer-reply`, {
+        allowCustomerReply: !data.ticket.allow_customer_reply
+      });
+      await fetchTicket();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to toggle customer reply");
+    } finally {
+      setTogglingReply(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -317,6 +344,20 @@ export default function TicketDetailPage() {
         <div className="flex items-center gap-3">
           {ticket.status !== "CLOSED" && (
             <>
+              {/* Customer Reply Toggle */}
+              <button
+                onClick={handleToggleCustomerReply}
+                disabled={updating || togglingReply || ticket.status === "RESOLVED"}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all disabled:opacity-50 ${
+                  ticket.allow_customer_reply
+                    ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                <MessageSquare size={18} />
+                {ticket.allow_customer_reply ? "Customer Reply ON" : "Customer Reply OFF"}
+              </button>
+
               {ticket.status !== "RESOLVED" && (
                 <>
                   {/* Resolve Button - For everything except CLOSED/RESOLVED */}

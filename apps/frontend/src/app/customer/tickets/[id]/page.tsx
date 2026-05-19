@@ -26,6 +26,7 @@ interface Ticket {
   resolved_at: string | null;
   rating: number | null;
   rating_feedback: string | null;
+  allow_customer_reply: boolean;
   customer: {
     id: number;
     customer_id: string;
@@ -83,6 +84,8 @@ export default function TicketDetailPage() {
   const [events, setEvents] = useState<TicketEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [replyMessage, setReplyMessage] = useState("");
+  const [sending, setSending] = useState(false);
 
   const statusConfig = ticket ? getStatusBadgeConfig(ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
@@ -130,6 +133,11 @@ export default function TicketDetailPage() {
         if (data.event.event_type !== "INTERNAL_NOTE") {
           toast.info(`New message: ${data.event.message.substring(0, 50)}...`);
         }
+      } else if (data.type === "REPLY_TOGGLED") {
+        setTicket((prev) => {
+          if (!prev) return null;
+          return { ...prev, allow_customer_reply: data.allow_customer_reply };
+        });
       } else if (data.type === "TICKET_STATUS_UPDATED") {
         setTicket((prev) => {
           if (!prev) return null;
@@ -206,6 +214,26 @@ export default function TicketDetailPage() {
       if (err.code === "SESSION_CLEARED_SILENT") return;
       console.error("Failed to update ticket status:", err);
       toast.error(err.message || "Failed to update ticket status");
+    }
+  };
+
+  const handleSendReply = async () => {
+    if (!replyMessage.trim()) return;
+    setSending(true);
+    try {
+      await api.post(`/tickets/${id}/events`, {
+        event_type: "USER_REPLY",
+        message: replyMessage.trim()
+      });
+      setReplyMessage("");
+      toast.success("Reply sent successfully");
+      
+      const response = await api.get(`/tickets/${id}`);
+      setEvents(response.data.events);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reply");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -294,6 +322,33 @@ export default function TicketDetailPage() {
       <main className="flex flex-1 overflow-hidden max-w-[1400px] mx-auto w-full">
         <section className="flex-1 flex flex-col relative px-5 overflow-y-auto pt-6">
           <Timeline events={events} />
+          
+          {ticket.allow_customer_reply && !["RESOLVED", "CLOSED"].includes(ticket.status) && (
+            <div className="mt-4 mb-6 rounded-lg border border-slate-200 bg-white p-2 shadow-xl focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all shrink-0">
+              <div className="px-4 pt-3 flex items-center gap-2 mb-1">
+                <span className="material-symbols-outlined text-emerald-600 text-[18px]">chat</span>
+                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Send a Reply</h3>
+              </div>
+              <textarea
+                value={replyMessage}
+                onChange={(e) => setReplyMessage(e.target.value)}
+                placeholder="Agent requested more information. Type your message here..."
+                className="w-full min-h-[100px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
+              />
+              <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
+                <p className="text-[10px] font-bold text-slate-400">Agent will be notified immediately.</p>
+                <button
+                  onClick={handleSendReply}
+                  disabled={sending || !replyMessage.trim()}
+                  className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50"
+                >
+                  {sending ? "Sending..." : "Send Reply"}
+                  <span className="material-symbols-outlined text-[16px]">send</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {ticket.rca && (
             <div className="mt-0 mb-6 rounded-lg border border-emerald-100 bg-emerald-50/30 p-6 shadow-xs backdrop-blur-xs shrink-0">
               <div className="flex items-start gap-2">

@@ -18,6 +18,7 @@ import {
   fetchResolvedTickets,
   updateOutageController,
   rateTicketController,
+  toggleCustomerReplyController,
 } from "../controllers/ticketController.js";
 
 const router = express.Router();
@@ -56,7 +57,7 @@ router.get(
 router.post(
   "/:ticketId/events",
   requireAuth,
-  requireRole("SUPPORT_AGENT", "MANAGER", "ADMIN"),
+  requireRole("USER", "SUPPORT_AGENT", "MANAGER", "ADMIN"),
   validateAddTicketEvent,
   appendTicketEvent,
 );
@@ -95,6 +96,13 @@ router.patch(
   "/:ticketId/rate",
   requireAuth,
   rateTicketController,
+);
+
+router.patch(
+  "/:ticketId/toggle-customer-reply",
+  requireAuth,
+  requireRole("SUPPORT_AGENT", "MANAGER", "ADMIN"),
+  toggleCustomerReplyController,
 );
 
 export default router;
