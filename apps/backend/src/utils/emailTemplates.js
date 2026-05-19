@@ -67,12 +67,6 @@ export const ticketCreatedTemplate = ({ ticketNo, customerName, category }) => (
         <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin-top: 30px;">
           You can track the progress of your ticket anytime by logging into your Samadhan dashboard.
         </p>
-        
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
-            Samadhan Support System &bull; Intelligent Resolution Engine
-          </p>
-        </div>
       </div>
     </div>
   `
