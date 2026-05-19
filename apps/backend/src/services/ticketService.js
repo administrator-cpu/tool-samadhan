@@ -121,12 +121,38 @@ const insertTicketEvent = async (client, event) => {
   return rows[0];
 };
 
-export const createTicket = async ({ userId, message, circuitDescription, issueCategoryId }) => {
+export const createTicket = async ({ userId, message, circuitDescription, issueCategoryId, customerEmail }) => {
   return runInTransaction(async (client) => {
-    const customer = await getCustomerProfileByUserId(client, userId);
+    // Determine creator's role
+    const userRoleResult = await client.query(
+      `SELECT role FROM users WHERE id = $1 LIMIT 1`,
+      [userId]
+    );
 
-    if (!customer) {
-      throw new AppError(403, "Only customers can create tickets", "FORBIDDEN");
+    if (userRoleResult.rowCount === 0) {
+      throw new AppError(401, "Creator user not found", "USER_NOT_FOUND");
+    }
+
+    const creatorRole = userRoleResult.rows[0].role;
+    let customer;
+
+    if (creatorRole === "SALES") {
+      if (!customerEmail) {
+        throw new AppError(400, "Customer email is required for Sales-initiated tickets", "BAD_REQUEST");
+      }
+      const customerResult = await client.query(
+        `SELECT c.id FROM customers c JOIN users u ON u.id = c.user_id WHERE u.email = $1 LIMIT 1`,
+        [customerEmail.trim().toLowerCase()]
+      );
+      if (customerResult.rowCount === 0) {
+        throw new AppError(404, "Customer with this email was not found", "CUSTOMER_NOT_FOUND");
+      }
+      customer = customerResult.rows[0];
+    } else {
+      customer = await getCustomerProfileByUserId(client, userId);
+      if (!customer) {
+        throw new AppError(403, "Only customers can create tickets directly", "FORBIDDEN");
+      }
     }
 
     if (!circuitDescription || circuitDescription.trim() === "") {
@@ -157,8 +183,8 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
       ticketId: ticket.id,
       actorUserId: userId,
       eventType: "TICKET_CREATED",
-      message,
-      metadata: { source: "customer" },
+      message: message || "Ticket raised by Sales on behalf of customer",
+      metadata: { source: creatorRole === "SALES" ? "sales" : "customer" },
       visibleToCustomer: true,
     });
 
@@ -476,7 +502,7 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
       requester.employee_id &&
       Number(requester.employee_id) === Number(ticket.current_assigned_employee_id);
 
-    const isPrivileged = requester.role === "MANAGER" || requester.role === "ADMIN";
+    const isPrivileged = requester.role === "MANAGER" || requester.role === "ADMIN" || requester.role === "SALES";
 
     if (!(isCustomerOwner.rowCount > 0 || isAssignedAgent || isPrivileged)) {
       throw new AppError(403, "You do not have access to this ticket", "FORBIDDEN");
@@ -584,7 +610,7 @@ const bulkCloseExpiredResolvedTickets = async (client) => {
   }
 };
 
-export const listUserTickets = async ({ userId, ownership, page = 1, limit = 10 }) => {
+export const listUserTickets = async ({ userId, ownership, statusGroup, page = 1, limit = 10 }) => {
   const client = await postgresPool.connect();
   const offset = (Number(page) - 1) * Number(limit);
 
@@ -621,35 +647,50 @@ export const listUserTickets = async ({ userId, ownership, page = 1, limit = 10 
     `;
 
     if (customer) {
+      let filterClause = "WHERE t.customer_id = $1";
+      if (statusGroup === "ACTIVE") {
+        filterClause += " AND t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED', 'ON_HOLD')";
+      }
       query = `
         ${baseSelect}
         ${baseFrom}
-        WHERE t.customer_id = $1
+        ${filterClause}
         ORDER BY t.created_at DESC
         LIMIT $2 OFFSET $3
       `;
       params = [customer.id, limit, offset];
     } else if (employee) {
       if (employee.role === "SUPPORT_AGENT") {
+        let filterClause = "WHERE t.current_assigned_employee_id = $1";
+        if (statusGroup === "ACTIVE") {
+          filterClause += " AND t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED', 'ON_HOLD')";
+        }
         query = `
           ${baseSelect}
           ${baseFrom}
-          WHERE t.current_assigned_employee_id = $1
+          ${filterClause}
           ORDER BY t.created_at DESC
           LIMIT $2 OFFSET $3
         `;
         params = [employee.id, limit, offset];
       } else {
-        // ADMIN role sees all with simplified ownership filter
-        let filterClause = "";
-        params = [limit, offset];
+        // ADMIN/MANAGER/SALES role sees all with simplified filters
+        let filterClauses = [];
+        params = [];
         
         if (ownership === "ASSIGNED") {
-          filterClause = `WHERE t.current_assigned_employee_id IS NOT NULL`;
+          filterClauses.push(`t.current_assigned_employee_id IS NOT NULL`);
         } else if (ownership === "UNASSIGNED") {
-          filterClause = `WHERE t.current_assigned_employee_id IS NULL`;
+          filterClauses.push(`t.current_assigned_employee_id IS NULL`);
         }
 
+        if (statusGroup === "ACTIVE") {
+          filterClauses.push(`t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED', 'ON_HOLD')`);
+        }
+
+        const filterClause = filterClauses.length > 0 ? "WHERE " + filterClauses.join(" AND ") : "";
+
+        params.push(limit, offset);
         query = `
           ${baseSelect}
           ${baseFrom}
@@ -711,6 +752,10 @@ export const updateTicket = async ({ ticketId, status, actorUserId }) => {
       // Rule: CLOSED tickets are permanently locked
       if (currentTicket.status === "CLOSED") {
         throw new AppError(400, "Closed tickets are permanently locked and cannot be reopened or updated.", "TICKET_LOCKED");
+      }
+
+      if (actorRole === "SALES") {
+        throw new AppError(403, "Sales representatives cannot edit or update tickets.", "FORBIDDEN");
       }
 
       // Rule: Customer Role (USER) Security
@@ -866,6 +911,8 @@ export const getAdminStats = async () => {
       SELECT
         (SELECT COUNT(*) FROM tickets) as total_tickets,
         (SELECT COUNT(*) FROM tickets WHERE status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')) as active_tickets,
+        (SELECT COUNT(*) FROM tickets WHERE status = 'CLOSED') as closed_tickets,
+        (SELECT COUNT(*) FROM tickets WHERE status = 'RESOLVED') as resolved_tickets,
         (SELECT COUNT(*) FROM tickets WHERE status = 'ESCALATED') as escalated_tickets,
         (SELECT COUNT(*) FROM tickets WHERE status IN ('RESOLVED', 'CLOSED') AND updated_at >= NOW() - INTERVAL '24 hours') as resolved_today,
         (SELECT COUNT(*) FROM tickets WHERE created_at >= NOW() - INTERVAL '24 hours') as tickets_last_24h,

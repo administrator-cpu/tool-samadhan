@@ -41,6 +41,7 @@ export const createCustomerTicket = async (req, res) => {
     message: req.body.message,
     circuitDescription: req.body.circuitDescription,
     issueCategoryId: req.body.issueCategoryId,
+    customerEmail: req.body.customerEmail,
   });
 
   return res.status(201).json({
@@ -79,10 +80,11 @@ export const fetchTicketTimeline = async (req, res) => {
 };
 
 export const fetchUserTickets = async (req, res) => {
-  const { ownership, page, limit } = req.query;
+  const { ownership, statusGroup, page, limit } = req.query;
   const result = await listUserTickets({
     userId: req.user.userId,
     ownership,
+    statusGroup,
     page: page ? parseInt(page) : 1,
     limit: limit ? parseInt(limit) : 10,
   });

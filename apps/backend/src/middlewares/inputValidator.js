@@ -17,7 +17,7 @@ const employeeCreateSchema = Joi.object({
   email: Joi.string().email().lowercase().trim().required(),
   password: Joi.string().min(6).max(128).required(),
   role: Joi.string()
-    .valid("SUPPORT_AGENT", "MANAGER", "ADMIN")
+    .valid("SUPPORT_AGENT", "MANAGER", "ADMIN", "SALES")
     .required(),
   issueCategoryNames: Joi.array().items(Joi.string()).optional(),
 });

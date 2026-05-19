@@ -33,14 +33,14 @@ router.get(
 router.get(
   "/stats",
   requireAuth,
-  requireRole("ADMIN"),
+  requireRole("ADMIN", "SALES"),
   fetchAdminStats
 );
 
 router.post(
   "/",
   requireAuth,
-  requireRole("USER"),
+  requireRole("USER", "SALES"),
   validateCreateTicket,
   createCustomerTicket,
 );

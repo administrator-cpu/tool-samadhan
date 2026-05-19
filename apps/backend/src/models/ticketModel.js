@@ -59,7 +59,7 @@ export const createTicketTable = async () => {
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         ticket_no VARCHAR(20) UNIQUE NOT NULL DEFAULT ('TCK-' || nextval('ticket_number_seq')),
         customer_id BIGINT NOT NULL,
-        created_by_user_id BIGINT NOT NULL,
+        created_by_user_id BIGINT NULL,
         current_assigned_employee_id BIGINT NULL,
         primary_issue_category_id BIGINT NULL,
  
@@ -94,7 +94,7 @@ export const createTicketTable = async () => {
         CONSTRAINT fk_tickets_created_by
             FOREIGN KEY (created_by_user_id)
             REFERENCES users(id)
-            ON DELETE RESTRICT,
+            ON DELETE SET NULL,
  
         CONSTRAINT fk_tickets_primary_issue_category
             FOREIGN KEY (primary_issue_category_id)
@@ -103,6 +103,17 @@ export const createTicketTable = async () => {
     );
   `;
   await postgresPool.query(query);
+
+  // Run database migrations for nullable creator reference on existing systems
+  try {
+    await postgresPool.query(`
+      ALTER TABLE tickets ALTER COLUMN created_by_user_id DROP NOT NULL;
+      ALTER TABLE tickets DROP CONSTRAINT IF EXISTS fk_tickets_created_by;
+      ALTER TABLE tickets ADD CONSTRAINT fk_tickets_created_by FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL;
+    `);
+  } catch (err) {
+    // Ignore if table doesn't exist yet or is being set up
+  }
 };
 
 export const createTicketEventTable = async () => {
