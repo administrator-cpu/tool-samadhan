@@ -48,7 +48,7 @@ export default function Home() {
               className="text-3xl font-bold tracking-tight text-slate-900"
               style={{ fontFamily: "'Outfit', sans-serif" }}
             >
-              Your connection is Online
+              Samadhan
             </h2>
             <div className="relative flex h-4 w-4 items-center justify-center">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-40" />
@@ -56,7 +56,7 @@ export default function Home() {
             </div>
           </div>
           <p className="text-base font-medium leading-normal text-slate-500">
-            All systems operational in your area.
+            Delivering Reliable Support Service
           </p>
         </div>
       </section>
