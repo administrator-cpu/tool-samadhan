@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
-import SamadhanIcon from "@/assets/Samadhan-Logo.png";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import FAB5Logo from "@/assets/FAB5-logo.webp";
 
 interface SidebarContentProps {
   collapsed: boolean;
@@ -31,23 +31,21 @@ const SidebarContent = ({
 }: SidebarContentProps) => (
   <div className={`flex h-full flex-col ${mobile ? "p-6" : "p-4 md:p-6 lg:p-3"}`}>
     {/* Logo */}
-    <div className="mb-5 flex flex-col items-center gap-0 overflow-hidden ">
+    <div className="flex flex-col items-center gap-0 overflow-hidden ">
       <Image
-        src={SamadhanIcon}
+        src={FAB5Logo}
         alt="Samadhan-Logo"
-        width={50}
-        height={50}
-        className={`${mobile ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"} ${
-          collapsed && !mobile ? "pt-8 -mb-5" : ""
-        } transition-all duration-300`}
+        width={100}
+        height={100}
+        className={` ${ collapsed && !mobile ? "mt-5 mb-5" : "mt-10 mb-10" } transition-all duration-300`}
       />
-      <h2
+      {/* <h2
         className={`${
           collapsed && !mobile ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"
         } transition-all duration-300 text-slate-900 text-2xl font-bold tracking-tight pt-1`}
       >
         Samadhan
-      </h2>
+      </h2> */}
 
       {mobile && (
         <button
@@ -240,13 +238,13 @@ const SidebarNavbar = () => {
       {/* Desktop Sidebar (Persistent) */}
       <aside
         className={`hidden md:flex ${
-          isCollapsed ? "w-[73px]" : "w-[240px]"
+          isCollapsed ? "w-[73px]" : "w-[200px]"
         } shrink-0 flex-col border-r border-slate-200 bg-white h-screen sticky top-0 transition-all duration-300 ease-in-out relative z-40`}
       >
         {/* Toggle Button */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-4 top-28 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-transform hover:text-[#2513ec] z-10"
+          className="absolute -right-4 top-25 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-transform hover:text-[#2513ec] z-10"
         >
           <span
             className={`material-symbols-outlined text-sm transition-transform duration-300 ${
