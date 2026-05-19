@@ -1,5 +1,7 @@
 import { format } from "date-fns";
 import { useAuthStore } from "@/store/useAuthStore";
+import FAB5Logo from "@/assets/FAB5-logo.webp";
+import Image from "next/image";
 
 interface TicketEvent {
   id: number;
@@ -19,7 +21,7 @@ export default function Timeline({ events }: TimelineProps) {
   const isEmployee = user?.role !== "USER";
 
   // Filter out internal priority messages only for customers
-  const visibleEvents = events.filter(e => {
+  const visibleEvents = events.filter((e) => {
     if (isEmployee) return true; // Employees see everything
     return (
       e.event_type !== "PRIORITY_ASSIGNED" &&
@@ -54,8 +56,6 @@ export default function Timeline({ events }: TimelineProps) {
     switch (type) {
       case "AGENT_REPLY":
         return "Support Agent";
-      case "MANAGER_REPLY":
-        return "Support Manager";
       case "ADMIN_REPLY":
         return "Support Admin";
       default:
@@ -64,13 +64,14 @@ export default function Timeline({ events }: TimelineProps) {
   };
 
   const getEventTitle = (event: TicketEvent) => {
+    console.log(event);
     switch (event.event_type) {
       case "TICKET_CREATED":
         return "Ticket Opened";
       case "TICKET_ASSIGNED":
         return "Agent Assigned";
       case "STATUS_CHANGED":
-        return `Status: ${event.metadata?.new_status || "Updated"}`;
+        return `Status: "${event.metadata?.status || "Updated"}"`;
       case "TICKET_RESOLVED":
         return "Ticket Resolved";
       case "AGENT_REPLY":
@@ -78,7 +79,7 @@ export default function Timeline({ events }: TimelineProps) {
       case "MANAGER_REPLY":
       case "USER_REPLY": {
         if (event.actor_name) {
-          const firstName = event.actor_name.split(' ')[0];
+          const firstName = event.actor_name.split(" ")[0];
           return `${firstName} Reply`;
         } else return "Customer Reply";
       }
@@ -88,11 +89,18 @@ export default function Timeline({ events }: TimelineProps) {
   };
 
   return (
-    <section className="xl:col-span-2 px-0 pb-20 mt-10" data-purpose="ticket-timeline">
+    <section
+      className="xl:col-span-2 px-0 pb-20 mt-10"
+      data-purpose="ticket-timeline"
+    >
       <div className="relative pl-6 sm:pl-10 pb-8">
         {visibleEvents.map((event, index) => {
-          const isUser = event.event_type === "TICKET_CREATED" || event.event_type === "USER_REPLY";
-          const isLast = index === visibleEvents.length - 1 && events[0].event_type === "CLOSED";
+          const isUser =
+            event.event_type === "TICKET_CREATED" ||
+            event.event_type === "USER_REPLY";
+          const isLast =
+            index === visibleEvents.length - 1 &&
+            events[0].event_type === "CLOSED";
 
           return (
             <div key={event.id} className="relative mb-12 timeline-item z-10">
@@ -102,13 +110,17 @@ export default function Timeline({ events }: TimelineProps) {
               )}
 
               {/* Node Dot */}
-              <div className={`absolute -left-3 sm:-left-[32px] top-1 w-8 h-8 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center z-10 shadow-sm`}>
+              <div
+                className={`absolute -left-3 sm:-left-[32px] top-1 w-8 h-8 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center z-10 shadow-sm`}
+              >
                 <span className="material-symbols-outlined text-lg text-slate-500">
                   {getEventIcon(event.event_type)}
                 </span>
               </div>
 
-              <div className={`mb-2 ml-2 flex ${isUser ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`mb-2 ml-2 flex ${isUser ? "justify-end" : "justify-start"}`}
+              >
                 <h3 className="font-heading font-semibold text-lg text-black flex items-center gap-2">
                   {getEventTitle(event)}
                 </h3>
@@ -116,29 +128,80 @@ export default function Timeline({ events }: TimelineProps) {
 
               {/* Message Card */}
               {event.message && event.message.trim() !== "" && (
-                <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}>
-                  <div className={`flex flex-col gap-3 pl-2 ${isUser ? "items-end" : "items-start"} w-full min-w-0`}>
-                    <div className={`max-w-[80%] flex flex-col gap-3 ${isUser ? "items-end text-right" : "items-start text-left"} min-w-0`}>
-                      <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} gap-1 text-slate-500 mb-1 font-semibold leading-normal`}>
-                        <div className={`flex flex-row items-center gap-2 ${isUser ? "flex-row-reverse" : ""}`}>
-                          <span className="text-xs font-body font-semibold">
-                            {isUser
-                              ? (isEmployee ? (event.actor_name || "Customer") : "You")
-                              : (event.actor_name || "Samadhan AI")}
-                          </span>
-                          {["AGENT_REPLY", "MANAGER_REPLY", "ADMIN_REPLY"].includes(event.event_type) && (
+                <div
+                  className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}
+                >
+                  <div
+                    className={`flex flex-col gap-3 pl-2 ${isUser ? "items-end" : "items-start"} w-full min-w-0`}
+                  >
+                    <div
+                      className={`max-w-[80%] flex flex-col gap-3 ${isUser ? "items-end text-right" : "items-start text-left"} min-w-0`}
+                    >
+                      <div
+                        className={`flex flex-col ${isUser ? "items-end" : "items-start"} gap-1 text-slate-500 mb-1 font-semibold leading-normal`}
+                      >
+                        {![
+                          "AGENT_REPLY",
+                          "MANAGER_REPLY",
+                          "ADMIN_REPLY",
+                        ].includes(event.event_type) ? (
+                          <div
+                            className={`flex flex-row items-center gap-2 ${isUser ? "flex-row-reverse" : ""}`}
+                          >
+                            <span className="text-xs font-body font-semibold">
+                              {isUser
+                                ? isEmployee
+                                  ? event.actor_name || "Customer"
+                                  : "You"
+                                : event.actor_name || "Samadhan AI"}
+                            </span>
+                            {/*{["AGENT_REPLY", "MANAGER_REPLY", "ADMIN_REPLY"].includes(event.event_type) && (
                             <span className="text-xs font-body text-primary font-semibold bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
                               {getRoleLabel(event.event_type)}
                             </span>
+                          )}*/}
+                            <span className="text-xs font-body text-muted font-semibold ml-1">
+                              {format(
+                                new Date(event.created_at),
+                                "MMM d, h:mm a",
+                              )}
+                            </span>
+                          </div>
+                        ) : (
+                          ""
+                        )}
+
+                        <div
+                          className={`pt-2 pb-3 px-3  rounded-2xl shadow-xs border overflow-hidden w-full ${
+                            isUser
+                              ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm"
+                              : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
+                          }`}
+                        >
+                          {!isUser &&
+                          [
+                            "AGENT_REPLY",
+                            "MANAGER_REPLY",
+                            "ADMIN_REPLY",
+                          ].includes(event.event_type) ? (
+                            <div className="flex items-center gap-2 justify-end mb-2 align-middle">
+                              <span className="text-xs font-body text-muted font-semibold ml-1">
+                                {format(
+                                  new Date(event.created_at),
+                                  "MMM d, yyyy, h:mm a",
+                                )}
+                              </span>
+                              <Image
+                                src={FAB5Logo.src}
+                                alt="FAB5 Logo"
+                                width={30}
+                                height={30}
+                                className="bg-transparent"
+                              />
+                            </div>
+                          ) : (
+                            ""
                           )}
-                          <span className="text-xs font-body text-muted font-semibold ml-1">
-                            {format(new Date(event.created_at), "MMM d, h:mm a")}
-                          </span>
-                        </div>
-                        <div className={`p-3 rounded-2xl shadow-xs border overflow-hidden w-full ${isUser
-                            ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm"
-                            : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
-                          }`}>
                           <p className="text-[15px] leading-relaxed font-body font-medium  whitespace-pre-wrap">
                             {event.message}
                           </p>
@@ -151,7 +214,6 @@ export default function Timeline({ events }: TimelineProps) {
             </div>
           );
         })}
-
       </div>
     </section>
   );
