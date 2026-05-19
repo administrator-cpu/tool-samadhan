@@ -80,8 +80,7 @@ export default function Timeline({ events }: TimelineProps) {
         if (event.actor_name) {
           const firstName = event.actor_name.split(' ')[0];
           return `${firstName} Reply`;
-        }
-        return "Customer Reply";
+        } else return "Customer Reply";
       }
       default:
         return "System Update";
