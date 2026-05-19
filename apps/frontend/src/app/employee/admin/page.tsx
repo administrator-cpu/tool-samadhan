@@ -8,6 +8,14 @@ import { useUICacheStore } from "@/store/useUICacheStore";
 import { Ticket, AlertTriangle, CheckCircle2, Users, Activity, ArrowRight, ShieldAlert, BarChart3, TrendingUp, TrendingDown } from "lucide-react";
 import Link from "next/link";
 
+interface AgentStat {
+  employee_id: number;
+  name: string;
+  role: string;
+  total_assigned: number;
+  active_assigned: number;
+}
+
 interface AdminStats {
   summary: {
     total_tickets: string;
@@ -21,6 +29,7 @@ interface AdminStats {
   };
   categories: { name: string; count: string }[];
   volumeMix: { name: string; count: string }[];
+  agents: AgentStat[];
 }
 
 export default function AdminDashboard() {
@@ -29,9 +38,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      // 1-day cache expiry
-      const ONE_DAY = 24 * 60 * 60 * 1000;
-      const isCacheValid = dashboardStats && dashboardLastFetched && (Date.now() - dashboardLastFetched < ONE_DAY);
+      // 10-second cache expiry
+      const TEN_SECONDS = 10 * 1000;
+      const isCacheValid = dashboardStats && dashboardLastFetched && (Date.now() - dashboardLastFetched < TEN_SECONDS);
 
       if (isCacheValid) {
         console.log("[DASHBOARD] Using cached statistics");
@@ -151,44 +160,104 @@ export default function AdminDashboard() {
         {/* Main Dashboard Layout */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           
-          {/* Category Breakdown */}
-          <div className="lg:col-span-2 rounded-[1rem] border border-slate-100 bg-white p-8 shadow-2xl shadow-slate-200/40">
-            <div className="mb-8 flex items-center justify-between">
-              <h3 className="text-xl font-black tracking-tight text-slate-900">Active Issue</h3>
-              <BarChart3 size={20} className="text-slate-400" />
+          {/* Left Column: Issue Categories & Agents Workload */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* Agent Workload Card */}
+            <div className="rounded-[1rem] border border-slate-100 bg-white p-8 shadow-2xl shadow-slate-200/40">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black tracking-tight text-slate-900">Workforce Workload</h3>
+                  <p className="text-xs text-slate-500 font-medium mt-1">Real-time active ticket distribution per agent</p>
+                </div>
+                <Users size={20} className="text-slate-400" />
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      <th className="pb-3 font-semibold">Agent</th>
+                      <th className="pb-3 text-center font-semibold">Active Tickets</th>
+                      <th className="pb-3 text-center font-semibold">Total Assigned</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {stats.agents?.map((agent) => {
+                      const active = agent.active_assigned;
+
+                      return (
+                        <tr key={agent.employee_id} className="group hover:bg-slate-50/50 transition-colors">
+                          <td className="py-4">
+                            <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                              {agent.name}
+                            </span>
+                          </td>
+                          <td className="py-4 text-center">
+                            <span className={`inline-flex items-center justify-center rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-black text-indigo-700 border border-indigo-100`}>
+                              {active}
+                            </span>
+                          </td>
+                          <td className="py-4 text-center">
+                            <span className="text-sm font-bold text-slate-600">
+                              {agent.total_assigned}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {(!stats.agents || stats.agents.length === 0) && (
+                      <tr>
+                        <td colSpan={3} className="text-center text-sm text-slate-400 py-10">
+                          No support agents registered yet
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="space-y-6">
-              
-              {categories?.map((cat, i) => {
-                const totalActive = Number(summary.active_tickets) || 1;
-                const percentage = (Number(cat.count) / totalActive) * 100;
-                return (
-                  <div key={cat.name} className="group">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{cat.name}</span>
-                      <span className="text-xs font-black text-slate-400">{cat.count} Tickets</span>
+
+            {/* Category Breakdown */}
+            <div className="rounded-[1rem] border border-slate-100 bg-white p-8 shadow-2xl shadow-slate-200/40">
+              <div className="mb-8 flex items-center justify-between">
+                <h3 className="text-xl font-black tracking-tight text-slate-900">Active Issue</h3>
+                <BarChart3 size={20} className="text-slate-400" />
+              </div>
+              <div className="space-y-6">
+                
+                {categories?.map((cat, i) => {
+                  const totalActive = Number(summary.active_tickets) || 1;
+                  const percentage = (Number(cat.count) / totalActive) * 100;
+                  return (
+                    <div key={cat.name} className="group">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{cat.name}</span>
+                        <span className="text-xs font-black text-slate-400">{cat.count} Tickets</span>
+                      </div>
+                      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-50 border border-slate-100 shadow-inner">
+                        <div 
+                          className={`h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${
+                            i % 3 === 0 ? 'bg-indigo-600' : 
+                            i % 3 === 1 ? 'bg-indigo-400' : 
+                            'bg-indigo-200'
+                          }`}
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
                     </div>
-                    <div className="h-3 w-full overflow-hidden rounded-full bg-slate-50 border border-slate-100 shadow-inner">
-                      <div 
-                        className={`h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${
-                          i % 3 === 0 ? 'bg-indigo-600' : 
-                          i % 3 === 1 ? 'bg-indigo-400' : 
-                          'bg-indigo-200'
-                        }`}
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
-              {(!stats.categories || stats.categories.length === 0) && <p className="text-center text-sm text-slate-400 py-10">No volume data available yet</p>}
+                  );
+                })}
+                {(!stats.categories || stats.categories.length === 0) && <p className="text-center text-sm text-slate-400 py-10">No volume data available yet</p>}
+              </div>
+              <div className="mt-10 pt-8 border-t border-slate-50">
+                <Link href="/employee/admin/tickets" className="group flex items-center gap-2 text-sm font-black text-indigo-600 hover:text-indigo-800 transition-all">
+                  View All Tickets
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
             </div>
-            <div className="mt-10 pt-8 border-t border-slate-50">
-              <Link href="/employee/admin/tickets" className="group flex items-center gap-2 text-sm font-black text-indigo-600 hover:text-indigo-800 transition-all">
-                View All Tickets
-                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
+
           </div>
 
           {/* Priority Heatmap & Quick Access */}
