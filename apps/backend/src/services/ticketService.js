@@ -884,14 +884,31 @@ export const getAdminStats = async () => {
     `;
 
 
+    const agentsQuery = `
+      SELECT 
+        e.id AS employee_id,
+        u.name AS name,
+        u.role AS role,
+        COUNT(t.id)::integer AS total_assigned,
+        COALESCE(SUM(CASE WHEN t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED') THEN 1 ELSE 0 END), 0)::integer AS active_assigned
+      FROM employees e
+      JOIN users u ON u.id = e.user_id
+      LEFT JOIN tickets t ON t.current_assigned_employee_id = e.id
+      WHERE u.role = 'SUPPORT_AGENT'
+      GROUP BY e.id, u.name, u.role
+      ORDER BY active_assigned DESC, u.name ASC
+    `;
+
     const statsRes = await client.query(statsQuery);
     const categoryRes = await client.query(categoryQuery);
+    const agentsRes = await client.query(agentsQuery);
     console.log("CategoryRes: ", categoryRes.rows)
 
     return {
       summary: statsRes.rows[0],
       categories: categoryRes.rows,
-      volumeMix: categoryRes.rows // Alias for clarity in frontend
+      volumeMix: categoryRes.rows, // Alias for clarity in frontend
+      agents: agentsRes.rows
     };
   } finally {
     client.release();
