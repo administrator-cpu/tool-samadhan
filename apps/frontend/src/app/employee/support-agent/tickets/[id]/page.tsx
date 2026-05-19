@@ -45,6 +45,8 @@ interface TicketData {
     rca: string | null;
     problem_side: string | null;
     external_ticket_no: string | null;
+    rating: number | null;
+    rating_feedback: string | null;
   };
   events: TicketEvent[];
 }
@@ -167,6 +169,15 @@ export default function TicketDetailPage() {
           };
         });
         toast.info("Root Cause Analysis (RCA) report has been updated!");
+      } else if (data.type === "TICKET_RATING_UPDATED") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, rating: data.rating, rating_feedback: data.rating_feedback }
+          };
+        });
+        toast.info("Customer has submitted feedback rating!");
       }
     };
 
@@ -442,7 +453,7 @@ export default function TicketDetailPage() {
                 </div>
               ) : (
                 /* Interactive RCA Editor */
-                <div className="relative rounded-3xl border border-emerald-100 bg-white p-2 shadow-xl shadow-emerald-500/5 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all">
+                <div className="relative rounded-xl border border-emerald-100 bg-white p-2 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all">
                   <textarea
                     value={rcaText}
                     onChange={(e) => setRcaText(e.target.value)}
@@ -467,13 +478,55 @@ export default function TicketDetailPage() {
                           setIsEditingRca(false);
                         }}
                         disabled={savingRca || !rcaText.trim()}
-                        className="flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50 shadow-lg shadow-emerald-200"
+                        className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50"
                       >
                         {savingRca ? "Saving Report..." : ticket.rca ? "Save Changes" : "Submit RCA"}
                         <CheckCircle2 size={16} />
                       </button>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {ticket.rating && (
+            <div className="max-w-4xl mx-auto w-full mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-xs shrink-0">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
+                  <span className="material-symbols-outlined text-[18px]">star</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Customer Rating & Feedback</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Post-Resolution Satisfaction</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const isFilled = i < (ticket.rating || 0);
+                  return (
+                    <span
+                      key={i}
+                      className={`material-symbols-outlined text-[20px] ${
+                        isFilled ? "text-amber-500" : "text-slate-200"
+                      }`}
+                      style={{ fontVariationSettings: isFilled ? "'FILL' 1" : "'FILL' 0" }}
+                    >
+                      star
+                    </span>
+                  );
+                })}
+                <span className="ml-2 text-sm font-black text-slate-700">
+                  {ticket.rating} / 5 Stars
+                </span>
+              </div>
+
+              {ticket.rating_feedback && (
+                <div className="mt-3 rounded-lg bg-slate-50 border border-slate-100 px-4 py-3">
+                  <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
+                    "{ticket.rating_feedback}"
+                  </p>
                 </div>
               )}
             </div>

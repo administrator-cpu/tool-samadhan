@@ -90,9 +90,7 @@ export default function ProviderOutageTracker({
 
           {/* Ticket No Input */}
           <div>
-            <label className="text-[9px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-              Ticket No.
-            </label>
+            <label className="text-[9px] font-black uppercase tracking-wider text-slate-400 block mb-1">Telco SR Number</label>
             <input
               type="text"
               value={tempTicketNo}
@@ -139,7 +137,7 @@ export default function ProviderOutageTracker({
 
           {/* View Ticket No. */}
           <div>
-            <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-0.5">Ticket No.</p>
+            <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-0.5">Telco SR Number</p>
             {externalTicketNo ? (
               <div
                 onClick={handleCopy}

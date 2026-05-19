@@ -415,6 +415,7 @@ export const getCurrentUserDetails = async (userId) => {
       u.name,
       u.email,
       u.role,
+      u.phone,
       u.created_at,
       u.updated_at,
 
@@ -456,6 +457,7 @@ export const getCurrentUserDetails = async (userId) => {
       name: row.name,
       email: row.email,
       role: row.role,
+      phone: row.phone,
       must_change_password: row.must_change_password,
       specialties: row.categories.map(c => c.name),
       created_at: row.created_at,
@@ -530,4 +532,22 @@ export const completePasswordReset = async (email, otpCode, newPassword) => {
     await client.query("COMMIT");
     return { success: true, message: "Password reset successfully" };
   } catch (error) { await client.query("ROLLBACK"); throw error; } finally { client.release(); }
+};
+
+export const updateUserProfile = async ({ userId, name, phone }) => {
+  const result = await postgresPool.query(
+    `UPDATE users
+     SET name = $1,
+         phone = $2,
+         updated_at = NOW()
+     WHERE id = $3
+     RETURNING id, name, email, role, phone`,
+    [name, phone, userId]
+  );
+
+  if (result.rowCount === 0) {
+    throw new AppError(404, "User not found", "USER_NOT_FOUND");
+  }
+
+  return result.rows[0];
 };

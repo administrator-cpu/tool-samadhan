@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import ReassignModal from "@/components/ReassignModal";
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, TrendingUp, Calendar, UserCheck } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 interface Ticket {
   id: number;
@@ -223,6 +224,7 @@ export default function AdminTicketsPage() {
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ticket & Customer</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ownership</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Last Updated</th>
                     <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">View</th>
                   </tr>
                 </thead>
@@ -253,6 +255,9 @@ export default function AdminTicketsPage() {
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tight ${statusColors[ticket.status] || "bg-slate-100"}`}>
                           {ticket.status.replace("_", " ")}
                         </span>
+                      </td>
+                      <td className="px-8 py-6 text-xs font-bold text-slate-500">
+                        {formatDistanceToNow(new Date(ticket.updated_at), { addSuffix: true })}
                       </td>
                       <td className="px-8 py-6 text-right">
                         <Link
@@ -305,7 +310,7 @@ export default function AdminTicketsPage() {
                 <button
                   onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
                   disabled={page === pagination.pages}
-                  className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
+                  className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
                 >
                   Next
                   <span className="material-symbols-outlined text-[18px]">chevron_right</span>
