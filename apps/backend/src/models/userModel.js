@@ -59,6 +59,7 @@ export const createCustomerTable = async () => {
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         user_id BIGINT UNIQUE NOT NULL,
         customer_id VARCHAR(20) UNIQUE NOT NULL DEFAULT ('CUST-' || nextval('customer_number_seq')),
+        must_change_password BOOLEAN NOT NULL DEFAULT TRUE,
         joined_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT fk_customers_user
             FOREIGN KEY (user_id)
@@ -67,6 +68,11 @@ export const createCustomerTable = async () => {
     );
   `;
   await postgresPool.query(query);
+
+  // 3. Add must_change_password column if it doesn't exist (for existing tables)
+  await postgresPool.query(`
+    ALTER TABLE customers ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT TRUE;
+  `);
 };
 
 export const createIssueCategoryTable = async () => {

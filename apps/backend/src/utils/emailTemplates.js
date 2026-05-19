@@ -38,6 +38,41 @@ export const welcomeStaffTemplate = ({ name, email, password, role }) => ({
   `
 });
 
+export const welcomeCustomerTemplate = ({ name, email, password }) => ({
+  subject: "Welcome to Samadhan Support Portal",
+  html: `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+      <div style="background-color: #0d9488; padding: 30px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: -0.025em;">Welcome to Samadhan</h1>
+        <p style="color: #ccfbf1; margin-top: 8px; font-size: 16px;">Your Customer Account is Ready</p>
+      </div>
+      <div style="padding: 40px 30px;">
+        <h2 style="color: #1e293b; margin-top: 0;">Hello ${name},</h2>
+        <p style="color: #475569; line-height: 1.6; font-size: 16px;">An account has been created for you on the Samadhan Support Portal. You can now log in to raise support tickets and track their status in real-time.</p>
+        
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px; margin: 30px 0;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="color: #64748b; font-size: 14px; padding-bottom: 8px;">Email Address</td>
+              <td style="color: #64748b; font-size: 14px; padding-bottom: 8px;">Temporary Password</td>
+            </tr>
+            <tr>
+              <td style="color: #1e293b; font-weight: 600; font-size: 16px;">${email}</td>
+              <td style="color: #1e293b; font-weight: 600; font-size: 16px; font-family: monospace;">${password}</td>
+            </tr>
+          </table>
+        </div>
+
+        <p style="color: #64748b; font-size: 14px; line-height: 1.6;">For security purposes, you will be required to change your password during your first login.</p>
+        
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
+          <p style="color: #94a3b8; font-size: 12px; margin: 0;">Samadhan Support System &bull; Enterprise Operations</p>
+        </div>
+      </div>
+    </div>
+  `
+});
+
 export const ticketCreatedTemplate = ({ ticketNo, customerName, category }) => ({
   subject: `Samadhan - Ticket Created: #${ticketNo}`,
   html: `

@@ -206,18 +206,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Footer */}
-          <div className="mt-8 border-t border-slate-200 pt-6 text-center">
-            <p className="text-sm text-slate-500">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/signup"
-                className="font-medium text-indigo-700 transition hover:underline"
-              >
-                Create Account
-              </Link>
-            </p>
-          </div>
         </div>
       </main>
     </div>
