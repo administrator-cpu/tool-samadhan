@@ -68,8 +68,10 @@ export default function Timeline({ events }: TimelineProps) {
     switch (event.event_type) {
       case "TICKET_CREATED":
         return "Ticket Opened";
-      case "TICKET_ASSIGNED":
-        return "Agent Assigned";
+      case "TICKET_ASSIGNED": {
+        const isReassign = event.metadata?.is_reassign || (event.message && /reassigned/i.test(event.message));
+        return isReassign ? "Expert Tech Support" : "Agent Assigned";
+      }
       case "STATUS_CHANGED":
         return `Status: "${event.metadata?.status || "Updated"}"`;
       case "TICKET_RESOLVED":
@@ -127,7 +129,7 @@ export default function Timeline({ events }: TimelineProps) {
               </div>
 
               {/* Message Card */}
-              {event.message && event.message.trim() !== "" && (
+              {event.message && event.message.trim() !== "" && !(event.event_type === "TICKET_ASSIGNED" && (event.metadata?.is_reassign || /reassigned/i.test(event.message)) && !isEmployee) && (
                 <div
                   className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}
                 >
