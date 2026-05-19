@@ -125,9 +125,16 @@ export default function ProfilePage() {
                     toast.error("Name cannot be empty");
                     return;
                   }
+                  if (phone) {
+                    const phoneRegex = /^[0-9]{10}$/;
+                    if (!phoneRegex.test(phone)) {
+                      toast.error("Phone number must be exactly 10 digits");
+                      return;
+                    }
+                  }
                   try {
                     setUpdatingProfile(true);
-                    const res = await api.patch("/me", { name, phone });
+                    const res = await api.patch("/me", { name, phone: phone || null });
                     toast.success("Profile updated successfully");
                     
                     // Update cache state
@@ -171,9 +178,14 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Phone Number</label>
                   <input
-                    type="number"
+                    type="text"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^[0-9]*$/.test(val) && val.length <= 10) {
+                        setPhone(val);
+                      }
+                    }}
                     placeholder="e.g. 1234567890"
                     className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 outline-hidden transition-all"
                   />

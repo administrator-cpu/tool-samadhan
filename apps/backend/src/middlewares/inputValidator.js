@@ -31,6 +31,13 @@ const customerCreateSchema = Joi.object({
   }),
 });
 
+const updateProfileSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(255).required(),
+  phone: Joi.string().trim().pattern(/^[0-9]{10}$/).optional().allow('', null).messages({
+    'string.pattern.base': 'Phone number must be exactly 10 digits and contain only numbers'
+  }),
+});
+
 const validateBody = (schema) => (req, res, next) => {
   const { error, value } = schema.validate(req.body, {
     abortEarly: false,
@@ -58,3 +65,4 @@ export const validateCustomerRegister = validateBody(customerRegisterSchema);
 export const validateCustomerCreate = validateBody(customerCreateSchema);
 export const validateLogin = validateBody(loginSchema);
 export const validateEmployeeCreate = validateBody(employeeCreateSchema);
+export const validateUpdateProfile = validateBody(updateProfileSchema);
