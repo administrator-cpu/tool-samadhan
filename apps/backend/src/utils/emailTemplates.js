@@ -38,6 +38,7 @@ export const welcomeStaffTemplate = ({ name, email, password, role }) => ({
   `
 });
 
+
 export const welcomeCustomerTemplate = ({ name, email, password }) => ({
   subject: "Welcome to Samadhan Support Portal",
   html: `
@@ -73,6 +74,7 @@ export const welcomeCustomerTemplate = ({ name, email, password }) => ({
   `
 });
 
+
 export const ticketCreatedTemplate = ({ ticketNo, customerName, category }) => ({
   subject: `Samadhan - Ticket Created: #${ticketNo}`,
   html: `
@@ -106,6 +108,7 @@ export const ticketCreatedTemplate = ({ ticketNo, customerName, category }) => (
     </div>
   `
 });
+
 
 export const ticketStatusUpdateTemplate = ({ ticketNo, customerName, status, updateType }) => {
   const config = {
@@ -164,6 +167,8 @@ export const ticketStatusUpdateTemplate = ({ ticketNo, customerName, status, upd
     `
   };
 };
+
+
 export const passwordResetOtpTemplate = ({ name, otpCode }) => ({
   subject: "Samadhan - Password Reset OTP",
   html: `
@@ -199,6 +204,7 @@ export const passwordResetOtpTemplate = ({ name, otpCode }) => ({
   `
 });
 
+
 export const ticketAssignedToCustomerTemplate = ({ ticketNo, customerName, agentName, category }) => ({
   subject: `Samadhan - Ticket Assigned: #${ticketNo}`,
   html: `
@@ -233,6 +239,7 @@ export const ticketAssignedToCustomerTemplate = ({ ticketNo, customerName, agent
     </div>
   `
 });
+
 
 export const ticketAssignedToAgentTemplate = ({ ticketNo, agentName, customerName, customerId, category, message }) => ({
   subject: `Samadhan - New Ticket Assigned: #${ticketNo}`,
@@ -282,6 +289,7 @@ export const ticketAssignedToAgentTemplate = ({ ticketNo, agentName, customerNam
   `
 });
 
+
 export const troubleshootingUpdateTemplate = ({ ticketNo, customerName }) => ({
   subject: `Samadhan Update - Ticket #${ticketNo}: Investigation Underway`,
   html: `
@@ -317,6 +325,7 @@ export const troubleshootingUpdateTemplate = ({ ticketNo, customerName }) => ({
   `
 });
 
+
 export const longDelayUpdateTemplate = ({ ticketNo, customerName }) => ({
   subject: `Samadhan Update - Ticket #${ticketNo}: Resolution Timeline`,
   html: `
@@ -351,6 +360,8 @@ export const longDelayUpdateTemplate = ({ ticketNo, customerName }) => ({
     </div>
   `
 });
+
+
 export const ticketUpdateByStaffTemplate = ({ ticketNo, customerName, agentName, message }) => ({
   subject: `Samadhan Update - New Message on Ticket #${ticketNo}`,
   html: `
