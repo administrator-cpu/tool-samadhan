@@ -18,7 +18,7 @@ import {
 
 dotenv.config();
 
-const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
+const sendEmail = async ({ toEmail, toName, subject, htmlContent, ccEmail }) => {
   const serviceId = process.env.EMAILJS_SERVICE_ID;
   const templateId = process.env.EMAILJS_TEMPLATE_ID;
   const publicKey = process.env.EMAILJS_PUBLIC_KEY;
@@ -26,12 +26,12 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
 
   if (!serviceId || !templateId || !publicKey || !privateKey) {
     console.warn("[EMAIL-SERVICE] Missing EmailJS credentials. Both Public and Private keys are required for strict mode.");
-    console.log(`[DEV-LOG] Email would have been sent to ${toEmail} with subject: ${subject}`);
+    console.log(`[DEV-LOG] Email would have been sent to ${toEmail}${ccEmail ? ` (CC: ${ccEmail})` : ''} with subject: ${subject}`);
     return;
   }
 
   try {
-    console.log(`[EMAIL-SERVICE] Attempting to send email to: ${toEmail}`);
+    console.log(`[EMAIL-SERVICE] Attempting to send email to: ${toEmail}${ccEmail ? ` (CC: ${ccEmail})` : ''}`);
     const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
       method: "POST",
       headers: {
@@ -47,6 +47,7 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
           to_name: toName,
           subject: subject,
           html_content: htmlContent,
+          cc_email: ccEmail || "",
         },
       }),
     });
@@ -128,7 +129,7 @@ export const sendCustomerAssignment5MinEmail = async ({ name, email, ticketNo })
 };
 
 /**
- * Sends immediate agent & helpdesk assignment emails
+ * Sends a single assignment email TO the agent with helpdesk CC'd
  */
 export const sendImmediateAgentAssignmentEmails = async ({
   customerName,
@@ -141,27 +142,19 @@ export const sendImmediateAgentAssignmentEmails = async ({
   const { subject, html } = ticketAssignedToAgentTemplate({
     ticketNo,
     customerName,
+    agentName,
     category,
     circuitId
   });
 
-  // 1. Notify Agent
-  const p1 = sendEmail({
+  // Single email: TO agent, CC helpdesk
+  await sendEmail({
     toEmail: agentEmail,
     toName: agentName,
     subject,
     htmlContent: html,
-  }).catch(err => console.error("[EMAIL] Immediate assignment (Agent) failed:", err));
-
-  // 2. Notify Helpdesk
-  const p2 = sendEmail({
-    toEmail: "helpdesk@fab5network.com",
-    toName: "Fab5 Helpdesk",
-    subject,
-    htmlContent: html,
-  }).catch(err => console.error("[EMAIL] Immediate assignment (Helpdesk) failed:", err));
-
-  await Promise.all([p1, p2]);
+    ccEmail: "helpdesk@fab5network.com",
+  });
 };
 
 /**

@@ -57,7 +57,6 @@ export default function Timeline({ events }: TimelineProps) {
   };
 
   const getEventTitle = (event: TicketEvent) => {
-    console.log(event);
     switch (event.event_type) {
       case "TICKET_CREATED":
         return "Ticket Opened";
@@ -76,7 +75,7 @@ export default function Timeline({ events }: TimelineProps) {
         const actorName = event.actor_name || event.metadata?.actor_name;
         if (actorName) {
           const firstName = actorName.split(" ")[0];
-          return `${firstName} Reply`;
+          return `${firstName}`;
         }
         return event.event_type === "USER_REPLY" ? "Customer Reply" : "Support Reply";
       }
@@ -100,7 +99,7 @@ export default function Timeline({ events }: TimelineProps) {
             events[0].event_type === "CLOSED";
 
           return (
-            <div key={event.id} className="relative mb-12 timeline-item z-10">
+            <div key={event.id} className="relative mb-10 timeline-item z-10">
               {/* Spine Line - Only show if not the very last overall node */}
               {index < visibleEvents.length - 1 && (
                 <div className="absolute left-[-2px] sm:left-[-17px] top-10 bottom-[-48px] w-[2px] bg-slate-200 z-0" />
@@ -118,14 +117,14 @@ export default function Timeline({ events }: TimelineProps) {
               <div
                 className={`mb-2 ml-2 flex ${isUser ? "justify-end" : "justify-start"}`}
               >
-                <h3 className="font-heading font-semibold text-lg text-black flex items-center gap-2">
+                <h3 className="font-heading font-semibold text-lg text-black flex items-center gap-2 mt-1">
                   {getEventTitle(event)}
                 </h3>
               </div>
 
               {/* Message Card */}
 
-              {event.message && event.message.trim() !== "" && (
+              {event.message && event.message.trim() !== "" && !(event.event_type === "STATUS_CHANGED" && !isEmployee) && (
                   <div
                     className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}
                   >
@@ -208,6 +207,8 @@ export default function Timeline({ events }: TimelineProps) {
                     </div>
                   </div>
                 )}
+
+
             </div>
           );
         })}

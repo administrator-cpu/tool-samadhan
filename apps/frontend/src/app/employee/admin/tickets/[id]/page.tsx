@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
-import Timeline from "@/components/CustomerTimeline";
+import Timeline from "@/components/ChatBoxTimelineMessages";
 import { api } from "@/lib/api";
 import { quickReplies } from "@/lib/quickReplies";
 import { useParams } from "next/navigation";
@@ -380,15 +380,17 @@ export default function TicketDetailPage() {
                 </>
               )}
 
-              {/* Close Button - For everything except CLOSED */}
-              <button
-                onClick={() => handleUpdate({ status: "CLOSED" })}
-                disabled={updating}
-                className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 transition-all disabled:opacity-50"
-              >
-                <XCircle size={18} />
-                Close
-              </button>
+              {/* Close Button - Only when RESOLVED and RCA is filled */}
+              {ticket.status === "RESOLVED" && ticket.rca && (
+                <button
+                  onClick={() => handleUpdate({ status: "CLOSED" })}
+                  disabled={updating}
+                  className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 transition-all disabled:opacity-50"
+                >
+                  <XCircle size={18} />
+                  Close
+                </button>
+              )}
             </>
           )}
         </div>

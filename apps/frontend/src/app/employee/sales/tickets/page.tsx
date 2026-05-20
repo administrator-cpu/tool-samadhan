@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, Calendar, UserCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";

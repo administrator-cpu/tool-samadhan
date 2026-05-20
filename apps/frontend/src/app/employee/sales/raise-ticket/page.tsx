@@ -131,7 +131,7 @@ export default function SalesCreateTicketPage() {
                 name="circuitDescription"
                 value={formData.circuitDescription}
                 onChange={handleChange}
-                placeholder="Circuit or BEND ID"
+                placeholder="Circuit or B END ID"
                 required
                 className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
               />

@@ -1,9 +1,9 @@
 const emeraldLayout = (title, content) => `
-  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 580px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
     <div style="background-color: #059669; padding: 24px; text-align: center;">
       <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.025em; text-transform: uppercase;">${title}</h1>
     </div>
-    <div style="padding: 30px 24px; color: #1f2937; line-height: 1.6; font-size: 15px;">
+    <div style="padding: 30px 16px; color: #1f2937; line-height: 1.6; font-size: 15px;">
       ${content}
     </div>
   </div>
@@ -17,15 +17,15 @@ export const welcomeStaffTemplate = ({ name, email, password, role }) => ({
       <h2 style="color: #059669; margin-top: 0; font-size: 18px;">Hello ${name},</h2>
       <p>Your account has been successfully created. You can now log in to the Support Dashboard using the credentials below:</p>
       
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; margin: 20px 0;">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
           <tr>
-            <td style="color: #4b5563; padding-bottom: 6px;">Email Address</td>
-            <td style="color: #4b5563; padding-bottom: 6px;">Generated Password</td>
+            <td style="color: #4b5563; padding-bottom: 6px;">Email Address: </td>
+            <td style="color: #1f2937; font-weight: 600; word-break: break-word; overflow-wrap: break-word; ">${email}</td>
           </tr>
           <tr>
-            <td style="color: #1f2937; font-weight: 700;">${email}</td>
-            <td style="color: #1f2937; font-weight: 700; font-family: monospace;">${password}</td>
+            <td style="color: #4b5563; padding-bottom: 6px;">Generated Password: </td>
+            <td style="color: #1f2937; font-weight: 600; font-family: monospace; word-break: break-all; overflow-wrap: anywhere;">${password}</td>
           </tr>
         </table>
       </div>
@@ -37,7 +37,7 @@ export const welcomeStaffTemplate = ({ name, email, password, role }) => ({
       <p style="font-size: 13px; color: #6b7280; margin-top: 20px;">Please change your password after your first login for security purposes.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -54,12 +54,12 @@ export const welcomeCustomerTemplate = ({ name, email, password }) => ({
       <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
           <tr>
-            <td style="color: #4b5563; padding-bottom: 6px;">Email Address</td>
-            <td style="color: #4b5563; padding-bottom: 6px;">Temporary Password</td>
+            <td style="color: #4b5563; padding-bottom: 6px;">Email Address: </td>
+            <td style="color: #1f2937; font-weight: 600; word-break: break-word; overflow-wrap: break-word; ">${email}</td>
           </tr>
           <tr>
-            <td style="color: #1f2937; font-weight: 700;">${email}</td>
-            <td style="color: #1f2937; font-weight: 700; font-family: monospace;">${password}</td>
+            <td style="color: #4b5563; padding-bottom: 6px;">Generated Password: </td>
+            <td style="color: #1f2937; font-weight: 600; font-family: monospace; word-break: break-all; overflow-wrap: anywhere;">${password}</td>
           </tr>
         </table>
       </div>
@@ -67,7 +67,7 @@ export const welcomeCustomerTemplate = ({ name, email, password }) => ({
       <p style="font-size: 13px; color: #6b7280;">For security purposes, you will be required to change your password during your first login.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -81,12 +81,12 @@ export const ticketCreatedTemplate = ({ ticketNo }) => ({
       <p>Dear Customer,</p>
       <p>This is to acknowledge that your complaint has been successfully registered in our system. Your Ticket ID is <strong>${ticketNo}</strong>. Please refer to this ID for any future communication regarding your concern.</p>
       
-      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
       
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -122,7 +122,7 @@ export const ticketCreatedHelpdeskTemplate = ({ customerName, ticketNo, category
       </div>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -136,27 +136,31 @@ export const ticketAssignedCustomer5MinTemplate = ({ ticketNo }) => ({
       <p>Dear Customer,</p>
       <p>We would like to inform you that your complaint has been assigned to the concerned department for further investigation and necessary action.</p>
       
-      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
       
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
 });
 
-export const ticketAssignedToAgentTemplate = ({ ticketNo, customerName, category, circuitId }) => ({
+export const ticketAssignedToAgentTemplate = ({ ticketNo, customerName, agentName, category, circuitId }) => ({
   subject: `Fab5: Ticket ID – ${ticketNo} – Assigned`,
   html: emeraldLayout(
     "Ticket Assigned",
     `
       <p>Dear Team,</p>
-      <p>This is to inform that a complaint has been assigned to you with below details:</p>
+      <p>This is to inform that a complaint has been assigned with below details:</p>
       
       <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Assigned To:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${agentName}</td>
+          </tr>
           <tr>
             <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Name of Customer:</td>
             <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${customerName}</td>
@@ -177,7 +181,7 @@ export const ticketAssignedToAgentTemplate = ({ ticketNo, customerName, category
       </div>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -191,12 +195,12 @@ export const ticketTroubleshootingCustomer15MinTemplate = ({ ticketNo }) => ({
       <p>Dear Customer,</p>
       <p>To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.</p>
       
-      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
       
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -212,7 +216,7 @@ export const ticketResolvedTemplate = ({ ticketNo }) => ({
       <p>We would appreciate it if you could take a moment to share your feedback on portal of your experience with our support team. Your input is valuable and helps us improve our services.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong></p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -233,7 +237,7 @@ export const ticketRcaTemplate = ({ ticketNo, rca }) => ({
       <p>Please feel free to reach out if you have any questions or need additional clarification.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong></p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -251,10 +255,10 @@ export const ticketUpdateByStaffTemplate = ({ ticketNo, agentName, message }) =>
         "${message}"
       </div>
       
-      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -276,7 +280,7 @@ export const passwordResetOtpTemplate = ({ name, otpCode }) => ({
       <p style="font-size: 13px; color: #6b7280;">If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -291,25 +295,18 @@ export const ticketStatusUpdateTemplate = ({ ticketNo, status, updateType }) => 
     REOPENED: {
       title: "Complaint Reopened",
       subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-      message: `Your ticket has been reopened. Our support team has been notified and will prioritize your request for further assistance.`,
-      footer: "Customer Support Team"
+      message: `Your ticket has been reopened. Our support team has been notified and will prioritize your request for further assistance.`
     },
     ESCALATED: {
       title: "Complaint Escalated",
       subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-      message: `Your ticket has been escalated to our senior support management. We are dedicating extra resources to ensure a swift resolution.`,
-      footer: "Customer Support Team"
+      message: `Your ticket has been escalated to our senior support management. We are dedicating extra resources to ensure a swift resolution.`
     }
   }[updateType] || {
     title: "Complaint Updated",
     subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-    message: `Your ticket status has been updated to ${status.replace('_', ' ')}.`,
-    footer: "Customer Support Team"
+    message: `Your ticket status has been updated to ${status.replace('_', ' ')}.`
   };
-
-  const footerLine = config.footer 
-    ? `Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>${config.footer}`
-    : `Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong>`;
 
   return {
     subject: config.subject,
@@ -319,10 +316,10 @@ export const ticketStatusUpdateTemplate = ({ ticketNo, status, updateType }) => 
         <p>Dear Customer,</p>
         <p>${config.message}</p>
         
-        <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+        <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-          <p style="margin: 0; font-size: 14px;">${footerLine}</p>
+          <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
         </div>
       `
     )
@@ -337,12 +334,12 @@ export const troubleshootingUpdateTemplate = ({ ticketNo }) => ({
       <p>Dear Customer,</p>
       <p>To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.</p>
       
-      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
       
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -351,17 +348,17 @@ export const troubleshootingUpdateTemplate = ({ ticketNo }) => ({
 export const longDelayUpdateTemplate = ({ ticketNo }) => ({
   subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
   html: emeraldLayout(
-    "Investigation Timeline Update",
+    "Media Outage",
     `
       <p>Dear Customer,</p>
-      <p>Your ticket is undergoing an in-depth investigation by our senior support specialists. We estimate it will take approximately 4 hours to fully resolve this issue.</p>
+      <p>We regret to inform you that the link is currently affected due to an outage in Bharti media. Our team is actively coordinating with the concerned team to expedite the restoration of services. The Estimated Restoration Time is 4hrs.</p>
       
-      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
       
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
