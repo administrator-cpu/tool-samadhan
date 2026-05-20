@@ -1,7 +1,14 @@
 import postgresPool from "../config/db.js";
 import AppError from "../utils/AppError.js";
 import { findBestAgentForCategory } from "./assignmentService.js";
-import { sendTicketConfirmationEmail, sendTicketStatusUpdateEmail, sendTicketAssignmentEmails, sendTicketUpdateEmail } from "../utils/emailService.js";
+import { 
+  sendTicketConfirmationEmail, 
+  sendTicketStatusUpdateEmail, 
+  sendImmediateAgentAssignmentEmails, 
+  sendTicketUpdateEmail,
+  sendTicketCreatedHelpdeskEmail,
+  sendTicketRcaEmail
+} from "../utils/emailService.js";
 import { ticketAutomationQueue } from "../config/queue.js";
 import ticketEventEmitter from "../utils/eventEmitter.js";
 
@@ -9,7 +16,7 @@ const ACTIVE_TICKET_STATUSES = ["OPEN", "IN_PROGRESS", "ON_HOLD", "ESCALATED"];
 
 const getCustomerContactByTicketId = async (client, ticketId) => {
   const result = await client.query(
-    `SELECT u.name, u.email, t.ticket_no, c.customer_id, ic.name as category, te.message
+    `SELECT u.name, u.email, t.ticket_no, c.customer_id, ic.name as category, te.message, t.circuit_description
      FROM tickets t
      JOIN customers c ON c.id = t.customer_id
      JOIN users u ON u.id = c.user_id
@@ -237,9 +244,34 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
         email: contact.email,
         ticketNo: contact.ticket_no,
         category: categoryName,
-        priority: ticket.priority,
       }).catch(err => console.error("[EMAIL] Creation notification failed:", err));
 
+      // Send immediate helpdesk registration notification
+      sendTicketCreatedHelpdeskEmail({
+        customerName: contact.name,
+        ticketNo: contact.ticket_no,
+        category: categoryName,
+        circuitId: ticket.circuit_description
+      }).catch(err => console.error("[EMAIL] Helpdesk creation notification failed:", err));
+
+      // If an agent is assigned, notify immediately
+      if (assignedEmployeeId) {
+        const employeeResult = await client.query(
+          `SELECT e.id, u.name, u.email FROM employees e JOIN users u ON u.id = e.user_id WHERE e.id = $1 LIMIT 1`,
+          [assignedEmployeeId]
+        );
+        const employee = employeeResult.rows[0];
+        if (employee) {
+          sendImmediateAgentAssignmentEmails({
+            customerName: contact.name,
+            agentName: employee.name,
+            agentEmail: employee.email,
+            ticketNo: contact.ticket_no,
+            category: categoryName,
+            circuitId: ticket.circuit_description
+          }).catch(err => console.error("[EMAIL] Immediate assignment notification failed:", err));
+        }
+      }
     }
 
     // Schedule Automated Follow-up Jobs
@@ -402,7 +434,6 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         t.id,
         t.ticket_no,
         t.status,
-        t.priority,
         ic.name AS subject,
         t.created_at,
         t.updated_at,
@@ -551,7 +582,6 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         id: ticket.id,
         ticket_no: ticket.ticket_no,
         status: ticket.status,
-        priority: ticket.priority,
         subject: ticket.subject,
         circuit_description: ticket.circuit_description,
         rca: ticket.rca,
@@ -628,7 +658,6 @@ export const listUserTickets = async ({ userId, ownership, statusGroup, page = 1
         t.ticket_no,
         ic.name AS subject,
         t.status,
-        t.priority,
         t.created_at,
         t.updated_at,
         cu.name AS customer_name,
@@ -1082,15 +1111,13 @@ export const reassignTicket = async ({ ticketId, employeeId, actorUserId }) => {
 
     Promise.all([contactPromise, agentPromise]).then(([contact, agent]) => {
       if (contact && agent) {
-        sendTicketAssignmentEmails({
+        sendImmediateAgentAssignmentEmails({
           customerName: contact.name,
-          customerEmail: contact.email,
-          customerId: contact.customer_id,
           agentName: agent.name,
           agentEmail: agent.email,
           ticketNo: contact.ticket_no,
           category: contact.category,
-          message: contact.message || "Manual reassignment update.",
+          circuitId: contact.circuit_description
         }).catch(err => console.error("[EMAIL] Reassignment notification failed:", err));
       }
     });
@@ -1123,7 +1150,7 @@ export const listIssueCategories = async () => {
   return result.rows;
 };
 export const updateTicketRca = async ({ ticketId, rca, actorUserId }) => {
-  return runInTransaction(async (client) => {
+  const updatedRca = await runInTransaction(async (client) => {
     // 1. Verify actor is an employee
     const employee = await getEmployeeProfileByUserId(client, actorUserId);
     if (!employee) {
@@ -1162,19 +1189,36 @@ export const updateTicketRca = async ({ ticketId, rca, actorUserId }) => {
       [rca, ticketId]
     );
 
-    const updatedRca = result.rows[0];
+    const updatedRcaVal = result.rows[0];
 
     // Emit real-time update
     ticketEventEmitter.emit("ticket_updated", {
       ticketId,
       data: {
         type: "TICKET_RCA_UPDATED",
-        rca: updatedRca.rca,
+        rca: updatedRcaVal.rca,
       },
     });
 
-    return updatedRca;
+    return updatedRcaVal;
   });
+
+  // Send email outside the transaction
+  try {
+    const contact = await getCustomerContactByTicketId(postgresPool, ticketId);
+    if (contact) {
+      sendTicketRcaEmail({
+        name: contact.name,
+        email: contact.email,
+        ticketNo: contact.ticket_no,
+        rca: updatedRca.rca
+      }).catch(err => console.error("[EMAIL] RCA update notification failed:", err));
+    }
+  } catch (err) {
+    console.error("[EMAIL] Failed to send RCA update email:", err);
+  }
+
+  return updatedRca;
 };
 
 export const listResolvedTickets = async ({ page = 1, limit = 10, exportAll = false }) => {
@@ -1188,7 +1232,6 @@ export const listResolvedTickets = async ({ page = 1, limit = 10, exportAll = fa
         t.ticket_no,
         ic.name AS category_name,
         t.status,
-        t.priority,
         t.rca,
         t.created_at,
         t.updated_at,
