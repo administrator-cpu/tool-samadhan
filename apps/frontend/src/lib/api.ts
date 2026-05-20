@@ -30,13 +30,19 @@ export const refreshToken = async () => {
       let lastNetworkError: unknown = null;
 
       try {
+        const storedRefreshToken = typeof window !== "undefined" ? localStorage.getItem("refreshToken") : null;
+
         for (let attempt = 1; attempt <= 2; attempt += 1) {
           try {
             console.log("[API] Attempting background token refresh...");
             const res = await fetch(`${API_URL}/refresh`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { 
+                "Content-Type": "application/json",
+                ...(storedRefreshToken ? { "X-Refresh-Token": storedRefreshToken } : {})
+              },
               credentials: "include",
+              body: storedRefreshToken ? JSON.stringify({ refreshToken: storedRefreshToken }) : undefined,
             });
 
             if (res.status === 401 || res.status === 403) {
@@ -55,7 +61,7 @@ export const refreshToken = async () => {
             }
 
             if (data?.data?.accessToken) {
-              useAuthStore.getState().setAuth(data.data.user, data.data.accessToken);
+              useAuthStore.getState().setAuth(data.data.user, data.data.accessToken, data.data.refreshToken);
             }
 
             return data;
@@ -111,7 +117,7 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
       console.log("[API] Refresh data successful");
       accessToken = refreshData.data.accessToken;
       if (accessToken) {
-        setAuth(refreshData.data.user, accessToken);
+        setAuth(refreshData.data.user, accessToken, refreshData.data.refreshToken);
       }
     } else {
       const stillAuthenticated = useAuthStore.getState().isAuthenticated;
@@ -186,7 +192,7 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
         console.log(`[API] Refresh successful. Retrying ${endpoint}`);
         const newAccessToken = refreshData.data.accessToken;
         if (newAccessToken) {
-          setAuth(refreshData.data.user, newAccessToken);
+          setAuth(refreshData.data.user, newAccessToken, refreshData.data.refreshToken);
           accessToken = newAccessToken; // Update current accessToken for the retry
         }
         
