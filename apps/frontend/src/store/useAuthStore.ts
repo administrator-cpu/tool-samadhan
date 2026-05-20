@@ -16,7 +16,7 @@ interface AuthState {
   isAuthenticated: boolean;
   _hasHydrated: boolean;
   isSessionChecked: boolean;
-  setAuth: (user: User, accessToken: string) => void;
+  setAuth: (user: User, accessToken: string, refreshToken?: string) => void;
   setUser: (user: User) => void;
   clearAuth: () => void;
   setHasHydrated: (state: boolean) => void;
