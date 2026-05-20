@@ -36,7 +36,6 @@ export const createEmployeeTable = async () => {
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         user_id BIGINT UNIQUE NOT NULL,
         employee_id VARCHAR(20) UNIQUE NOT NULL DEFAULT ('EMP-' || nextval('employee_number_seq')),
-        must_change_password BOOLEAN NOT NULL DEFAULT TRUE,
         joined_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT fk_employees_user
             FOREIGN KEY (user_id)
@@ -57,7 +56,6 @@ export const createCustomerTable = async () => {
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         user_id BIGINT UNIQUE NOT NULL,
         customer_id VARCHAR(20) UNIQUE NOT NULL DEFAULT ('CUST-' || nextval('customer_number_seq')),
-        must_change_password BOOLEAN NOT NULL DEFAULT TRUE,
         joined_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT fk_customers_user
             FOREIGN KEY (user_id)
