@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
-import Timeline from "@/components/CustomerTimeline";
+import Timeline from "../../../../components/ChatBoxTimelineMessages";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
