@@ -124,7 +124,7 @@ export default function Timeline({ events }: TimelineProps) {
 
               {/* Message Card */}
 
-              {event.message && event.message.trim() !== "" && (
+              {event.message && event.message.trim() !== "" && !(event.event_type === "STATUS_CHANGED" && !isEmployee) && (
                   <div
                     className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}
                   >
