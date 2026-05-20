@@ -23,11 +23,18 @@ export const createUserTable = async () => {
         phone VARCHAR(15) NULL,
         password TEXT NOT NULL,
         role user_role NOT NULL DEFAULT 'USER',
+        must_change_password BOOLEAN NOT NULL DEFAULT TRUE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
   `;
   await postgresPool.query(query);
+
+  try {
+    await postgresPool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT TRUE");
+  } catch (err) {
+    // Ignore error if already exists
+  }
 };
 
 export const createEmployeeTable = async () => {
