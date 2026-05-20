@@ -8,7 +8,6 @@ import { useSocketStore } from "@/store/useSocketStore";
 export const SocketInitializer = () => {
   const {
     isAuthenticated,
-    accessToken,
     _hasHydrated,
     isSessionChecked,
     clearAuth,
@@ -49,14 +48,15 @@ export const SocketInitializer = () => {
   useEffect(() => {
     if (!_hasHydrated || !isSessionChecked) return;
 
-    if (isAuthenticated && accessToken) {
-      connect(accessToken);
-      updateToken(accessToken);
+    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
+    if (isAuthenticated && token) {
+      connect(token);
+      updateToken(token);
     } else {
       disconnect();
     }
   }, [
-    accessToken,
     connect,
     disconnect,
     isAuthenticated,

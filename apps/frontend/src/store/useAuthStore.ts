@@ -13,7 +13,6 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  accessToken: string | null;
   isAuthenticated: boolean;
   _hasHydrated: boolean;
   isSessionChecked: boolean;
@@ -30,22 +29,26 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      accessToken: null,
       isAuthenticated: false,
       _hasHydrated: false,
       isSessionChecked: false,
-      setAuth: (user, accessToken) =>
+      setAuth: (user, accessToken) => {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("accessToken", accessToken);
+        }
         set({
           user,
-          accessToken,
           isAuthenticated: true,
           isSessionChecked: true,
-        }),
+        });
+      },
       setUser: (user) => set({ user }),
       clearAuth: () => {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("accessToken");
+        }
         set({
           user: null,
-          accessToken: null,
           isAuthenticated: false,
           isSessionChecked: true,
         });
