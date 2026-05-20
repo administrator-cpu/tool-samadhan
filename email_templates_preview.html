@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fab5 Email Templates Catalog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #059669;
+      --primary-hover: #047857;
+      --primary-light: #ecfdf5;
+      --bg: #0f172a;
+      --panel-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      width: 340px;
+      background-color: var(--panel-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-header h1 span {
+      color: var(--primary);
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .template-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .template-item {
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .template-item:hover {
+      background-color: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .template-item.active {
+      background-color: rgba(5, 150, 105, 0.1);
+      border-color: rgba(5, 150, 105, 0.3);
+    }
+
+    .template-item h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 4px;
+    }
+
+    .template-item p {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Main Preview Area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: #0b0f19;
+    }
+
+    .toolbar {
+      height: 70px;
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--panel-bg);
+    }
+
+    .toolbar-title h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .viewport-toggle {
+      display: flex;
+      background-color: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .viewport-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .viewport-btn.active {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    .content-split {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Info & Customize Panel */
+    .info-panel {
+      width: 320px;
+      border-left: 1px solid var(--border);
+      background-color: var(--panel-bg);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .panel-section {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+
+    .meta-item {
+      margin-bottom: 16px;
+    }
+
+    .meta-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .meta-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .meta-value {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+
+    .meta-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      background-color: #0f172a;
+      border: 1px solid var(--border);
+    }
+
+    .meta-badge.recipient-customer {
+      color: #38bdf8;
+      background-color: rgba(56, 189, 248, 0.1);
+      border-color: rgba(56, 189, 248, 0.2);
+    }
+
+    .meta-badge.recipient-staff {
+      color: #a78bfa;
+      background-color: rgba(167, 139, 250, 0.1);
+      border-color: rgba(167, 139, 250, 0.2);
+    }
+
+    .meta-badge.recipient-helpdesk {
+      color: #fb7185;
+      background-color: rgba(251, 113, 133, 0.1);
+      border-color: rgba(251, 113, 133, 0.2);
+    }
+
+    /* Customize Inputs */
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .input-group input, .input-group select, .input-group textarea {
+      width: 100%;
+      background-color: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+    }
+
+    /* Preview Canvas Area */
+    .preview-canvas {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      overflow: auto;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+
+    .preview-frame-container {
+      background-color: #1e293b;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border: 4px solid #334155;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-frame-header {
+      background-color: #334155;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #475569;
+    }
+
+    .dot-red { background-color: #ef4444; }
+    .dot-yellow { background-color: #f59e0b; }
+    .dot-green { background-color: #10b981; }
+
+    .preview-frame-url {
+      flex: 1;
+      background-color: #1e293b;
+      border-radius: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 4px 12px;
+      text-align: center;
+      font-family: monospace;
+      margin-left: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-iframe {
+      border: none;
+      width: 100%;
+      background-color: #f8fafc;
+      flex: 1;
+    }
+
+    /* Viewport Dimensions */
+    .viewport-desktop {
+      width: 660px;
+      height: 700px;
+    }
+
+    .viewport-mobile {
+      width: 380px;
+      height: 600px;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>Fab5 <span>Network</span></h1>
+      <p>Email Templates Catalog & Explorer</p>
+    </div>
+    <div class="template-list" id="templateList">
+      <!-- Generated via JS -->
+    </div>
+  </div>
+
+  <!-- Main Canvas -->
+  <div class="main-content">
+    <div class="toolbar">
+      <div class="toolbar-title">
+        <h2 id="currentTemplateName">Template Preview</h2>
+      </div>
+      <div class="viewport-toggle">
+        <button class="viewport-btn active" onclick="setViewport('desktop')" id="btnDesktop">
+          Desktop (580px)
+        </button>
+        <button class="viewport-btn" onclick="setViewport('mobile')" id="btnMobile">
+          Mobile (375px)
+        </button>
+      </div>
+    </div>
+
+    <div class="content-split">
+      <!-- Preview Canvas -->
+      <div class="preview-canvas">
+        <div class="preview-frame-container viewport-desktop" id="previewContainer">
+          <div class="preview-frame-header">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+            <div class="preview-frame-url" id="frameUrl">subject: Email Preview</div>
+          </div>
+          <iframe class="preview-iframe" id="previewIframe"></iframe>
+        </div>
+      </div>
+
+      <!-- Info & Customize Panel -->
+      <div class="info-panel">
+        <div class="panel-section">
+          <div class="panel-section-title">Email Metadata</div>
+          <div class="meta-item">
+            <div class="meta-label">Trigger Condition</div>
+            <div class="meta-value" id="metaTrigger">Immediately when user is registered.</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Recipient</div>
+            <span class="meta-badge" id="metaRecipient">Customer</span>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Subject Line</div>
+            <div class="meta-value" style="font-family: monospace; font-size: 12px;" id="metaSubject">Welcome to Fab5!</div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-title">Customize Content Variables</div>
+          <div id="customizeInputs">
+            <!-- Dynamic Customize Fields -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Theme and Layout engine
+    const emeraldLayout = (title, content) => `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 580px; margin: 20px auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+        <div style="background-color: #059669; padding: 24px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.025em; text-transform: uppercase;">${title}</h1>
+        </div>
+        <div style="padding: 30px 24px; color: #1f2937; line-height: 1.6; font-size: 15px;">
+          ${content}
+        </div>
+      </div>
+    `;
+
+    // 2. Email templates catalog with trigger and metadata info
+    const catalog = {
+      welcomeCustomer: {
+        name: "Customer Welcome Email",
+        trigger: "Triggered immediately when an admin/agent manually registers a new Customer account.",
+        recipient: "Customer",
+        recipientType: "customer",
+        subject: "Welcome to Fab5 Support Portal",
+        variables: {
+          name: "Ajay Negi",
+          email: "ajaynegi@example.com",
+          password: "ajaynegi123"
+        },
+        render: (vars) => ({
+          subject: "Welcome to Fab5 Support Portal",
+          html: emeraldLayout(
+            "Account Created",
+            `
+              <p>Dear Customer,</p>
+              <p>An account has been created for you on the Fab5 Support Portal. You can now log in to raise support tickets and track their status in real-time.</p>
+              
+              <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <tr>
+                    <td style="color: #4b5563; padding-bottom: 6px; font-weight: 600;">Email Address</td>
+                    <td style="color: #4b5563; padding-bottom: 6px; font-weight: 600;">Temporary Password</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #1f2937; font-weight: 700;">${vars.email}</td>
+                    <td style="color: #1f2937; font-weight: 700; font-family: monospace;">${vars.password}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <p style="font-size: 13px; color: #6b7280;">For security purposes, you will be required to change your password during your first login.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      welcomeStaff: {
+        name: "Staff Welcome Email",
+        trigger: "Triggered immediately when a new employee (Agent, Manager, Admin, Sales) is created.",
+        recipient: "Staff / Employee",
+        recipientType: "staff",
+        subject: "Welcome to Fab5 Support Team",
+        variables: {
+          name: "Ajay Negi",
+          email: "ajaynegi@fab5network.com",
+          password: "SecureStaffPass!",
+          role: "SUPPORT_AGENT"
+        },
+        render: (vars) => ({
+          subject: "Welcome to Fab5 Support Team",
+          html: emeraldLayout(
+            "Support Team Onboarding",
+            `
+              <h2 style="color: #059669; margin-top: 0; font-size: 18px;">Hello ${vars.name},</h2>
+              <p>Your account has been successfully created. You can now log in to the Support Dashboard using the credentials below:</p>
+              
+              <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <tr>
+                    <td style="color: #4b5563; padding-bottom: 6px; font-weight: 600;">Email Address</td>
+                    <td style="color: #4b5563; padding-bottom: 6px; font-weight: 600;">Generated Password</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #1f2937; font-weight: 700;">${vars.email}</td>
+                    <td style="color: #1f2937; font-weight: 700; font-family: monospace;">${vars.password}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div style="margin: 20px 0;">
+                <span style="display: inline-block; background-color: #e6f4ea; color: #059669; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; text-transform: uppercase;">Role: ${vars.role.replace('_', ' ')}</span>
+              </div>
+
+              <p style="font-size: 13px; color: #6b7280; margin-top: 20px;">Please change your password after your first login for security purposes.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      ticketCreated: {
+        name: "Ticket Confirmation Email",
+        trigger: "Triggered immediately when a ticket is created (either by customer or by employee).",
+        recipient: "Customer",
+        recipientType: "customer",
+        subject: "Fab5: Update regarding your Ticket ID - [TicketNo]",
+        variables: {
+          ticketNo: "TCK-10045"
+        },
+        render: (vars) => ({
+          subject: `Fab5: Update regarding your Ticket ID - ${vars.ticketNo}`,
+          html: emeraldLayout(
+            "Complaint Registered",
+            `
+              <p>Dear Customer,</p>
+              <p>This is to acknowledge that your complaint has been successfully registered in our system. Your Ticket ID is <strong>${vars.ticketNo}</strong>. Please refer to this ID for any future communication regarding your concern.</p>
+              
+              <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+              
+              <p>Thank you for your patience and cooperation.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      ticketCreatedHelpdesk: {
+        name: "Helpdesk Ticket Creation Notice",
+        trigger: "Triggered immediately when a new ticket is registered anywhere in the system.",
+        recipient: "helpdesk@fab5network.com",
+        recipientType: "helpdesk",
+        subject: "Fab5: Ticket ID – [TicketNo] – Registered",
+        variables: {
+          customerName: "Acme Corp",
+          ticketNo: "TCK-10045",
+          category: "Leased Line Connectivity",
+          circuitId: "FL-100-LL"
+        },
+        render: (vars) => ({
+          subject: `Fab5: Ticket ID – ${vars.ticketNo} – Registered`,
+          html: emeraldLayout(
+            "New Ticket Registered",
+            `
+              <p>Dear Team,</p>
+              <p>This is to inform that a complaint has been registered with below details:</p>
+              
+              <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <tr>
+                    <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Name of Customer:</td>
+                    <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${vars.customerName}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Ticket ID:</td>
+                    <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;"><strong>${vars.ticketNo}</strong></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Issue Category:</td>
+                    <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${vars.category}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Circuit Id:</td>
+                    <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${vars.circuitId || 'N/A'}</td>
+                  </tr>
+                </table>
+              </div>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      ticketAssignedCustomer5Min: {
+        name: "Customer Assignment Notice (5-Min)",
+        trigger: "Triggered 5 minutes after ticket creation to let the customer know the ticket has been routed to the correct desk.",
+        recipient: "Customer",
+        recipientType: "customer",
+        subject: "Fab5: Update regarding your Ticket ID - [TicketNo]",
+        variables: {
+          ticketNo: "TCK-10045"
+        },
+        render: (vars) => ({
+          subject: `Fab5: Update regarding your Ticket ID - ${vars.ticketNo}`,
+          html: emeraldLayout(
+            "Complaint Under Process",
+            `
+              <p>Dear Customer,</p>
+              <p>We would like to inform you that your complaint has been assigned to the concerned department for further investigation and necessary action.</p>
+              
+              <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+              
+              <p>Thank you for your patience and cooperation.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      ticketAssignedToAgent: {
+        name: "Agent Immediate Assignment Email",
+        trigger: "Triggered immediately when a ticket is assigned (or reassigned) to a support agent. Sent to both the agent and the helpdesk desk.",
+        recipient: "Agent & helpdesk@fab5network.com",
+        recipientType: "staff",
+        subject: "Fab5: Ticket ID – [TicketNo] – Assigned",
+        variables: {
+          customerName: "Acme Corp",
+          ticketNo: "TCK-10045",
+          category: "Leased Line Connectivity",
+          circuitId: "FL-100-LL"
+        },
+        render: (vars) => ({
+          subject: `Fab5: Ticket ID – ${vars.ticketNo} – Assigned`,
+          html: emeraldLayout(
+            "Ticket Assigned",
+            `
+              <p>Dear Team,</p>
+              <p>This is to inform that a complaint has been assigned to you with below details:</p>
+              
+              <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <tr>
+                    <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Name of Customer:</td>
+                    <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${vars.customerName}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Ticket ID:</td>
+                    <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;"><strong>${vars.ticketNo}</strong></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Issue Category:</td>
+                    <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${vars.category}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Circuit Id:</td>
+                    <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${vars.circuitId || 'N/A'}</td>
+                  </tr>
+                </table>
+              </div>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      ticketTroubleshootingCustomer15Min: {
+        name: "Troubleshooting SLA Notice (15-Min)",
+        trigger: "Triggered 15 minutes after ticket creation if the ticket remains unresolved and the agent hasn't replied yet.",
+        recipient: "Customer",
+        recipientType: "customer",
+        subject: "Fab5: Update regarding your Ticket ID - [TicketNo]",
+        variables: {
+          ticketNo: "TCK-10045"
+        },
+        render: (vars) => ({
+          subject: `Fab5: Update regarding your Ticket ID - ${vars.ticketNo}`,
+          html: emeraldLayout(
+            "Troubleshooting in Progress",
+            `
+              <p>Dear Customer,</p>
+              <p>To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.</p>
+              
+              <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+              
+              <p>Thank you for your patience and cooperation.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      ticketResolved: {
+        name: "Ticket Resolution Notification",
+        trigger: "Triggered immediately when an agent or admin marks the ticket status as RESOLVED.",
+        recipient: "Customer",
+        recipientType: "customer",
+        subject: "Fab5: Ticket ID – [TicketNo] – Resolved",
+        variables: {
+          ticketNo: "TCK-10045"
+        },
+        render: (vars) => ({
+          subject: `Fab5: Ticket ID – ${vars.ticketNo} – Resolved`,
+          html: emeraldLayout(
+            "Complaint Resolved",
+            `
+              <p>Dear Customer,</p>
+              <p>We are pleased to inform you that your complaint has been successfully resolved. With this, we are proceeding to close your complaint in our system. If you believe the issue has not been fully resolved or require any further assistance, then please reopen the ticket with 24 hrs.</p>
+              <p>We would appreciate it if you could take a moment to share your feedback on portal of your experience with our support team. Your input is valuable and helps us improve our services.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong></p>
+              </div>
+            `
+          )
+        })
+      },
+      ticketRca: {
+        name: "Root Cause Analysis (RCA) Update",
+        trigger: "Triggered immediately when a staff member submits or updates the RCA detail for a resolved or closed ticket.",
+        recipient: "Customer",
+        recipientType: "customer",
+        subject: "Fab5: Root Cause Analysis - Ticket ID [TicketNo]",
+        variables: {
+          ticketNo: "TCK-10045",
+          rca: "A hardware card malfunction occurred on the main router port. The card was swapped and normal fiber connectivity was restored."
+        },
+        render: (vars) => ({
+          subject: `Fab5: Root Cause Analysis - Ticket ID ${vars.ticketNo}`,
+          html: emeraldLayout(
+            "Root Cause Analysis Update",
+            `
+              <p>Dear Customer,</p>
+              <p>Update on Root Cause Analysis of Reported Issue: <strong>${vars.ticketNo}</strong> (Ticket ID)</p>
+              
+              <div style="background-color: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 20px 0; border-radius: 4px; font-style: italic;">
+                "${vars.rca}"
+              </div>
+              
+              <p>Please feel free to reach out if you have any questions or need additional clarification.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong></p>
+              </div>
+            `
+          )
+        })
+      },
+      ticketUpdateByStaff: {
+        name: "Staff Response Notification",
+        trigger: "Triggered immediately when an agent or admin adds a new public reply to the ticket.",
+        recipient: "Customer",
+        recipientType: "customer",
+        subject: "Fab5: Update regarding your Ticket ID - [TicketNo]",
+        variables: {
+          ticketNo: "TCK-10045",
+          agentName: "Aman Gupta",
+          message: "We have verified the physical link and fiber power levels. The core port has been reset and services are back up. Please check on your end."
+        },
+        render: (vars) => ({
+          subject: `Fab5: Update regarding your Ticket ID - ${vars.ticketNo}`,
+          html: emeraldLayout(
+            "New Message Received",
+            `
+              <p>Dear Customer,</p>
+              <p>Our support specialist, <strong>${vars.agentName}</strong>, has provided an update on your ticket <strong>${vars.ticketNo}</strong></p>
+              
+              <div style="background-color: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 20px 0; border-radius: 4px; font-style: italic;">
+                "${vars.message}"
+              </div>
+              
+              <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      passwordResetOtp: {
+        name: "Password Reset Verification Code",
+        trigger: "Triggered immediately when a user requests a verification code / OTP to reset their password.",
+        recipient: "Customer or Staff",
+        recipientType: "customer",
+        subject: "Fab5 - Password Reset Verification",
+        variables: {
+          otpCode: "847291"
+        },
+        render: (vars) => ({
+          subject: "Fab5 - Password Reset Verification",
+          html: emeraldLayout(
+            "Password Recovery",
+            `
+              <p>Dear Customer,</p>
+              <p>We received a request to reset your support account password. Use the verification code below to proceed. <strong style="color: #dc2626;">This code will expire in 5 minutes.</strong></p>
+              
+              <div style="background-color: #f0fdf4; border: 2px dashed #059669; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
+                <div style="color: #065f46; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Verification Code</div>
+                <div style="color: #059669; font-size: 36px; font-weight: 900; letter-spacing: 0.2em; font-family: monospace;">${vars.otpCode}</div>
+              </div>
+              
+              <p style="font-size: 13px; color: #6b7280;">If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      ticketStatusUpdateReopened: {
+        name: "Ticket Reopened Notification",
+        trigger: "Triggered immediately when a ticket's status is changed back to REOPENED.",
+        recipient: "Customer",
+        recipientType: "customer",
+        subject: "Fab5: Update regarding your Ticket ID - [TicketNo]",
+        variables: {
+          ticketNo: "TCK-10045"
+        },
+        render: (vars) => ({
+          subject: `Fab5: Update regarding your Ticket ID - ${vars.ticketNo}`,
+          html: emeraldLayout(
+            "Complaint Reopened",
+            `
+              <p>Dear Customer,</p>
+              <p>Your ticket has been reopened. Our support team has been notified and will prioritize your request for further assistance.</p>
+              
+              <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      ticketStatusUpdateEscalated: {
+        name: "Ticket Escalated Notification",
+        trigger: "Triggered immediately when a ticket's status is updated to ESCALATED.",
+        recipient: "Customer",
+        recipientType: "customer",
+        subject: "Fab5: Update regarding your Ticket ID - [TicketNo]",
+        variables: {
+          ticketNo: "TCK-10045"
+        },
+        render: (vars) => ({
+          subject: `Fab5: Update regarding your Ticket ID - ${vars.ticketNo}`,
+          html: emeraldLayout(
+            "Complaint Escalated",
+            `
+              <p>Dear Customer,</p>
+              <p>Your ticket has been escalated to our senior support management. We are dedicating extra resources to ensure a swift resolution.</p>
+              
+              <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      },
+      longDelayUpdate: {
+        name: "Extended Investigation SLA Update",
+        trigger: "Triggered automatically after 45 minutes of ticket creation if no reply has been sent by an Admin or Agent.",
+        recipient: "Customer",
+        recipientType: "customer",
+        subject: "Fab5: Update regarding your Ticket ID - [TicketNo]",
+        variables: {
+          ticketNo: "TCK-10045"
+        },
+        render: (vars) => ({
+          subject: `Fab5: Update regarding your Ticket ID - ${vars.ticketNo}`,
+          html: emeraldLayout(
+            "Investigation Timeline Update",
+            `
+              <p>Dear Customer,</p>
+              <p>Your ticket is undergoing an in-depth investigation by our senior support specialists. We estimate it will take approximately 4 hours to fully resolve this issue.</p>
+              
+              <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+              
+              <p>Thank you for your patience and cooperation.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+              </div>
+            `
+          )
+        })
+      }
+    };
+
+    let currentTemplateKey = "welcomeCustomer";
+    let viewportMode = "desktop";
+
+    // Initialize list
+    const listEl = document.getElementById("templateList");
+    Object.keys(catalog).forEach((key, index) => {
+      const template = catalog[key];
+      const itemEl = document.createElement("div");
+      itemEl.className = `template-item ${key === currentTemplateKey ? "active" : ""}`;
+      itemEl.id = `item-${key}`;
+      itemEl.onclick = () => selectTemplate(key);
+      itemEl.innerHTML = `
+        <h3>${template.name}</h3>
+        <p>${template.trigger}</p>
+      `;
+      listEl.appendChild(itemEl);
+    });
+
+    function selectTemplate(key) {
+      // Toggle class
+      document.getElementById(`item-${currentTemplateKey}`).classList.remove("active");
+      document.getElementById(`item-${key}`).classList.add("active");
+      
+      currentTemplateKey = key;
+      renderTemplateDetails();
+    }
+
+    function renderTemplateDetails() {
+      const template = catalog[currentTemplateKey];
+      
+      // Update UI title & meta
+      document.getElementById("currentTemplateName").innerText = template.name;
+      document.getElementById("metaTrigger").innerText = template.trigger;
+      document.getElementById("metaSubject").innerText = template.subject;
+      
+      const badge = document.getElementById("metaRecipient");
+      badge.innerText = template.recipient;
+      badge.className = `meta-badge recipient-${template.recipientType}`;
+
+      // Render customize inputs
+      const customizeContainer = document.getElementById("customizeInputs");
+      customizeContainer.innerHTML = "";
+
+      Object.keys(template.variables).forEach(varName => {
+        const val = template.variables[varName];
+        const groupEl = document.createElement("div");
+        groupEl.className = "input-group";
+        
+        let inputHtml = "";
+        if (varName === "message") {
+          inputHtml = `<textarea id="var-${varName}" rows="4" oninput="updatePreview()">${val}</textarea>`;
+        } else if (varName === "role") {
+          inputHtml = `
+            <select id="var-${varName}" onchange="updatePreview()">
+              <option value="SUPPORT_AGENT" ${val === 'SUPPORT_AGENT' ? 'selected' : ''}>Support Agent</option>
+              <option value="MANAGER" ${val === 'MANAGER' ? 'selected' : ''}>Manager</option>
+              <option value="ADMIN" ${val === 'ADMIN' ? 'selected' : ''}>Admin</option>
+              <option value="SALES" ${val === 'SALES' ? 'selected' : ''}>Sales Specialist</option>
+            </select>
+          `;
+        } else {
+          inputHtml = `<input type="text" id="var-${varName}" value="${val}" oninput="updatePreview()">`;
+        }
+
+        groupEl.innerHTML = `
+          <label for="var-${varName}">${varName.replace(/([A-Z])/g, ' $1')}</label>
+          ${inputHtml}
+        `;
+        customizeContainer.appendChild(groupEl);
+      });
+
+      updatePreview();
+    }
+
+    function updatePreview() {
+      const template = catalog[currentTemplateKey];
+      const vars = {};
+      
+      Object.keys(template.variables).forEach(varName => {
+        const el = document.getElementById(`var-${varName}`);
+        if (el) {
+          vars[varName] = el.value;
+        }
+      });
+
+      const result = template.render(vars);
+      
+      // Update Subject URL preview
+      document.getElementById("frameUrl").innerText = `Subject: ${result.subject}`;
+
+      // Write into iframe
+      const iframe = document.getElementById("previewIframe");
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { margin: 0; padding: 20px; background-color: #f8fafc; }
+          </style>
+        </head>
+        <body>
+          ${result.html}
+        </body>
+        </html>
+      `);
+      doc.close();
+    }
+
+    function setViewport(mode) {
+      const container = document.getElementById("previewContainer");
+      const btnDesktop = document.getElementById("btnDesktop");
+      const btnMobile = document.getElementById("btnMobile");
+
+      if (mode === "desktop") {
+        container.className = "preview-frame-container viewport-desktop";
+        btnDesktop.classList.add("active");
+        btnMobile.classList.remove("active");
+      } else {
+        container.className = "preview-frame-container viewport-mobile";
+        btnDesktop.classList.remove("active");
+        btnMobile.classList.add("active");
+      }
+    }
+
+    // Initial render
+    renderTemplateDetails();
+  </script>
+</body>
+</html>

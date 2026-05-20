@@ -1,387 +1,368 @@
-export const welcomeStaffTemplate = ({ name, email, password, role }) => ({
-  subject: "Welcome to Samadhan Support Team",
-  html: `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
-      <div style="background-color: #065f46; padding: 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: -0.025em;">Welcome to Samadhan</h1>
-        <p style="color: #a7f3d0; margin-top: 8px; font-size: 16px;">Support Team Onboarding</p>
-      </div>
-      <div style="padding: 40px 30px;">
-        <h2 style="color: #1e293b; margin-top: 0;">Hello ${name},</h2>
-        <p style="color: #475569; line-height: 1.6; font-size: 16px;">Your account has been successfully created. You can now log in to the Samadhan Support Dashboard using the credentials below:</p>
-        
-        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px; margin: 30px 0;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="color: #64748b; font-size: 14px; padding-bottom: 8px;">Email Address</td>
-              <td style="color: #64748b; font-size: 14px; padding-bottom: 8px;">Generated Password</td>
-            </tr>
-            <tr>
-              <td style="color: #1e293b; font-weight: 600; font-size: 16px;">${email}</td>
-              <td style="color: #1e293b; font-weight: 600; font-size: 16px; font-family: monospace;">${password}</td>
-            </tr>
-          </table>
-        </div>
-
-        <div style="margin: 35px 0;">
-          <h3 style="color: #1e293b; font-size: 16px; margin-bottom: 12px;">Assigned Role</h3>
-          <span style="display: inline-block; background-color: #f1f5f9; color: #475569; padding: 6px 12px; rounded: 6px; font-size: 14px; font-weight: 700; text-transform: uppercase;">${role.replace('_', ' ')}</span>
-        </div>
-
-        <p style="color: #64748b; font-size: 14px; line-height: 1.6;">Please change your password after your first login for security purposes.</p>
-        
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0;">Samadhan Support System &bull; Enterprise Operations</p>
-        </div>
-      </div>
+const emeraldLayout = (title, content) => `
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 580px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+    <div style="background-color: #059669; padding: 24px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.025em; text-transform: uppercase;">${title}</h1>
     </div>
-  `
+    <div style="padding: 30px 24px; color: #1f2937; line-height: 1.6; font-size: 15px;">
+      ${content}
+    </div>
+  </div>
+`;
+
+export const welcomeStaffTemplate = ({ name, email, password, role }) => ({
+  subject: "Welcome to Fab5 Support Team",
+  html: emeraldLayout(
+    "Support Team Onboarding",
+    `
+      <h2 style="color: #059669; margin-top: 0; font-size: 18px;">Hello ${name},</h2>
+      <p>Your account has been successfully created. You can now log in to the Support Dashboard using the credentials below:</p>
+      
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="color: #4b5563; padding-bottom: 6px;">Email Address</td>
+            <td style="color: #4b5563; padding-bottom: 6px;">Generated Password</td>
+          </tr>
+          <tr>
+            <td style="color: #1f2937; font-weight: 700;">${email}</td>
+            <td style="color: #1f2937; font-weight: 700; font-family: monospace;">${password}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <span style="display: inline-block; background-color: #e6f4ea; color: #059669; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; text-transform: uppercase;">Role: ${role.replace('_', ' ')}</span>
+      </div>
+
+      <p style="font-size: 13px; color: #6b7280; margin-top: 20px;">Please change your password after your first login for security purposes.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+      </div>
+    `
+  )
 });
 
 export const welcomeCustomerTemplate = ({ name, email, password }) => ({
-  subject: "Welcome to Samadhan Support Portal",
-  html: `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
-      <div style="background-color: #0d9488; padding: 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: -0.025em;">Welcome to Samadhan</h1>
-        <p style="color: #ccfbf1; margin-top: 8px; font-size: 16px;">Your Customer Account is Ready</p>
-      </div>
-      <div style="padding: 40px 30px;">
-        <h2 style="color: #1e293b; margin-top: 0;">Hello ${name},</h2>
-        <p style="color: #475569; line-height: 1.6; font-size: 16px;">An account has been created for you on the Samadhan Support Portal. You can now log in to raise support tickets and track their status in real-time.</p>
-        
-        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px; margin: 30px 0;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="color: #64748b; font-size: 14px; padding-bottom: 8px;">Email Address</td>
-              <td style="color: #64748b; font-size: 14px; padding-bottom: 8px;">Temporary Password</td>
-            </tr>
-            <tr>
-              <td style="color: #1e293b; font-weight: 600; font-size: 16px;">${email}</td>
-              <td style="color: #1e293b; font-weight: 600; font-size: 16px; font-family: monospace;">${password}</td>
-            </tr>
-          </table>
-        </div>
-
-        <p style="color: #64748b; font-size: 14px; line-height: 1.6;">For security purposes, you will be required to change your password during your first login.</p>
-        
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0;">Samadhan Support System &bull; Enterprise Operations</p>
-        </div>
-      </div>
-    </div>
-  `
-});
-
-export const ticketCreatedTemplate = ({ ticketNo, customerName, category }) => ({
-  subject: `Samadhan - Ticket Created: #${ticketNo}`,
-  html: `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
-      <div style="background-color: #059669; padding: 40px 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">Ticket Confirmed</h1>
-        <p style="color: #d1fae5; margin-top: 8px; font-size: 16px; font-weight: 500;">Request ID: #${ticketNo}</p>
-      </div>
+  subject: "Welcome to Fab5 Support Portal",
+  html: emeraldLayout(
+    "Account Created",
+    `
+      <p>Dear Customer,</p>
+      <p>An account has been created for you on the Fab5 Support Portal. You can now log in to raise support tickets and track their status in real-time.</p>
       
-      <div style="padding: 40px 30px;">
-        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${customerName},</h2>
-        <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 30px;">
-          Your support ticket has been successfully created. Our team has been notified and we are currently reviewing your request.
-        </p>
-        
-        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 30px 0;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="color: #64748b; font-size: 13px; font-weight: 700; text-transform: uppercase; padding-bottom: 10px;">Category</td>
-            </tr>
-            <tr>
-              <td style="color: #1e293b; font-weight: 700; font-size: 16px;">${category}</td>
-            </tr>
-          </table>
-        </div>
-
-        <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin-top: 30px;">
-          You can track the progress of your ticket anytime by logging into your Samadhan dashboard.
-        </p>
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="color: #4b5563; padding-bottom: 6px;">Email Address</td>
+            <td style="color: #4b5563; padding-bottom: 6px;">Temporary Password</td>
+          </tr>
+          <tr>
+            <td style="color: #1f2937; font-weight: 700;">${email}</td>
+            <td style="color: #1f2937; font-weight: 700; font-family: monospace;">${password}</td>
+          </tr>
+        </table>
       </div>
-    </div>
-  `
-});
 
-export const ticketStatusUpdateTemplate = ({ ticketNo, customerName, status, updateType }) => {
-  const config = {
-    CLOSED: {
-      title: "Ticket Resolved",
-      subtitle: "Issue has been closed",
-      color: "#059669",
-      message: "We're happy to inform you that your ticket has been marked as resolved and closed. If you still face any issues, you can reopen the ticket from your dashboard."
-    },
-    REOPENED: {
-      title: "Ticket Reopened",
-      subtitle: "We're back on it",
-      color: "#0891b2",
-      message: "Your ticket has been reopened. Our support team has been notified and will prioritize your request for further assistance."
-    },
-    ESCALATED: {
-      title: "Ticket Escalated",
-      subtitle: "High Priority Review",
-      color: "#dc2626",
-      message: "Your ticket has been escalated to our senior support management. We are dedicating extra resources to ensure a swift resolution."
-    }
-  }[updateType] || {
-    title: "Ticket Updated",
-    subtitle: `Status changed to ${status}`,
-    color: "#4f46e5",
-    message: `Your ticket status has been updated to ${status}.`
-  };
-
-  return {
-    subject: `Samadhan - Ticket Update: #${ticketNo} [${config.title}]`,
-    html: `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
-        <div style="background-color: ${config.color}; padding: 40px 30px; text-align: center;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.040em;">${config.title}</h1>
-          <p style="color: #ffffff; opacity: 0.8; margin-top: 8px; font-size: 16px; font-weight: 500;">Ticket #${ticketNo}</p>
-        </div>
-        
-        <div style="padding: 40px 30px;">
-          <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${customerName},</h2>
-          <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 25px;">
-            ${config.message}
-          </p>
-          
-          <div style="display: inline-block; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 20px;">
-            <span style="color: #64748b; font-size: 13px; font-weight: 700; text-transform: uppercase; margin-right: 10px;">New Status:</span>
-            <span style="color: ${config.color}; font-weight: 800; font-size: 14px; text-transform: uppercase;">${status.replace('_', ' ')}</span>
-          </div>
-
-          <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-            <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
-              Samadhan Enterprise Operations &bull; Priority Support
-            </p>
-          </div>
-        </div>
+      <p style="font-size: 13px; color: #6b7280;">For security purposes, you will be required to change your password during your first login.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
       </div>
     `
+  )
+});
+
+export const ticketCreatedTemplate = ({ ticketNo }) => ({
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+  html: emeraldLayout(
+    "Complaint Registered",
+    `
+      <p>Dear Customer,</p>
+      <p>This is to acknowledge that your complaint has been successfully registered in our system. Your Ticket ID is <strong>${ticketNo}</strong>. Please refer to this ID for any future communication regarding your concern.</p>
+      
+      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      
+      <p>Thank you for your patience and cooperation.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+      </div>
+    `
+  )
+});
+
+export const ticketCreatedHelpdeskTemplate = ({ customerName, ticketNo, category, circuitId }) => ({
+  subject: `Fab5: Ticket ID – ${ticketNo} – Registered`,
+  html: emeraldLayout(
+    "New Ticket Registered",
+    `
+      <p>Dear Team,</p>
+      <p>This is to inform that a complaint has been registered with below details:</p>
+      
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Name of Customer:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${customerName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Ticket ID:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;"><strong>${ticketNo}</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Issue Category:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${category}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Circuit Id:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${circuitId || 'N/A'}</td>
+          </tr>
+        </table>
+      </div>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+      </div>
+    `
+  )
+});
+
+export const ticketAssignedCustomer5MinTemplate = ({ ticketNo }) => ({
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+  html: emeraldLayout(
+    "Complaint Under Process",
+    `
+      <p>Dear Customer,</p>
+      <p>We would like to inform you that your complaint has been assigned to the concerned department for further investigation and necessary action.</p>
+      
+      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      
+      <p>Thank you for your patience and cooperation.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+      </div>
+    `
+  )
+});
+
+export const ticketAssignedToAgentTemplate = ({ ticketNo, customerName, category, circuitId }) => ({
+  subject: `Fab5: Ticket ID – ${ticketNo} – Assigned`,
+  html: emeraldLayout(
+    "Ticket Assigned",
+    `
+      <p>Dear Team,</p>
+      <p>This is to inform that a complaint has been assigned to you with below details:</p>
+      
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Name of Customer:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${customerName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Ticket ID:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;"><strong>${ticketNo}</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Issue Category:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${category}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Circuit Id:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${circuitId || 'N/A'}</td>
+          </tr>
+        </table>
+      </div>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+      </div>
+    `
+  )
+});
+
+export const ticketTroubleshootingCustomer15MinTemplate = ({ ticketNo }) => ({
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+  html: emeraldLayout(
+    "Troubleshooting in Progress",
+    `
+      <p>Dear Customer,</p>
+      <p>To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.</p>
+      
+      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      
+      <p>Thank you for your patience and cooperation.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+      </div>
+    `
+  )
+});
+
+export const ticketResolvedTemplate = ({ ticketNo }) => ({
+  subject: `Fab5: Ticket ID – ${ticketNo} – Resolved`,
+  html: emeraldLayout(
+    "Complaint Resolved",
+    `
+      <p>Dear Customer,</p>
+      <p>We are pleased to inform you that your complaint has been successfully resolved. With this, we are proceeding to close your complaint in our system. If you believe the issue has not been fully resolved or require any further assistance, then please reopen the ticket with 24 hrs.</p>
+      <p>We would appreciate it if you could take a moment to share your feedback on portal of your experience with our support team. Your input is valuable and helps us improve our services.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong></p>
+      </div>
+    `
+  )
+});
+
+export const ticketRcaTemplate = ({ ticketNo, rca }) => ({
+  subject: `Fab5: Root Cause Analysis - Ticket ID ${ticketNo}`,
+  html: emeraldLayout(
+    "Root Cause Analysis Update",
+    `
+      <p>Dear Customer,</p>
+      <p>Update on Root Cause Analysis of Reported Issue: <strong>${ticketNo}</strong> (Ticket ID)</p>
+      
+      <div style="background-color: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 20px 0; border-radius: 4px; font-style: italic;">
+        "${rca}"
+      </div>
+      
+      <p>Please feel free to reach out if you have any questions or need additional clarification.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong></p>
+      </div>
+    `
+  )
+});
+
+export const ticketUpdateByStaffTemplate = ({ ticketNo, agentName, message }) => ({
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+  html: emeraldLayout(
+    "New Message Received",
+    `
+      <p>Dear Customer,</p>
+      <p>Our support specialist, <strong>${agentName}</strong>, has provided an update on your ticket:</p>
+      
+      <div style="background-color: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 20px 0; border-radius: 4px; font-style: italic;">
+        "${message}"
+      </div>
+      
+      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+      </div>
+    `
+  )
+});
+
+export const passwordResetOtpTemplate = ({ name, otpCode }) => ({
+  subject: "Fab5 - Password Reset Verification",
+  html: emeraldLayout(
+    "Password Recovery",
+    `
+      <p>Dear Customer,</p>
+      <p>We received a request to reset your support account password. Use the verification code below to proceed. <strong style="color: #dc2626;">This code will expire in 5 minutes.</strong></p>
+      
+      <div style="background-color: #f0fdf4; border: 2px dashed #059669; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
+        <div style="color: #065f46; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Verification Code</div>
+        <div style="color: #059669; font-size: 36px; font-weight: 900; letter-spacing: 0.2em; font-family: monospace;">${otpCode}</div>
+      </div>
+      
+      <p style="font-size: 13px; color: #6b7280;">If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+      </div>
+    `
+  )
+});
+
+export const ticketStatusUpdateTemplate = ({ ticketNo, status, updateType }) => {
+  if (updateType === "CLOSED" || status === "RESOLVED" || status === "CLOSED") {
+    return ticketResolvedTemplate({ ticketNo });
+  }
+
+  const config = {
+    REOPENED: {
+      title: "Complaint Reopened",
+      subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+      message: `Your ticket has been reopened. Our support team has been notified and will prioritize your request for further assistance.`,
+      footer: "Customer Support Team"
+    },
+    ESCALATED: {
+      title: "Complaint Escalated",
+      subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+      message: `Your ticket has been escalated to our senior support management. We are dedicating extra resources to ensure a swift resolution.`,
+      footer: "Customer Support Team"
+    }
+  }[updateType] || {
+    title: "Complaint Updated",
+    subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+    message: `Your ticket status has been updated to ${status.replace('_', ' ')}.`,
+    footer: "Customer Support Team"
+  };
+
+  const footerLine = config.footer 
+    ? `Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>${config.footer}`
+    : `Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong>`;
+
+  return {
+    subject: config.subject,
+    html: emeraldLayout(
+      config.title,
+      `
+        <p>Dear Customer,</p>
+        <p>${config.message}</p>
+        
+        <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 0; font-size: 14px;">${footerLine}</p>
+        </div>
+      `
+    )
   };
 };
-export const passwordResetOtpTemplate = ({ name, otpCode }) => ({
-  subject: "Samadhan - Password Reset OTP",
-  html: `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-      <div style="background-color: #059669; padding: 40px 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">Samadhan Security</h1>
-        <p style="color: #d1fae5; margin-top: 8px; font-size: 16px; font-weight: 500;">Password Recovery Verification</p>
-      </div>
-      
-      <div style="padding: 40px 30px;">
-        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${name},</h2>
-        <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 30px;">
-          We received a request to reset your Samadhan account password. Use the verification code below to proceed. 
-          <span style="color: #059669; font-weight: 600;">This code will expire in 5 minutes.</span>
-        </p>
-        
-        <div style="background-color: #f0fdf4; border: 2px dashed #10b981; border-radius: 12px; padding: 30px; text-align: center; margin: 30px 0;">
-          <div style="color: #065f46; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;">Verification Code</div>
-          <div style="color: #047857; font-size: 42px; font-weight: 900; letter-spacing: 0.2em; font-family: 'Courier New', Courier, monospace;">${otpCode}</div>
-        </div>
 
-        <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin-top: 30px;">
-          If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.
-        </p>
-        
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
-            &copy; ${new Date().getFullYear()} Samadhan Enterprise Operations. All rights reserved.
-          </p>
-        </div>
+export const troubleshootingUpdateTemplate = ({ ticketNo }) => ({
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+  html: emeraldLayout(
+    "Troubleshooting in Progress",
+    `
+      <p>Dear Customer,</p>
+      <p>To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.</p>
+      
+      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
+      
+      <p>Thank you for your patience and cooperation.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
       </div>
-    </div>
-  `
+    `
+  )
 });
 
-export const ticketAssignedToCustomerTemplate = ({ ticketNo, customerName, agentName, category }) => ({
-  subject: `Samadhan - Ticket Assigned: #${ticketNo}`,
-  html: `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
-      <div style="background-color: #4f46e5; padding: 40px 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">Agent Assigned</h1>
-        <p style="color: #e0e7ff; margin-top: 8px; font-size: 16px; font-weight: 500;">Ticket #${ticketNo}</p>
-      </div>
+export const longDelayUpdateTemplate = ({ ticketNo }) => ({
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+  html: emeraldLayout(
+    "Investigation Timeline Update",
+    `
+      <p>Dear Customer,</p>
+      <p>Your ticket is undergoing an in-depth investigation by our senior support specialists. We estimate it will take approximately 4 hours to fully resolve this issue.</p>
       
-      <div style="padding: 40px 30px;">
-        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${customerName},</h2>
-        <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 25px;">
-          Your ticket has been assigned to our support specialist, <strong style="color: #4f46e5;">${agentName}</strong>. They will review your request and provide a resolution shortly.
-        </p>
-        
-        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 30px 0;">
-          <div style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;">Ticket Summary</div>
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="padding-bottom: 8px; color: #64748b; font-size: 14px;">Category</td>
-              <td style="padding-bottom: 8px; color: #1e293b; font-weight: 700; font-size: 14px; text-align: right;">${category}</td>
-            </tr>
-          </table>
-        </div>
-
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
-            Samadhan Enterprise Support &bull; Personal Assistance
-          </p>
-        </div>
-      </div>
-    </div>
-  `
-});
-
-export const ticketAssignedToAgentTemplate = ({ ticketNo, agentName, customerName, customerId, category, message }) => ({
-  subject: `Samadhan - New Ticket Assigned: #${ticketNo}`,
-  html: `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
-      <div style="background-color: #1e293b; padding: 40px 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">New Assignment</h1>
-        <p style="color: #94a3b8; margin-top: 8px; font-size: 16px; font-weight: 500;">Ticket #${ticketNo}</p>
-      </div>
+      <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
       
-      <div style="padding: 40px 30px;">
-        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${agentName},</h2>
-        <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 30px;">
-          A new ticket has been assigned to you. Please review the details below and initiate the resolution process.
-        </p>
-        
-        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 30px 0;">
-          <div style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 15px;">Customer & Ticket Info</div>
-          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-            <tr>
-              <td style="padding: 8px 0; color: #64748b;">Customer Name</td>
-              <td style="padding: 8px 0; color: #1e293b; font-weight: 700; text-align: right;">${customerName}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #64748b;">Customer ID</td>
-              <td style="padding: 8px 0; color: #1e293b; font-weight: 700; text-align: right;">${customerId}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #64748b;">Category</td>
-              <td style="padding: 8px 0; color: #1e293b; font-weight: 700; text-align: right;">${category}</td>
-            </tr>
-          </table>
-          
-          <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
-            <div style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Customer Message</div>
-            <div style="color: #475569; font-style: italic; line-height: 1.5; font-size: 13px;">"${message}"</div>
-          </div>
-        </div>
-
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
-            Samadhan Internal Support Queue &bull; Enterprise Operations
-          </p>
-        </div>
-      </div>
-    </div>
-  `
-});
-
-export const troubleshootingUpdateTemplate = ({ ticketNo, customerName }) => ({
-  subject: `Samadhan Update - Ticket #${ticketNo}: Investigation Underway`,
-  html: `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
-      <div style="background-color: #065f46; padding: 40px 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">Technical Review</h1>
-        <p style="color: #a7f3d0; margin-top: 8px; font-size: 16px; font-weight: 500;">Ticket #${ticketNo} Update</p>
-      </div>
+      <p>Thank you for your patience and cooperation.</p>
       
-      <div style="padding: 40px 30px;">
-        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${customerName},</h2>
-        <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 25px;">
-          Our technical team is currently investigating your request. We are performing a root-cause analysis to ensure a permanent resolution.
-        </p>
-        
-        <div style="background-color: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; padding: 20px; margin: 25px 0;">
-          <p style="color: #166534; font-size: 14px; font-weight: 600; margin: 0;">
-            Estimated Update Window: <span style="font-weight: 800;">~45 Minutes</span>
-          </p>
-        </div>
-
-        <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
-          You will receive another update as soon as the assigned specialist completes their review.
-        </p>
-        
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
-            Samadhan Support System &bull; Intelligent Resolution Engine
-          </p>
-        </div>
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
       </div>
-    </div>
-  `
-});
-
-export const longDelayUpdateTemplate = ({ ticketNo, customerName }) => ({
-  subject: `Samadhan Update - Ticket #${ticketNo}: Resolution Timeline`,
-  html: `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
-      <div style="background-color: #059669; padding: 40px 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">Priority Resolution</h1>
-        <p style="color: #d1fae5; margin-top: 8px; font-size: 16px; font-weight: 500;">Extended Timeline Update</p>
-      </div>
-      
-      <div style="padding: 40px 30px;">
-        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${customerName},</h2>
-        <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 25px;">
-          Your ticket is undergoing an in-depth investigation by our senior support specialists. Due to the technical nature of the request, resolution may take longer than initially estimated.
-        </p>
-        
-        <div style="background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 20px; margin: 25px 0;">
-          <p style="color: #92400e; font-size: 14px; font-weight: 600; margin: 0;">
-            Current Resolution Estimate: <span style="font-weight: 800;">Up to 4 Hours</span>
-          </p>
-        </div>
-
-        <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
-          We appreciate your patience while we work towards a definitive solution. We will notify you immediately once the resolution is applied.
-        </p>
-        
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
-            Samadhan Enterprise Support &bull; Tier 2 Technical Queue
-          </p>
-        </div>
-      </div>
-    </div>
-  `
-});
-export const ticketUpdateByStaffTemplate = ({ ticketNo, customerName, agentName, message }) => ({
-  subject: `Samadhan Update - New Message on Ticket #${ticketNo}`,
-  html: `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
-      <div style="background-color: #4f46e5; padding: 40px 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">New Message</h1>
-        <p style="color: #e0e7ff; margin-top: 8px; font-size: 16px; font-weight: 500;">Ticket #${ticketNo}</p>
-      </div>
-      
-      <div style="padding: 40px 30px;">
-        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 700;">Hello ${customerName},</h2>
-        <p style="color: #475569; line-height: 1.7; font-size: 16px; margin-bottom: 25px;">
-          Our support specialist, <strong style="color: #4f46e5;">${agentName}</strong>, has provided an update on your ticket:
-        </p>
-        
-        <div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 20px; margin: 25px 0; border-radius: 4px;">
-          <p style="color: #1e293b; font-size: 15px; font-style: italic; margin: 0; line-height: 1.6;">
-            "${message}"
-          </p>
-        </div>
-
-        <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
-          You can view the full conversation and respond by logging into your Samadhan dashboard.
-        </p>
-        
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0; font-weight: 500;">
-            Samadhan Support System &bull; Enterprise Operations
-          </p>
-        </div>
-      </div>
-    </div>
-  `
+    `
+  )
 });

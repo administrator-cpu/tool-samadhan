@@ -1,5 +1,21 @@
 import dotenv from "dotenv";
-import { welcomeStaffTemplate } from "./emailTemplates.js";
+import {
+  welcomeStaffTemplate,
+  welcomeCustomerTemplate,
+  ticketCreatedTemplate,
+  ticketCreatedHelpdeskTemplate,
+  ticketAssignedCustomer5MinTemplate,
+  ticketAssignedToAgentTemplate,
+  ticketTroubleshootingCustomer15MinTemplate,
+  ticketResolvedTemplate,
+  ticketRcaTemplate,
+  ticketUpdateByStaffTemplate,
+  passwordResetOtpTemplate,
+  ticketStatusUpdateTemplate,
+  troubleshootingUpdateTemplate,
+  longDelayUpdateTemplate
+} from "./emailTemplates.js";
+
 dotenv.config();
 
 const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
@@ -27,7 +43,7 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
         user_id: publicKey,
         accessToken: privateKey,
         template_params: {
-          to_email: toEmail,
+          email: toEmail,
           to_name: toName,
           subject: subject,
           html_content: htmlContent,
@@ -43,8 +59,6 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
     console.log(`[EMAIL-SERVICE] Email sent successfully to ${toEmail}`);
   } catch (error) {
     console.error("[EMAIL-SERVICE] Failed to send email:", error.message);
-    // I don't throw error here to avoid breaking the account creation flow, 
-    // but I log it for the admin and later on the Loki.
   }
 };
 
@@ -65,21 +79,7 @@ export const sendStaffWelcomeEmail = async ({ name, email, password, role }) => 
  * Sends a welcome email to a new customer
  */
 export const sendCustomerWelcomeEmail = async ({ name, email, password }) => {
-  const { welcomeCustomerTemplate } = await import("./emailTemplates.js");
   const { subject, html } = welcomeCustomerTemplate({ name, email, password });
-  await sendEmail({
-    toEmail: email,
-    toName: name,
-    subject,
-    htmlContent: html,
-  });
-};
-/**
- * Sends a ticket creation confirmation email
- */
-export const sendTicketConfirmationEmail = async ({ name, email, ticketNo, category }) => {
-  const { ticketCreatedTemplate } = await import("./emailTemplates.js");
-  const { subject, html } = ticketCreatedTemplate({ ticketNo, customerName: name, category });
   await sendEmail({
     toEmail: email,
     toName: name,
@@ -89,10 +89,85 @@ export const sendTicketConfirmationEmail = async ({ name, email, ticketNo, categ
 };
 
 /**
+ * Sends a ticket creation confirmation email
+ */
+export const sendTicketConfirmationEmail = async ({ name, email, ticketNo }) => {
+  const { subject, html } = ticketCreatedTemplate({ ticketNo });
+  await sendEmail({
+    toEmail: email,
+    toName: name,
+    subject,
+    htmlContent: html,
+  });
+};
+
+/**
+ * Sends a ticket creation helpdesk email
+ */
+export const sendTicketCreatedHelpdeskEmail = async ({ customerName, ticketNo, category, circuitId }) => {
+  const { subject, html } = ticketCreatedHelpdeskTemplate({ customerName, ticketNo, category, circuitId });
+  await sendEmail({
+    toEmail: "helpdesk@fab5network.com",
+    toName: "Fab5 Helpdesk",
+    subject,
+    htmlContent: html,
+  });
+};
+
+/**
+ * Sends a customer 5-minute assignment notification email
+ */
+export const sendCustomerAssignment5MinEmail = async ({ name, email, ticketNo }) => {
+  const { subject, html } = ticketAssignedCustomer5MinTemplate({ ticketNo });
+  await sendEmail({
+    toEmail: email,
+    toName: name,
+    subject,
+    htmlContent: html,
+  });
+};
+
+/**
+ * Sends immediate agent & helpdesk assignment emails
+ */
+export const sendImmediateAgentAssignmentEmails = async ({
+  customerName,
+  agentName,
+  agentEmail,
+  ticketNo,
+  category,
+  circuitId
+}) => {
+  const { subject, html } = ticketAssignedToAgentTemplate({
+    ticketNo,
+    customerName,
+    category,
+    circuitId
+  });
+
+  // 1. Notify Agent
+  const p1 = sendEmail({
+    toEmail: agentEmail,
+    toName: agentName,
+    subject,
+    htmlContent: html,
+  }).catch(err => console.error("[EMAIL] Immediate assignment (Agent) failed:", err));
+
+  // 2. Notify Helpdesk
+  const p2 = sendEmail({
+    toEmail: "helpdesk@fab5network.com",
+    toName: "Fab5 Helpdesk",
+    subject,
+    htmlContent: html,
+  }).catch(err => console.error("[EMAIL] Immediate assignment (Helpdesk) failed:", err));
+
+  await Promise.all([p1, p2]);
+};
+
+/**
  * Sends a ticket status update email
  */
 export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, status, updateType }) => {
-  const { ticketStatusUpdateTemplate } = await import("./emailTemplates.js");
   const { subject, html } = ticketStatusUpdateTemplate({ ticketNo, customerName: name, status, updateType });
   await sendEmail({
     toEmail: email,
@@ -101,11 +176,11 @@ export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, statu
     htmlContent: html,
   });
 };
+
 /**
  * Sends a password reset OTP email
  */
 export const sendPasswordResetEmail = async ({ name, email, otpCode }) => {
-  const { passwordResetOtpTemplate } = await import("./emailTemplates.js");
   const { subject, html } = passwordResetOtpTemplate({ name, otpCode });
   await sendEmail({
     toEmail: email,
@@ -115,46 +190,11 @@ export const sendPasswordResetEmail = async ({ name, email, otpCode }) => {
   });
 };
 
-export const sendTicketAssignmentEmails = async ({ 
-  customerName, customerEmail, customerId, 
-  agentName, agentEmail, 
-  ticketNo, category, message 
-}) => {
-  const { ticketAssignedToCustomerTemplate, ticketAssignedToAgentTemplate } = await import("./emailTemplates.js");
-
-  // 1. Notify Customer
-  const customerEmailObj = ticketAssignedToCustomerTemplate({ 
-    ticketNo, customerName, agentName, category 
-  });
-  
-  const p1 = sendEmail({
-    toEmail: customerEmail,
-    toName: customerName,
-    subject: customerEmailObj.subject,
-    htmlContent: customerEmailObj.html,
-  }).catch(err => console.error("[EMAIL] Assignment (Customer) failed:", err));
-
-  // 2. Notify Agent
-  const agentEmailObj = ticketAssignedToAgentTemplate({ 
-    ticketNo, agentName, customerName, customerId, category, message 
-  });
-  
-  const p2 = sendEmail({
-    toEmail: agentEmail,
-    toName: agentName,
-    subject: agentEmailObj.subject,
-    htmlContent: agentEmailObj.html,
-  }).catch(err => console.error("[EMAIL] Assignment (Agent) failed:", err));
-
-  await Promise.all([p1, p2]);
-};
-
 /**
  * Sends troubleshooting update email
  */
 export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo }) => {
-  const { troubleshootingUpdateTemplate } = await import("./emailTemplates.js");
-  const { subject, html } = troubleshootingUpdateTemplate({ ticketNo, customerName: name });
+  const { subject, html } = troubleshootingUpdateTemplate({ ticketNo });
   await sendEmail({
     toEmail: email,
     toName: name,
@@ -167,8 +207,7 @@ export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo }) 
  * Sends long delay update email
  */
 export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo }) => {
-  const { longDelayUpdateTemplate } = await import("./emailTemplates.js");
-  const { subject, html } = longDelayUpdateTemplate({ ticketNo, customerName: name });
+  const { subject, html } = longDelayUpdateTemplate({ ticketNo });
   await sendEmail({
     toEmail: email,
     toName: name,
@@ -176,12 +215,25 @@ export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo }) => {
     htmlContent: html,
   });
 };
+
 /**
  * Sends an email to the customer when a staff member updates the ticket
  */
 export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, message }) => {
-  const { ticketUpdateByStaffTemplate } = await import("./emailTemplates.js");
-  const { subject, html } = ticketUpdateByStaffTemplate({ ticketNo, customerName: name, agentName, message });
+  const { subject, html } = ticketUpdateByStaffTemplate({ ticketNo, agentName, message });
+  await sendEmail({
+    toEmail: email,
+    toName: name,
+    subject,
+    htmlContent: html,
+  });
+};
+
+/**
+ * Sends a ticket RCA update email
+ */
+export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca }) => {
+  const { subject, html } = ticketRcaTemplate({ ticketNo, rca });
   await sendEmail({
     toEmail: email,
     toName: name,

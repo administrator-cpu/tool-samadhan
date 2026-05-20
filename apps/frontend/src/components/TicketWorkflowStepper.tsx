@@ -27,7 +27,7 @@ const steps: Step[] = [
   },
   {
     title: "Escalate",
-    description: "Priority increases if response is delayed.",
+    description: "Tickets are escalated if response is delayed.",
     icon: TriangleAlert,
   },
   {

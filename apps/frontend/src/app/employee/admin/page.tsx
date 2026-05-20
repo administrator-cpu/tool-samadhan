@@ -260,7 +260,7 @@ export default function AdminDashboard() {
 
           </div>
 
-          {/* Priority Heatmap & Quick Access */}
+          {/* Strategic Control & Quick Access */}
           <div className="space-y-8">
 
             <div className="rounded-[1rem] bg-indigo-900 p-8 text-white shadow-2xl shadow-indigo-200/50 relative overflow-hidden group">

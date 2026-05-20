@@ -24,7 +24,6 @@ interface Ticket {
   ticket_no: string;
   category_name: string;
   status: string;
-  priority: string;
   rca: string | null;
   created_at: string;
   updated_at: string;
@@ -89,7 +88,6 @@ export default function ResolvedTicketsPage() {
         "Assigned Agent",
         "Category",
         "Status",
-        "Priority",
         "Created At",
         "Resolved At",
         "Closed At",
@@ -103,7 +101,6 @@ export default function ResolvedTicketsPage() {
         `"${(t.assigned_agent_name || "Unassigned").replace(/"/g, '""')}"`,
         `"${(t.category_name || "N/A").replace(/"/g, '""')}"`,
         t.status,
-        t.priority,
         format(new Date(t.created_at), "yyyy-MM-dd HH:mm:ss"),
         t.resolved_at ? format(new Date(t.resolved_at), "yyyy-MM-dd HH:mm:ss") : "N/A",
         t.closed_at ? format(new Date(t.closed_at), "yyyy-MM-dd HH:mm:ss") : "N/A",
@@ -206,7 +203,6 @@ export default function ResolvedTicketsPage() {
                           <span className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
                             {ticket.ticket_no}
                           </span>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase">{ticket.priority} PRIORITY</span>
                         </div>
                       </td>
                       <td className="px-6 py-5">

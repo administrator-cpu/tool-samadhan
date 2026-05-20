@@ -3,26 +3,26 @@ import { listIssueCategories } from "../services/ticketService.js";
 import AppError from "../utils/AppError.js";
 import { REFRESH_TOKEN_MAX_AGE_MS } from "../services/jwt.js";
 
+const isProd = process.env.NODE_ENV === "production";
+
 const setRefreshCookie = (res, token) => {
-  const isProd = process.env.NODE_ENV === "production";
-  
   res.cookie("refreshToken", token, {
     httpOnly: true,
     secure: isProd,
     // For cross-site cookies (Render), we need sameSite: 'none' and secure: true
-    sameSite: process.env.COOKIE_SAME_SITE || (isProd ? "none" : "lax"),
+    // sameSite: process.env.COOKIE_SAME_SITE || (isProd ? "none" : "lax"),
+    sameSite: "none",
     path: "/",
     maxAge: REFRESH_TOKEN_MAX_AGE_MS,
   });
 };
 
 const clearRefreshCookie = (res) => {
-  const isProd = process.env.NODE_ENV === "production";
-  
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: isProd,
-    sameSite: process.env.COOKIE_SAME_SITE || (isProd ? "none" : "lax"),
+    // sameSite: process.env.COOKIE_SAME_SITE || (isProd ? "none" : "lax"),
+    sameSite: "none",
     path: "/",
   });
 };
