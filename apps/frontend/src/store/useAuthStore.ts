@@ -81,17 +81,18 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
+        isAuthenticated: state.isAuthenticated,
       }),
-      version: 2,
-      migrate: (persistedState) => {
-        const persisted = persistedState as Partial<AuthState> | undefined;
+      version: 3,
+      migrate: (persistedState, version) => {
+        const persisted = persistedState as any;
 
         return {
           user: persisted?.user ?? null,
-          accessToken: null,
-          isAuthenticated: false,
+          isAuthenticated: persisted?.isAuthenticated ?? false,
           isSessionChecked: false,
-        };
+          _hasHydrated: false,
+        } as any;
       },
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
