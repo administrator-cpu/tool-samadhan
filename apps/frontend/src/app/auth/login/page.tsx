@@ -76,8 +76,7 @@ export default function LoginPage() {
 
       setAuth(user, accessToken);
       toast.success(`Welcome back, ${user.name}!`);
-      
-      const dashboardPath = user.role === "USER" ? "/customer" : "/employee";
+      const dashboardPath = getDashboardPath();
       router.push(dashboardPath);
     } catch (error: any) {
       console.error("Login error:", error);
