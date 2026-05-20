@@ -20,14 +20,7 @@ export default function Timeline({ events }: TimelineProps) {
   const { user } = useAuthStore();
   const isEmployee = !!user && user.role !== "USER";
 
-  // Filter out internal priority messages only for customers
-  const visibleEvents = events.filter((e) => {
-    if (isEmployee) return true; // Employees see everything
-    return (
-      e.event_type !== "PRIORITY_ASSIGNED" &&
-      e.event_type !== "PRIORITY_CHANGED"
-    );
-  });
+  const visibleEvents = events;
 
   const getEventIcon = (type: string) => {
     switch (type) {
