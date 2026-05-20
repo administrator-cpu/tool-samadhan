@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
-import Timeline from "@/components/CustomerTimeline";
+import Timeline from "@/components/ChatBoxTimelineMessages";
 import { api } from "@/lib/api";
 import { quickReplies } from "@/lib/quickReplies";
 import { useParams } from "next/navigation";
