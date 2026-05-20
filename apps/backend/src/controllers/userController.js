@@ -142,15 +142,16 @@ export const login = async (req, res) => {
     data: {
       user: result.user,
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     },
   });
 };
 
 export const refresh = async (req, res) => {
-  const token = req.cookies?.refreshToken;
+  const token = req.cookies?.refreshToken || req.body?.refreshToken || req.headers["x-refresh-token"];
 
   if (!token) {
-    console.log(`[REFRESH] No refresh token found in cookies. Total cookies: ${Object.keys(req.cookies || {}).length}`);
+    console.log(`[REFRESH] No refresh token found in cookies, body, or headers.`);
     console.log(`[REFRESH] User-Agent: ${req.headers["user-agent"]}`);
     throw new AppError(401, "No refresh token found. Please log in again.", "NO_REFRESH_TOKEN");
   }
@@ -171,6 +172,7 @@ export const refresh = async (req, res) => {
       data: {
         user: result.user,
         accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
       },
     });
   } catch (error) {
