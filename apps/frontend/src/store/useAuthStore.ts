@@ -60,6 +60,7 @@ export const useAuthStore = create<AuthState>()(
         if (user.role === "USER") return "/customer";
         if (user.role === "SUPPORT_AGENT") return "/employee/support-agent";
         if (user.role === "ADMIN") return "/employee/admin";
+        if (user.role === "SALES") return "/employee/sales";
         return "/";
       },
       getReportPath: () => {
@@ -68,6 +69,7 @@ export const useAuthStore = create<AuthState>()(
         if (user.role === "USER") return "/customer/raise-new-ticket";
         if (user.role === "SUPPORT_AGENT") return "/employee/support-agent/raise-new-ticket";
         if (user.role === "ADMIN") return "/employee/admin/raise-new-ticket";
+        if (user.role === "SALES") return "/employee/sales/raise-ticket";
         return "/";
       },
     }),

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
-import { ArrowRight, Leaf, Lock, Mail, Loader2 } from "lucide-react";
+import { ArrowRight, Lock, Mail, Loader2 } from "lucide-react";
 import icon from "@/assets/Samadhan-Logo.png";
 import Image from "next/image";
 
@@ -206,18 +206,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Footer */}
-          <div className="mt-8 border-t border-slate-200 pt-6 text-center">
-            <p className="text-sm text-slate-500">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/signup"
-                className="font-medium text-indigo-700 transition hover:underline"
-              >
-                Create Account
-              </Link>
-            </p>
-          </div>
         </div>
       </main>
     </div>

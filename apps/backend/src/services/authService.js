@@ -58,6 +58,14 @@ export const updatePassword = async ({ userId, newPassword }) => {
       [userId],
     );
 
+    // Clear must_change_password on customer table (if exists)
+    await client.query(
+      `UPDATE customers
+       SET must_change_password = FALSE
+       WHERE user_id = $1`,
+      [userId],
+    );
+
     await client.query("COMMIT");
     return { success: true };
   } catch (error) {
@@ -119,8 +127,64 @@ export const registerCustomer = async ({ name, email, password, userAgent, ipAdd
   }
 };
 
+export const createCustomer = async ({ name, email, password, phone }) => {
+  const client = await postgresPool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const existingUser = await client.query(
+      `SELECT id FROM users WHERE email = $1 LIMIT 1`,
+      [email],
+    );
+
+    if (existingUser.rowCount > 0) {
+      throw new AppError(409, "Email already exists", "EMAIL_EXISTS");
+    }
+
+    const passwordHash = await argon2.hash(password);
+
+    const userResult = await client.query(
+      `INSERT INTO users (name, email, password, role, phone)
+       VALUES ($1, $2, $3, 'USER', $4)
+       RETURNING id, name, email, role, phone`,
+      [name, email, passwordHash, phone || null],
+    );
+
+    const user = userResult.rows[0];
+
+    const customerResult = await client.query(
+      `INSERT INTO customers (user_id, must_change_password)
+       VALUES ($1, TRUE)
+       RETURNING id, customer_id, joined_at`,
+      [user.id],
+    );
+    const customer = customerResult.rows[0];
+
+    await client.query("COMMIT");
+
+    // Send welcome email asynchronously
+    const { sendCustomerWelcomeEmail } = await import("../utils/emailService.js");
+    sendCustomerWelcomeEmail({
+      name: user.name,
+      email: user.email,
+      password: password,
+    }).catch(err => console.error("Failed to send welcome email:", err));
+
+    return {
+      user,
+      customer,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
 export const createEmployee = async ({ name, email, password, role, issueCategoryNames = [] }) => {
-  const allowedRoles = ["SUPPORT_AGENT", "MANAGER", "ADMIN"];
+  const allowedRoles = ["SUPPORT_AGENT", "MANAGER", "ADMIN", "SALES"];
   if (!allowedRoles.includes(role)) {
     throw new AppError(400, "Invalid employee role", "INVALID_ROLE");
   }
@@ -159,8 +223,8 @@ export const createEmployee = async ({ name, email, password, role, issueCategor
 
     const employee = employeeResult.rows[0];
 
-    // Handle issue categories by name in bulk
-    if (issueCategoryNames && issueCategoryNames.length > 0) {
+    // Handle issue categories by name in bulk (skip for SALES)
+    if (role !== "SALES" && issueCategoryNames && issueCategoryNames.length > 0) {
       await client.query(
         `INSERT INTO employee_issue_categories (employee_id, issue_category_id)
          SELECT $1, id FROM issue_categories WHERE name = ANY($2)`,
@@ -216,6 +280,67 @@ export const listAllEmployees = async () => {
   return result.rows;
 };
 
+export const listAllCustomers = async ({ page = 1, limit = 10 } = {}) => {
+  const offset = (page - 1) * limit;
+
+  // 1. Get total count
+  const countResult = await postgresPool.query(`SELECT COUNT(*) FROM customers`);
+  const total = parseInt(countResult.rows[0].count, 10);
+
+  // 2. Get paginated results
+  const result = await postgresPool.query(`
+    SELECT 
+      c.id as customer_row_id,
+      c.customer_id,
+      c.joined_at,
+      u.id as user_id,
+      u.name,
+      u.email,
+      u.phone,
+      u.role
+    FROM customers c
+    JOIN users u ON c.user_id = u.id
+    ORDER BY c.joined_at DESC
+    LIMIT $1 OFFSET $2
+  `, [limit, offset]);
+
+  return {
+    customers: result.rows,
+    total,
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
+    totalPages: Math.ceil(total / limit)
+  };
+};
+
+export const deleteCustomer = async (customerRowId) => {
+  const client = await postgresPool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const customerRes = await client.query(
+      "SELECT user_id FROM customers WHERE id = $1",
+      [customerRowId]
+    );
+
+    if (customerRes.rowCount === 0) {
+      throw new AppError(404, "Customer not found", "CUSTOMER_NOT_FOUND");
+    }
+
+    const userId = customerRes.rows[0].user_id;
+
+    await client.query("DELETE FROM users WHERE id = $1", [userId]);
+
+    await client.query("COMMIT");
+    return { userId, customerRowId };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
 export const listAllAgents = async () => {
   const result = await postgresPool.query(`
     SELECT e.id, u.name, u.email
@@ -264,9 +389,10 @@ export const loginUser = async ({ email, password, userAgent, ipAddress }) => {
     const result = await client.query(
       `SELECT 
         u.id, u.name, u.email, u.password, u.role,
-        COALESCE(e.must_change_password, FALSE) as must_change_password
+        COALESCE(e.must_change_password, c.must_change_password, FALSE) as must_change_password
        FROM users u
        LEFT JOIN employees e ON u.id = e.user_id
+       LEFT JOIN customers c ON u.id = c.user_id
        WHERE u.email = $1
        LIMIT 1`,
       [email],
@@ -349,9 +475,10 @@ export const refreshSession = async ({ refreshToken, userAgent, ipAddress }) => 
     const userResult = await client.query(
       `SELECT 
         u.id, u.name, u.email, u.role,
-        COALESCE(e.must_change_password, FALSE) as must_change_password
+        COALESCE(e.must_change_password, c.must_change_password, FALSE) as must_change_password
        FROM users u
        LEFT JOIN employees e ON u.id = e.user_id
+       LEFT JOIN customers c ON u.id = c.user_id
        WHERE u.id = $1
        LIMIT 1`,
       [storedSession.user_id],
@@ -415,6 +542,7 @@ export const getCurrentUserDetails = async (userId) => {
       u.name,
       u.email,
       u.role,
+      u.phone,
       u.created_at,
       u.updated_at,
 
@@ -425,7 +553,7 @@ export const getCurrentUserDetails = async (userId) => {
       e.id AS employee_row_id,
       e.employee_id,
       e.joined_at AS employee_joined_at,
-      COALESCE(e.must_change_password, FALSE) as must_change_password,
+      COALESCE(e.must_change_password, c.must_change_password, FALSE) as must_change_password,
       COALESCE(
         json_agg(
           json_build_object('id', ic.id, 'name', ic.name)
@@ -456,6 +584,7 @@ export const getCurrentUserDetails = async (userId) => {
       name: row.name,
       email: row.email,
       role: row.role,
+      phone: row.phone,
       must_change_password: row.must_change_password,
       specialties: row.categories.map(c => c.name),
       created_at: row.created_at,
@@ -530,4 +659,22 @@ export const completePasswordReset = async (email, otpCode, newPassword) => {
     await client.query("COMMIT");
     return { success: true, message: "Password reset successfully" };
   } catch (error) { await client.query("ROLLBACK"); throw error; } finally { client.release(); }
+};
+
+export const updateUserProfile = async ({ userId, name, phone }) => {
+  const result = await postgresPool.query(
+    `UPDATE users
+     SET name = $1,
+         phone = $2,
+         updated_at = NOW()
+     WHERE id = $3
+     RETURNING id, name, email, role, phone`,
+    [name, phone, userId]
+  );
+
+  if (result.rowCount === 0) {
+    throw new AppError(404, "User not found", "USER_NOT_FOUND");
+  }
+
+  return result.rows[0];
 };

@@ -121,12 +121,38 @@ const insertTicketEvent = async (client, event) => {
   return rows[0];
 };
 
-export const createTicket = async ({ userId, message, circuitDescription, issueCategoryId }) => {
+export const createTicket = async ({ userId, message, circuitDescription, issueCategoryId, customerEmail }) => {
   return runInTransaction(async (client) => {
-    const customer = await getCustomerProfileByUserId(client, userId);
+    // Determine creator's role
+    const userRoleResult = await client.query(
+      `SELECT role FROM users WHERE id = $1 LIMIT 1`,
+      [userId]
+    );
 
-    if (!customer) {
-      throw new AppError(403, "Only customers can create tickets", "FORBIDDEN");
+    if (userRoleResult.rowCount === 0) {
+      throw new AppError(401, "Creator user not found", "USER_NOT_FOUND");
+    }
+
+    const creatorRole = userRoleResult.rows[0].role;
+    let customer;
+
+    if (creatorRole === "SALES") {
+      if (!customerEmail) {
+        throw new AppError(400, "Customer email is required for Sales-initiated tickets", "BAD_REQUEST");
+      }
+      const customerResult = await client.query(
+        `SELECT c.id FROM customers c JOIN users u ON u.id = c.user_id WHERE u.email = $1 LIMIT 1`,
+        [customerEmail.trim().toLowerCase()]
+      );
+      if (customerResult.rowCount === 0) {
+        throw new AppError(404, "Customer with this email was not found", "CUSTOMER_NOT_FOUND");
+      }
+      customer = customerResult.rows[0];
+    } else {
+      customer = await getCustomerProfileByUserId(client, userId);
+      if (!customer) {
+        throw new AppError(403, "Only customers can create tickets directly", "FORBIDDEN");
+      }
     }
 
     if (!circuitDescription || circuitDescription.trim() === "") {
@@ -157,8 +183,8 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
       ticketId: ticket.id,
       actorUserId: userId,
       eventType: "TICKET_CREATED",
-      message,
-      metadata: { source: "customer" },
+      message: message || "Ticket raised by Sales on behalf of customer",
+      metadata: { source: creatorRole === "SALES" ? "sales" : "customer" },
       visibleToCustomer: true,
     });
 
@@ -249,7 +275,7 @@ export const addTicketEvent = async ({
 }) => {
   return runInTransaction(async (client) => {
     const ticketResult = await client.query(
-      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status
+      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply
        FROM tickets
        WHERE id = $1
        FOR UPDATE`,
@@ -278,7 +304,16 @@ export const addTicketEvent = async ({
     const actor = actorResult.rows[0];
 
     if (actor.role === "USER") {
-      throw new AppError(403, "Customers cannot add ticket events after creation", "FORBIDDEN");
+      if (!ticket.allow_customer_reply) {
+        throw new AppError(403, "Customers cannot add ticket events at this time", "FORBIDDEN");
+      }
+      const isCustomerOwner = await client.query(
+        `SELECT 1 FROM customers c JOIN tickets t ON t.customer_id = c.id WHERE t.id = $1 AND c.user_id = $2`,
+        [ticketId, actorUserId]
+      );
+      if (isCustomerOwner.rowCount === 0) {
+        throw new AppError(403, "You do not have access to this ticket", "FORBIDDEN");
+      }
     }
 
     if (actor.role === "SUPPORT_AGENT") {
@@ -292,17 +327,19 @@ export const addTicketEvent = async ({
     }
 
     const eventType =
-      actor.role === "SUPPORT_AGENT"
-        ? visibleToCustomer
-          ? "AGENT_REPLY"
-          : "INTERNAL_NOTE"
-        : actor.role === "MANAGER"
+      actor.role === "USER"
+        ? "USER_REPLY"
+        : actor.role === "SUPPORT_AGENT"
           ? visibleToCustomer
-            ? "MANAGER_REPLY"
+            ? "AGENT_REPLY"
             : "INTERNAL_NOTE"
-          : visibleToCustomer
-            ? "ADMIN_REPLY"
-            : "INTERNAL_NOTE";
+          : actor.role === "MANAGER"
+            ? visibleToCustomer
+              ? "MANAGER_REPLY"
+              : "INTERNAL_NOTE"
+            : visibleToCustomer
+              ? "ADMIN_REPLY"
+              : "INTERNAL_NOTE";
 
     const event = await insertTicketEvent(client, {
       ticketId: ticket.id,
@@ -380,7 +417,10 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         t.circuit_description,
         t.rca,
         t.problem_side,
-        t.external_ticket_no
+        t.external_ticket_no,
+        t.rating,
+        t.rating_feedback,
+        t.allow_customer_reply
       FROM tickets t
       JOIN customers c ON c.id = t.customer_id
       JOIN users cu ON cu.id = c.user_id
@@ -398,6 +438,35 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
     }
 
     const ticket = ticketResult.rows[0];
+
+    // Automatically close resolved tickets that are older than 24 hours
+    if (ticket.status === "RESOLVED" && ticket.resolved_at) {
+      const resolvedAt = new Date(ticket.resolved_at);
+      const now = new Date();
+      const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
+      if (diffHours > 24) {
+        await client.query(
+          `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW() WHERE id = $1`,
+          [ticketId]
+        );
+        await client.query(
+          `INSERT INTO ticket_events (ticket_id, actor_user_id, event_type, message, metadata, visible_to_customer)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            ticketId,
+            null,
+            "STATUS_CHANGED",
+            "Ticket automatically closed after 24 hours of resolution.",
+            JSON.stringify({ status: "CLOSED", autoClosed: true }),
+            true
+          ]
+        );
+        
+        ticket.status = "CLOSED";
+        ticket.closed_at = now;
+        ticket.updated_at = now;
+      }
+    }
 
     const requesterResult = await client.query(
       `
@@ -433,16 +502,13 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
       requester.employee_id &&
       Number(requester.employee_id) === Number(ticket.current_assigned_employee_id);
 
-    const isPrivileged = requester.role === "MANAGER" || requester.role === "ADMIN";
+    const isPrivileged = requester.role === "MANAGER" || requester.role === "ADMIN" || requester.role === "SALES";
 
     if (!(isCustomerOwner.rowCount > 0 || isAssignedAgent || isPrivileged)) {
       throw new AppError(403, "You do not have access to this ticket", "FORBIDDEN");
     }
 
-    // Hide RCA for customers
-    if (requester.role === "USER") {
-      ticket.rca = null;
-    }
+    // Customers and admins can now view the RCA. No longer hiding it.
 
     const eventsQuery = requester.role === "USER"
       ? `
@@ -488,12 +554,16 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         priority: ticket.priority,
         subject: ticket.subject,
         circuit_description: ticket.circuit_description,
+        rca: ticket.rca,
         problem_side: ticket.problem_side,
         external_ticket_no: ticket.external_ticket_no,
         created_at: ticket.created_at,
         updated_at: ticket.updated_at,
         resolved_at: ticket.resolved_at,
         closed_at: ticket.closed_at,
+        rating: ticket.rating,
+        rating_feedback: ticket.rating_feedback,
+        allow_customer_reply: ticket.allow_customer_reply,
         customer: {
           id: ticket.customer_row_id,
           customer_id: ticket.customer_id,
@@ -514,11 +584,38 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
   }
 };
 
-export const listUserTickets = async ({ userId, ownership, page = 1, limit = 10 }) => {
+const bulkCloseExpiredResolvedTickets = async (client) => {
+  const expiredTicketsRes = await client.query(
+    `SELECT id FROM tickets WHERE status = 'RESOLVED' AND resolved_at < NOW() - INTERVAL '24 hours'`
+  );
+  if (expiredTicketsRes.rowCount > 0) {
+    for (const row of expiredTicketsRes.rows) {
+      await client.query(
+        `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW(), allow_customer_reply = FALSE WHERE id = $1`,
+        [row.id]
+      );
+      await client.query(
+        `INSERT INTO ticket_events (ticket_id, actor_user_id, event_type, message, metadata, visible_to_customer)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          row.id,
+          null,
+          "STATUS_CHANGED",
+          "Ticket automatically closed after 24 hours of resolution.",
+          JSON.stringify({ status: "CLOSED", autoClosed: true }),
+          true
+        ]
+      );
+    }
+  }
+};
+
+export const listUserTickets = async ({ userId, ownership, statusGroup, page = 1, limit = 10 }) => {
   const client = await postgresPool.connect();
   const offset = (Number(page) - 1) * Number(limit);
 
   try {
+    await bulkCloseExpiredResolvedTickets(client);
     const customer = await getCustomerProfileByUserId(client, userId);
     const employee = await getEmployeeProfileByUserId(client, userId);
 
@@ -550,35 +647,50 @@ export const listUserTickets = async ({ userId, ownership, page = 1, limit = 10 
     `;
 
     if (customer) {
+      let filterClause = "WHERE t.customer_id = $1";
+      if (statusGroup === "ACTIVE") {
+        filterClause += " AND t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED', 'ON_HOLD')";
+      }
       query = `
         ${baseSelect}
         ${baseFrom}
-        WHERE t.customer_id = $1
+        ${filterClause}
         ORDER BY t.created_at DESC
         LIMIT $2 OFFSET $3
       `;
       params = [customer.id, limit, offset];
     } else if (employee) {
       if (employee.role === "SUPPORT_AGENT") {
+        let filterClause = "WHERE t.current_assigned_employee_id = $1";
+        if (statusGroup === "ACTIVE") {
+          filterClause += " AND t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED', 'ON_HOLD')";
+        }
         query = `
           ${baseSelect}
           ${baseFrom}
-          WHERE t.current_assigned_employee_id = $1
+          ${filterClause}
           ORDER BY t.created_at DESC
           LIMIT $2 OFFSET $3
         `;
         params = [employee.id, limit, offset];
       } else {
-        // ADMIN role sees all with simplified ownership filter
-        let filterClause = "";
-        params = [limit, offset];
+        // ADMIN/MANAGER/SALES role sees all with simplified filters
+        let filterClauses = [];
+        params = [];
         
         if (ownership === "ASSIGNED") {
-          filterClause = `WHERE t.current_assigned_employee_id IS NOT NULL`;
+          filterClauses.push(`t.current_assigned_employee_id IS NOT NULL`);
         } else if (ownership === "UNASSIGNED") {
-          filterClause = `WHERE t.current_assigned_employee_id IS NULL`;
+          filterClauses.push(`t.current_assigned_employee_id IS NULL`);
         }
 
+        if (statusGroup === "ACTIVE") {
+          filterClauses.push(`t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED', 'ON_HOLD')`);
+        }
+
+        const filterClause = filterClauses.length > 0 ? "WHERE " + filterClauses.join(" AND ") : "";
+
+        params.push(limit, offset);
         query = `
           ${baseSelect}
           ${baseFrom}
@@ -623,29 +735,75 @@ export const updateTicket = async ({ ticketId, status, actorUserId }) => {
 
     const currentTicket = currentTicketRes.rows[0];
 
-    // 2. Lifecycle Enforcements
-    if (status) {
-      // Rule: REOPEN (RESOLVED or CLOSED -> OPEN) only allowed within 24 hours
-      if (status === "OPEN" && ["RESOLVED", "CLOSED"].includes(currentTicket.status)) {
-        const timestamp = currentTicket.status === "RESOLVED" 
-          ? currentTicket.resolved_at 
-          : currentTicket.closed_at;
+    // 2. Retrieve actor role
+    const actorResult = await client.query(
+      `SELECT role FROM users WHERE id = $1 LIMIT 1`,
+      [actorUserId]
+    );
 
-        if (!timestamp) {
-           // If for some reason there's no timestamp, we allow reopen to be safe or enforce a rule.
-           // Usually there should be one.
-        } else {
+    if (actorResult.rowCount === 0) {
+      throw new AppError(401, "Actor not found", "UNAUTHORIZED");
+    }
+
+    const actorRole = actorResult.rows[0].role;
+
+    // 3. Lifecycle Enforcements
+    if (status) {
+      // Rule: CLOSED tickets are permanently locked
+      if (currentTicket.status === "CLOSED") {
+        throw new AppError(400, "Closed tickets are permanently locked and cannot be reopened or updated.", "TICKET_LOCKED");
+      }
+
+      if (actorRole === "SALES") {
+        throw new AppError(403, "Sales representatives cannot edit or update tickets.", "FORBIDDEN");
+      }
+
+      // Rule: Customer Role (USER) Security
+      if (actorRole === "USER") {
+        // Customer cannot set status to anything other than OPEN (reopening)
+        if (status !== "OPEN") {
+          throw new AppError(403, "Customers cannot close or resolve tickets. Only support agents can.", "FORBIDDEN");
+        }
+
+        // Customer can only reopen RESOLVED tickets
+        if (currentTicket.status !== "RESOLVED") {
+          throw new AppError(403, "Customers can only reopen tickets that are currently resolved.", "FORBIDDEN");
+        }
+
+        // Reopen window check (24 hours)
+        const timestamp = currentTicket.resolved_at;
+        if (timestamp) {
           const pastTime = new Date(timestamp);
           const now = new Date();
           const diffHours = (now.getTime() - pastTime.getTime()) / (1000 * 60 * 60);
 
           if (diffHours > 24) {
-            // If it was already closed, keep it closed. If it was resolved, move to closed.
-            if (currentTicket.status === "RESOLVED") {
-              await client.query(`UPDATE tickets SET status = 'CLOSED', closed_at = NOW() WHERE id = $1`, [ticketId]);
-            }
+            await client.query(
+              `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW(), allow_customer_reply = FALSE WHERE id = $1`,
+              [ticketId]
+            );
+            await client.query(
+              `INSERT INTO ticket_events (ticket_id, actor_user_id, event_type, message, metadata, visible_to_customer)
+               VALUES ($1, $2, $3, $4, $5, $6)`,
+              [
+                ticketId,
+                null,
+                "STATUS_CHANGED",
+                "Ticket automatically closed after 24 hours of resolution.",
+                JSON.stringify({ status: "CLOSED", autoClosed: true }),
+                true
+              ]
+            );
             throw new AppError(400, "The 24-hour window to reopen this ticket has expired.", "REOPEN_EXPIRED");
           }
+        }
+      }
+
+      // Rule: Support/Employee Role Security
+      if (["SUPPORT_AGENT", "MANAGER", "ADMIN"].includes(actorRole)) {
+        // Agents cannot reopen resolved tickets
+        if (status === "OPEN" && currentTicket.status === "RESOLVED") {
+          throw new AppError(403, "Agents cannot reopen resolved tickets. Only customers can reopen them within 24 hours.", "FORBIDDEN");
         }
       }
 
@@ -665,17 +823,18 @@ export const updateTicket = async ({ ticketId, status, actorUserId }) => {
       
       if (status === "RESOLVED") {
         fields.push(`resolved_at = NOW()`);
+        fields.push(`allow_customer_reply = FALSE`);
       }
       if (status === "CLOSED") {
         fields.push(`closed_at = NOW()`);
+        fields.push(`allow_customer_reply = FALSE`);
       }
     }
-
 
     if (fields.length === 0) return null;
 
     params.push(ticketId);
-    const query = `UPDATE tickets SET ${fields.join(", ")}, updated_at = NOW() WHERE id = $${paramIdx} RETURNING id, status`;
+    const query = `UPDATE tickets SET ${fields.join(", ")}, updated_at = NOW() WHERE id = $${paramIdx} RETURNING id, status, resolved_at, closed_at, updated_at, allow_customer_reply`;
     
     const result = await client.query(query, params);
     const updatedTicket = result.rows[0];
@@ -692,6 +851,19 @@ export const updateTicket = async ({ ticketId, status, actorUserId }) => {
       });
     }
 
+    // Automatically schedule auto-close in 24 hours when resolved
+    if (status === "RESOLVED") {
+      try {
+        await ticketAutomationQueue.add(
+          "CLOSE_RESOLVED_TICKET",
+          { ticketId },
+          { delay: 24 * 60 * 60 * 1000 } // 24 hours
+        );
+        console.log(`[QUEUE] Scheduled CLOSE_RESOLVED_TICKET for Ticket #${ticketId}`);
+      } catch (err) {
+        console.error("[QUEUE] Failed to schedule CLOSE_RESOLVED_TICKET job:", err);
+      }
+    }
 
     // Send notification email for status changes
     if (status && status !== currentTicket.status) {
@@ -728,17 +900,19 @@ export const updateTicket = async ({ ticketId, status, actorUserId }) => {
     });
 
     return updatedTicket;
-
   });
 };
 
 export const getAdminStats = async () => {
   const client = await postgresPool.connect();
   try {
+    await bulkCloseExpiredResolvedTickets(client);
     const statsQuery = `
       SELECT
         (SELECT COUNT(*) FROM tickets) as total_tickets,
         (SELECT COUNT(*) FROM tickets WHERE status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')) as active_tickets,
+        (SELECT COUNT(*) FROM tickets WHERE status = 'CLOSED') as closed_tickets,
+        (SELECT COUNT(*) FROM tickets WHERE status = 'RESOLVED') as resolved_tickets,
         (SELECT COUNT(*) FROM tickets WHERE status = 'ESCALATED') as escalated_tickets,
         (SELECT COUNT(*) FROM tickets WHERE status IN ('RESOLVED', 'CLOSED') AND updated_at >= NOW() - INTERVAL '24 hours') as resolved_today,
         (SELECT COUNT(*) FROM tickets WHERE created_at >= NOW() - INTERVAL '24 hours') as tickets_last_24h,
@@ -757,14 +931,31 @@ export const getAdminStats = async () => {
     `;
 
 
+    const agentsQuery = `
+      SELECT 
+        e.id AS employee_id,
+        u.name AS name,
+        u.role AS role,
+        COUNT(t.id)::integer AS total_assigned,
+        COALESCE(SUM(CASE WHEN t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED') THEN 1 ELSE 0 END), 0)::integer AS active_assigned
+      FROM employees e
+      JOIN users u ON u.id = e.user_id
+      LEFT JOIN tickets t ON t.current_assigned_employee_id = e.id
+      WHERE u.role = 'SUPPORT_AGENT'
+      GROUP BY e.id, u.name, u.role
+      ORDER BY active_assigned DESC, u.name ASC
+    `;
+
     const statsRes = await client.query(statsQuery);
     const categoryRes = await client.query(categoryQuery);
+    const agentsRes = await client.query(agentsQuery);
     console.log("CategoryRes: ", categoryRes.rows)
 
     return {
       summary: statsRes.rows[0],
       categories: categoryRes.rows,
-      volumeMix: categoryRes.rows // Alias for clarity in frontend
+      volumeMix: categoryRes.rows, // Alias for clarity in frontend
+      agents: agentsRes.rows
     };
   } finally {
     client.release();
@@ -774,6 +965,7 @@ export const getAdminStats = async () => {
 export const getAgentStats = async (actorUserId) => {
   const client = await postgresPool.connect();
   try {
+    await bulkCloseExpiredResolvedTickets(client);
     const employeeRes = await client.query(
       `SELECT id FROM employees WHERE user_id = $1 LIMIT 1`,
       [actorUserId]
@@ -879,6 +1071,7 @@ export const reassignTicket = async ({ ticketId, employeeId, actorUserId }) => {
       metadata: {
         assigned_employee_id: employeeId,
         assigned_employee_name: employee.name,
+        is_reassign: true,
       },
       visibleToCustomer: true
     });
@@ -937,6 +1130,11 @@ export const updateTicketRca = async ({ ticketId, rca, actorUserId }) => {
       throw new AppError(403, "Only employees can update RCA", "FORBIDDEN");
     }
 
+    // 2. Strict Role Check: Only Support Agent, Manager, and Admin can update RCA
+    if (!["SUPPORT_AGENT", "MANAGER", "ADMIN"].includes(employee.role)) {
+      throw new AppError(403, "Only authorized employees (Support Agent, Manager, Admin) can document or edit the RCA.", "FORBIDDEN");
+    }
+
     // 2. Fetch ticket and check status
     const ticketRes = await client.query(
       "SELECT status FROM tickets WHERE id = $1",
@@ -964,7 +1162,18 @@ export const updateTicketRca = async ({ ticketId, rca, actorUserId }) => {
       [rca, ticketId]
     );
 
-    return result.rows[0];
+    const updatedRca = result.rows[0];
+
+    // Emit real-time update
+    ticketEventEmitter.emit("ticket_updated", {
+      ticketId,
+      data: {
+        type: "TICKET_RCA_UPDATED",
+        rca: updatedRca.rca,
+      },
+    });
+
+    return updatedRca;
   });
 };
 
@@ -1089,6 +1298,95 @@ export const updateTicketOutageDetails = async ({ ticketId, problemSide, externa
         type: "TICKET_OUTAGE_UPDATED",
         ticket: updatedTicket,
         event: socketEvent
+      }
+    });
+
+    return updatedTicket;
+  });
+};
+
+export const updateTicketRating = async ({ ticketId, rating, feedback, actorUserId }) => {
+  return runInTransaction(async (client) => {
+    // 1. Verify ticket exists and belongs to customer matching actorUserId
+    const ticketResult = await client.query(
+      `SELECT t.id, t.status, t.customer_id, c.user_id
+       FROM tickets t
+       JOIN customers c ON c.id = t.customer_id
+       WHERE t.id = $1`,
+      [ticketId]
+    );
+
+    if (ticketResult.rowCount === 0) {
+      throw new AppError(404, "Ticket not found", "TICKET_NOT_FOUND");
+    }
+
+    const ticket = ticketResult.rows[0];
+
+    // Verify requesting user is the customer
+    if (ticket.user_id !== actorUserId) {
+      throw new AppError(403, "Only the ticket owner can rate this ticket", "FORBIDDEN");
+    }
+
+    // Verify ticket status is RESOLVED or CLOSED
+    if (ticket.status !== "RESOLVED" && ticket.status !== "CLOSED") {
+      throw new AppError(400, "Only resolved or closed tickets can be rated", "INVALID_STATUS");
+    }
+
+    // Verify rating is between 1 and 5
+    if (typeof rating !== "number" || rating < 1 || rating > 5) {
+      throw new AppError(400, "Rating must be an integer between 1 and 5", "INVALID_RATING");
+    }
+
+    // 2. Update ticket
+    const updateResult = await client.query(
+      `UPDATE tickets
+       SET rating = $1,
+           rating_feedback = $2,
+           updated_at = NOW()
+       WHERE id = $3
+       RETURNING id, ticket_no, rating, rating_feedback`,
+      [rating, feedback || null, ticketId]
+    );
+
+    const resultTicket = updateResult.rows[0];
+
+    // 4. Emit socket event
+    ticketEventEmitter.emit("ticket_updated", {
+      ticketId,
+      data: {
+        type: "TICKET_RATING_UPDATED",
+        rating: resultTicket.rating,
+        rating_feedback: resultTicket.rating_feedback,
+      },
+    });
+
+    return resultTicket;
+  });
+};
+
+export const toggleCustomerReply = async ({ ticketId, allowReply, actorUserId }) => {
+  return runInTransaction(async (client) => {
+    const ticketResult = await client.query(
+      `SELECT id, status FROM tickets WHERE id = $1`,
+      [ticketId]
+    );
+
+    if (ticketResult.rowCount === 0) {
+      throw new AppError(404, "Ticket not found", "NOT_FOUND");
+    }
+
+    const result = await client.query(
+      `UPDATE tickets SET allow_customer_reply = $1, updated_at = NOW() WHERE id = $2 RETURNING id, allow_customer_reply, updated_at`,
+      [allowReply, ticketId]
+    );
+
+    const updatedTicket = result.rows[0];
+
+    ticketEventEmitter.emit("ticket_updated", {
+      ticketId,
+      data: {
+        type: "REPLY_TOGGLED",
+        allow_customer_reply: allowReply
       }
     });
 

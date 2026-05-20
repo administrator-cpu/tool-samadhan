@@ -62,6 +62,19 @@ export const sendStaffWelcomeEmail = async ({ name, email, password, role }) => 
 };
 
 /**
+ * Sends a welcome email to a new customer
+ */
+export const sendCustomerWelcomeEmail = async ({ name, email, password }) => {
+  const { welcomeCustomerTemplate } = await import("./emailTemplates.js");
+  const { subject, html } = welcomeCustomerTemplate({ name, email, password });
+  await sendEmail({
+    toEmail: email,
+    toName: name,
+    subject,
+    htmlContent: html,
+  });
+};
+/**
  * Sends a ticket creation confirmation email
  */
 export const sendTicketConfirmationEmail = async ({ name, email, ticketNo, category }) => {

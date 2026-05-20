@@ -10,6 +10,8 @@ import {
   updateTicketRca,
   listResolvedTickets,
   updateTicketOutageDetails,
+  updateTicketRating,
+  toggleCustomerReply,
 } from "../services/ticketService.js";
 
 export const fetchAgentStats = async (req, res) => {
@@ -39,6 +41,7 @@ export const createCustomerTicket = async (req, res) => {
     message: req.body.message,
     circuitDescription: req.body.circuitDescription,
     issueCategoryId: req.body.issueCategoryId,
+    customerEmail: req.body.customerEmail,
   });
 
   return res.status(201).json({
@@ -77,10 +80,11 @@ export const fetchTicketTimeline = async (req, res) => {
 };
 
 export const fetchUserTickets = async (req, res) => {
-  const { ownership, page, limit } = req.query;
+  const { ownership, statusGroup, page, limit } = req.query;
   const result = await listUserTickets({
     userId: req.user.userId,
     ownership,
+    statusGroup,
     page: page ? parseInt(page) : 1,
     limit: limit ? parseInt(limit) : 10,
   });
@@ -159,6 +163,35 @@ export const updateOutageController = async (req, res) => {
   return res.status(200).json({
     statusCode: 200,
     message: "Outage details updated successfully",
+    data: result,
+  });
+};
+
+export const rateTicketController = async (req, res) => {
+  const result = await updateTicketRating({
+    ticketId: Number(req.params.ticketId),
+    rating: Number(req.body.rating),
+    feedback: req.body.feedback,
+    actorUserId: req.user.userId,
+  });
+
+  return res.status(200).json({
+    statusCode: 200,
+    message: "Ticket rated successfully",
+    data: result,
+  });
+};
+
+export const toggleCustomerReplyController = async (req, res) => {
+  const result = await toggleCustomerReply({
+    ticketId: Number(req.params.ticketId),
+    allowReply: req.body.allowCustomerReply,
+    actorUserId: req.user.userId,
+  });
+
+  return res.status(200).json({
+    statusCode: 200,
+    message: "Customer reply status updated successfully",
     data: result,
   });
 };

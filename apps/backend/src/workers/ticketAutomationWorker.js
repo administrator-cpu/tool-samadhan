@@ -118,6 +118,46 @@ export const ticketAutomationWorker = new Worker(
           }
           break;
 
+        case "CLOSE_RESOLVED_TICKET": {
+          const client = await postgresPool.connect();
+          try {
+            await client.query("BEGIN");
+            const ticketRes = await client.query(
+              `SELECT status FROM tickets WHERE id = $1 FOR UPDATE`,
+              [ticketId]
+            );
+            if (ticketRes.rowCount > 0 && ticketRes.rows[0].status === "RESOLVED") {
+              await client.query(
+                `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW() WHERE id = $1`,
+                [ticketId]
+              );
+              
+              const values = [
+                ticketId,
+                null,
+                "STATUS_CHANGED",
+                "Ticket automatically closed after 24 hours of resolution.",
+                JSON.stringify({ status: "CLOSED", autoClosed: true }),
+                true
+              ];
+              await client.query(
+                `INSERT INTO ticket_events (ticket_id, actor_user_id, event_type, message, metadata, visible_to_customer)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                values
+              );
+              
+              console.log(`[WORKER] Ticket #${ticketId} automatically closed after 24 hours.`);
+            }
+            await client.query("COMMIT");
+          } catch (err) {
+            await client.query("ROLLBACK");
+            throw err;
+          } finally {
+            client.release();
+          }
+          break;
+        }
+
         default:
           console.warn(`[WORKER] Unknown job name: ${jobName}`);
       }

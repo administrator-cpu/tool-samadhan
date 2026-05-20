@@ -17,6 +17,8 @@ import {
   updateRcaController,
   fetchResolvedTickets,
   updateOutageController,
+  rateTicketController,
+  toggleCustomerReplyController,
 } from "../controllers/ticketController.js";
 
 const router = express.Router();
@@ -31,14 +33,14 @@ router.get(
 router.get(
   "/stats",
   requireAuth,
-  requireRole("ADMIN"),
+  requireRole("ADMIN", "SALES"),
   fetchAdminStats
 );
 
 router.post(
   "/",
   requireAuth,
-  requireRole("USER"),
+  requireRole("USER", "SALES"),
   validateCreateTicket,
   createCustomerTicket,
 );
@@ -55,7 +57,7 @@ router.get(
 router.post(
   "/:ticketId/events",
   requireAuth,
-  requireRole("SUPPORT_AGENT", "MANAGER", "ADMIN"),
+  requireRole("USER", "SUPPORT_AGENT", "MANAGER", "ADMIN"),
   validateAddTicketEvent,
   appendTicketEvent,
 );
@@ -71,7 +73,7 @@ router.patch(
 router.patch(
   "/:ticketId/reassign",
   requireAuth,
-  requireRole("ADMIN"),
+  requireRole("ADMIN", "SUPPORT_AGENT"),
   reassignTicketController,
 );
 
@@ -88,6 +90,19 @@ router.patch(
   requireRole("SUPPORT_AGENT", "MANAGER", "ADMIN"),
   validateUpdateOutageDetails,
   updateOutageController,
+);
+
+router.patch(
+  "/:ticketId/rate",
+  requireAuth,
+  rateTicketController,
+);
+
+router.patch(
+  "/:ticketId/toggle-customer-reply",
+  requireAuth,
+  requireRole("SUPPORT_AGENT", "MANAGER", "ADMIN"),
+  toggleCustomerReplyController,
 );
 
 export default router;

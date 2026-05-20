@@ -19,10 +19,14 @@ interface Ticket {
   priority: string;
   subject: string;
   circuit_description: string | null;
+  rca: string | null;
   created_at: string;
   updated_at: string;
   closed_at: string | null;
   resolved_at: string | null;
+  rating: number | null;
+  rating_feedback: string | null;
+  allow_customer_reply: boolean;
   customer: {
     id: number;
     customer_id: string;
@@ -80,6 +84,8 @@ export default function TicketDetailPage() {
   const [events, setEvents] = useState<TicketEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [replyMessage, setReplyMessage] = useState("");
+  const [sending, setSending] = useState(false);
 
   const statusConfig = ticket ? getStatusBadgeConfig(ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
@@ -127,6 +133,11 @@ export default function TicketDetailPage() {
         if (data.event.event_type !== "INTERNAL_NOTE") {
           toast.info(`New message: ${data.event.message.substring(0, 50)}...`);
         }
+      } else if (data.type === "REPLY_TOGGLED") {
+        setTicket((prev) => {
+          if (!prev) return null;
+          return { ...prev, allow_customer_reply: data.allow_customer_reply };
+        });
       } else if (data.type === "TICKET_STATUS_UPDATED") {
         setTicket((prev) => {
           if (!prev) return null;
@@ -139,6 +150,18 @@ export default function TicketDetailPage() {
           return { ...prev, assigned_employee: data.assigned_employee };
         });
         toast.info(`Ticket reassigned to ${data.assigned_employee.name}`);
+      } else if (data.type === "TICKET_RCA_UPDATED") {
+        setTicket((prev) => {
+          if (!prev) return null;
+          return { ...prev, rca: data.rca };
+        });
+        toast.success("Root Cause Analysis (RCA) report has been updated!");
+      } else if (data.type === "TICKET_RATING_UPDATED") {
+        setTicket((prev) => {
+          if (!prev) return null;
+          return { ...prev, rating: data.rating, rating_feedback: data.rating_feedback };
+        });
+        toast.info("Ticket feedback rating has been updated!");
       }
     };
 
@@ -194,6 +217,26 @@ export default function TicketDetailPage() {
     }
   };
 
+  const handleSendReply = async () => {
+    if (!replyMessage.trim()) return;
+    setSending(true);
+    try {
+      await api.post(`/tickets/${id}/events`, {
+        event_type: "USER_REPLY",
+        message: replyMessage.trim()
+      });
+      setReplyMessage("");
+      toast.success("Reply sent successfully");
+      
+      const response = await api.get(`/tickets/${id}`);
+      setEvents(response.data.events);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reply");
+    } finally {
+      setSending(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf9fa]">
@@ -230,7 +273,7 @@ export default function TicketDetailPage() {
         </div>
 
         <div className="ml-auto flex items-center gap-6">
-          <div className="relative inline-grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-100 p-1">
+          <div className="relative hidden grid-cols-2 rounded-xl border border-slate-200 bg-slate-100 p-1">
             <input
               type="radio"
               name="language"
@@ -254,43 +297,97 @@ export default function TicketDetailPage() {
             </label>
           </div>
 
-          {ticket.status !== "CLOSED" ? (
-            <button
-              onClick={() => handleStatusUpdate("CLOSED")}
-              className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-700 border border-red-100 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-red-100"
-            >
-              <span className="material-symbols-outlined text-sm">close</span>
-              Close Ticket
-            </button>
-          ) : (
-            // Only show reopen if within 24 hours
-            (() => {
-              const closedAt = new Date(ticket.closed_at || ticket.updated_at);
-              const now = new Date();
-              const diffHours = (now.getTime() - closedAt.getTime()) / (1000 * 60 * 60);
+          {ticket.status === "RESOLVED" && ticket.resolved_at && (() => {
+            const resolvedAt = new Date(ticket.resolved_at);
+            const now = new Date();
+            const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
 
-              if (diffHours <= 24) {
-                return (
-                  <button
-                    onClick={() => handleStatusUpdate("OPEN")}
-                    className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-emerald-100"
-                  >
-                    <span className="material-symbols-outlined text-sm">restart_alt</span>
-                    Reopen Ticket
-                  </button>
-                );
-              }
-              return null;
-            })()
-          )}
+            if (diffHours <= 24) {
+              return (
+                <button
+                  onClick={() => handleStatusUpdate("OPEN")}
+                  className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-emerald-100"
+                >
+                  <span className="material-symbols-outlined text-sm">restart_alt</span>
+                  Reopen Ticket
+                </button>
+              );
+            }
+            return null;
+          })()}
         </div>
       </header>
 
       {/* Layout */}
       <main className="flex flex-1 overflow-hidden max-w-[1400px] mx-auto w-full">
-        {/* Timeline */}
-        <section className="flex-1 flex flex-col relative px-5 overflow-y-auto">
+        <section className="flex-1 flex flex-col relative px-5 overflow-y-auto pt-6">
           <Timeline events={events} />
+          
+          {ticket.allow_customer_reply && !["RESOLVED", "CLOSED"].includes(ticket.status) && (
+            <div className="mt-4 mb-6 rounded-lg border border-slate-200 bg-white p-2 shadow-xl focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all shrink-0">
+              <div className="px-4 pt-3 flex items-center gap-2 mb-1">
+                <span className="material-symbols-outlined text-emerald-600 text-[18px]">chat</span>
+                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Send a Reply</h3>
+              </div>
+              <textarea
+                value={replyMessage}
+                onChange={(e) => setReplyMessage(e.target.value)}
+                placeholder="Agent requested more information. Type your message here..."
+                className="w-full min-h-[100px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
+              />
+              <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
+                <p className="text-[10px] font-bold text-slate-400">Agent will be notified immediately.</p>
+                <button
+                  onClick={handleSendReply}
+                  disabled={sending || !replyMessage.trim()}
+                  className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50"
+                >
+                  {sending ? "Sending..." : "Send Reply"}
+                  <span className="material-symbols-outlined text-[16px]">send</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {ticket.rca && (
+            <div className="mt-0 mb-6 rounded-lg border border-emerald-100 bg-emerald-50/30 p-6 shadow-xs backdrop-blur-xs shrink-0">
+              <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-2xl font-bold text-emerald-500">verified</span>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-emerald-900">Root Cause Analysis (RCA)</h3>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                      OFFICIAL REPORT
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[10px] font-bold text-slate-400 leading-snug uppercase tracking-widest">
+                    Technical Resolution Summary
+                  </p>
+                  <div className="mt-3 rounded-lg bg-white/80 border border-emerald-50 px-4 py-2 shadow-2xs">
+                    <p className="whitespace-pre-line text-sm font-medium text-slate-800 leading-relaxed">
+                      {ticket.rca}
+                    </p>
+                    {ticket.resolved_at && (
+                      <span className="flex justify-end text-[11px] font-bold text-emerald-700/80">
+                        Resolved on {format(new Date(ticket.resolved_at), "MMM d, yyyy, h:mm a")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {["RESOLVED", "CLOSED"].includes(ticket.status) && (
+            <RatingSection
+              ticket={ticket}
+              onUpdateRating={(rating, feedback) => {
+                setTicket((prev) => {
+                  if (!prev) return null;
+                  return { ...prev, rating, rating_feedback: feedback };
+                });
+              }}
+            />
+          )}
         </section>
 
         <div className="hidden lg:block w-[300px] xl:w-[340px] shrink-0 p-6 bg-surface border-l border-gray-100 overflow-y-auto">
@@ -403,6 +500,168 @@ export default function TicketDetailPage() {
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRating: (r: number, f: string | null) => void }) {
+  const [rating, setRating] = useState<number>(ticket.rating || 0);
+  const [hoverRating, setHoverRating] = useState<number>(0);
+  const [feedback, setFeedback] = useState<string>(ticket.rating_feedback || "");
+  const [isEditing, setIsEditing] = useState<boolean>(!ticket.rating);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setRating(ticket.rating || 0);
+      setFeedback(ticket.rating_feedback || "");
+    }
+  }, [ticket.rating, ticket.rating_feedback, isEditing]);
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast.error("Please select a star rating");
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.patch(`/tickets/${ticket.id}/rate`, {
+        rating,
+        feedback: feedback.trim() || null
+      });
+      toast.success("Thank you for your feedback!");
+      onUpdateRating(rating, feedback.trim() || null);
+      setIsEditing(false);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to submit rating");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isEditing) {
+    return (
+      <div className="mt-4 mb-6 rounded-lg border border-slate-200 bg-white p-6 shadow-xs shrink-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Your Feedback</h3>
+            <p className="mt-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Post-Resolution Satisfaction
+            </p>
+          </div>
+          <button
+            onClick={() => setIsEditing(true)}
+            className="flex items-center gap-1 text-xs font-bold text-[#4b8264] hover:text-emerald-700 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">edit</span>
+            Edit Feedback
+          </button>
+        </div>
+
+        <div className="mt-4 flex items-center gap-1.5">
+          {Array.from({ length: 5 }).map((_, i) => {
+            const isFilled = i < rating;
+            return (
+              <span
+                key={i}
+                className={`material-symbols-outlined text-[24px] ${
+                  isFilled ? "text-amber-500" : "text-slate-300"
+                }`}
+                style={{ fontVariationSettings: isFilled ? "'FILL' 1" : "'FILL' 0" }}
+              >
+                star
+              </span>
+            );
+          })}
+          <span className="ml-2 text-sm font-black text-slate-700">{rating} / 5 Stars</span>
+        </div>
+
+        {ticket.rating_feedback && (
+          <div className="mt-3 rounded-lg bg-slate-50 border border-slate-100 px-4 py-3">
+            <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
+              "{ticket.rating_feedback}"
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 mb-6 rounded-lg border border-slate-200 bg-white p-6 shadow-xs shrink-0 transition-all">
+      <div>
+        <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Rate Your Experience</h3>
+        <p className="mt-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          Help us improve our support quality
+        </p>
+      </div>
+
+      <div className="mt-4 flex items-center gap-2">
+        {Array.from({ length: 5 }).map((_, i) => {
+          const starVal = i + 1;
+          const isActive = starVal <= (hoverRating || rating);
+          return (
+            <button
+              key={i}
+              type="button"
+              onMouseEnter={() => setHoverRating(starVal)}
+              onMouseLeave={() => setHoverRating(0)}
+              onClick={() => setRating(starVal)}
+              className="focus:outline-hidden hover:scale-110 transition-transform"
+            >
+              <span
+                className={`material-symbols-outlined text-[32px] ${
+                  isActive ? "text-amber-500" : "text-slate-300"
+                }`}
+                style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+              >
+                star
+              </span>
+            </button>
+          );
+        })}
+        {rating > 0 && (
+          <span className="ml-2 text-xs font-black text-slate-500 uppercase tracking-wider">
+            {rating === 1 && "Poor"}
+            {rating === 2 && "Fair"}
+            {rating === 3 && "Good"}
+            {rating === 4 && "Very Good"}
+            {rating === 5 && "Excellent"}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 space-y-2">
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Comments (Optional)</label>
+        <textarea
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          placeholder="Share your thoughts on how we handled your issue..."
+          rows={3}
+          className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-500 focus:bg-white outline-hidden transition-all placeholder:text-slate-400 font-medium"
+        />
+      </div>
+
+      <div className="mt-4 flex justify-end gap-3">
+        {ticket.rating && (
+          <button
+            type="button"
+            onClick={() => setIsEditing(false)}
+            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={loading || rating === 0}
+          className="px-5 py-2.5 bg-[#4b8264] hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-bold shadow-sm transition-all"
+        >
+          {loading ? "Submitting..." : ticket.rating ? "Update Feedback" : "Submit Feedback"}
+        </button>
+      </div>
     </div>
   );
 }
