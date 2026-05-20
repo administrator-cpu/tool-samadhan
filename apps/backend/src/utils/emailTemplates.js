@@ -147,16 +147,20 @@ export const ticketAssignedCustomer5MinTemplate = ({ ticketNo }) => ({
   )
 });
 
-export const ticketAssignedToAgentTemplate = ({ ticketNo, customerName, category, circuitId }) => ({
+export const ticketAssignedToAgentTemplate = ({ ticketNo, customerName, agentName, category, circuitId }) => ({
   subject: `Fab5: Ticket ID – ${ticketNo} – Assigned`,
   html: emeraldLayout(
     "Ticket Assigned",
     `
       <p>Dear Team,</p>
-      <p>This is to inform that a complaint has been assigned to you with below details:</p>
+      <p>This is to inform that a complaint has been assigned with below details:</p>
       
       <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Assigned To:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${agentName}</td>
+          </tr>
           <tr>
             <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Name of Customer:</td>
             <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${customerName}</td>
