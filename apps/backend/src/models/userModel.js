@@ -10,7 +10,7 @@ export const createUserTable = async () => {
   const query = `
     -- 1. Create enum for role
     DO $$ BEGIN
-        CREATE TYPE user_role AS ENUM ('USER', 'SUPPORT_AGENT', 'MANAGER', 'ADMIN', 'SALES');
+        CREATE TYPE user_role AS ENUM ('USER', 'SUPPORT_AGENT', 'ADMIN', 'SALES');
     EXCEPTION
         WHEN duplicate_object THEN null;
     END $$;

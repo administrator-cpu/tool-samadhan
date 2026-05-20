@@ -237,7 +237,6 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
         email: contact.email,
         ticketNo: contact.ticket_no,
         category: categoryName,
-        priority: ticket.priority,
       }).catch(err => console.error("[EMAIL] Creation notification failed:", err));
 
     }
@@ -402,7 +401,6 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         t.id,
         t.ticket_no,
         t.status,
-        t.priority,
         ic.name AS subject,
         t.created_at,
         t.updated_at,
@@ -551,7 +549,6 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         id: ticket.id,
         ticket_no: ticket.ticket_no,
         status: ticket.status,
-        priority: ticket.priority,
         subject: ticket.subject,
         circuit_description: ticket.circuit_description,
         rca: ticket.rca,
@@ -628,7 +625,6 @@ export const listUserTickets = async ({ userId, ownership, statusGroup, page = 1
         t.ticket_no,
         ic.name AS subject,
         t.status,
-        t.priority,
         t.created_at,
         t.updated_at,
         cu.name AS customer_name,
@@ -1188,7 +1184,6 @@ export const listResolvedTickets = async ({ page = 1, limit = 10, exportAll = fa
         t.ticket_no,
         ic.name AS category_name,
         t.status,
-        t.priority,
         t.rca,
         t.created_at,
         t.updated_at,

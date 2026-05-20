@@ -16,7 +16,6 @@ interface Ticket {
   id: number;
   ticket_no: string;
   status: string;
-  priority: string;
   subject: string;
   circuit_description: string | null;
   rca: string | null;
