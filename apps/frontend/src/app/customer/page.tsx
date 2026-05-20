@@ -48,16 +48,14 @@ export default function Home() {
               className="text-3xl font-bold tracking-tight text-slate-900"
               style={{ fontFamily: "'Outfit', sans-serif" }}
             >
-              Samadhan Support Portal
+              Samadhan - Delivering Reliable Support Service
             </h2>
             <div className="relative flex h-4 w-4 items-center justify-center">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-40" />
               <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
             </div>
           </div>
-          <p className="text-base font-medium leading-normal text-slate-500">
-            Delivering Reliable Support Service
-          </p>
+          
         </div>
       </section>
 

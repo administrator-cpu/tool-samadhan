@@ -25,7 +25,10 @@ export const fetchAgentStats = async (req, res) => {
 };
 
 export const fetchAdminStats = async (req, res) => {
-  const result = await getAdminStats();
+  const result = await getAdminStats({
+    userId: req.user.userId,
+    role: req.user.role,
+  });
 
   return res.status(200).json({
     statusCode: 200,
