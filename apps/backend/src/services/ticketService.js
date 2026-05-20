@@ -434,6 +434,7 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
         t.id,
         t.ticket_no,
         t.status,
+        t.created_by_user_id,
         ic.name AS subject,
         t.created_at,
         t.updated_at,
@@ -533,9 +534,11 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
       requester.employee_id &&
       Number(requester.employee_id) === Number(ticket.current_assigned_employee_id);
 
-    const isPrivileged = requester.role === "MANAGER" || requester.role === "ADMIN" || requester.role === "SALES";
+    const isCreator = Number(ticket.created_by_user_id) === Number(requesterUserId);
 
-    if (!(isCustomerOwner.rowCount > 0 || isAssignedAgent || isPrivileged)) {
+    const isPrivileged = requester.role === "MANAGER" || requester.role === "ADMIN";
+
+    if (!(isCustomerOwner.rowCount > 0 || isAssignedAgent || isPrivileged || (requester.role === "SALES" && isCreator))) {
       throw new AppError(403, "You do not have access to this ticket", "FORBIDDEN");
     }
 
@@ -702,8 +705,32 @@ export const listUserTickets = async ({ userId, ownership, statusGroup, page = 1
           LIMIT $2 OFFSET $3
         `;
         params = [employee.id, limit, offset];
+      } else if (employee.role === "SALES") {
+        let filterClauses = ["t.created_by_user_id = $1"];
+        params = [userId];
+
+        if (ownership === "ASSIGNED") {
+          filterClauses.push(`t.current_assigned_employee_id IS NOT NULL`);
+        } else if (ownership === "UNASSIGNED") {
+          filterClauses.push(`t.current_assigned_employee_id IS NULL`);
+        }
+
+        if (statusGroup === "ACTIVE") {
+          filterClauses.push(`t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED', 'ON_HOLD')`);
+        }
+
+        const filterClause = "WHERE " + filterClauses.join(" AND ");
+
+        params.push(limit, offset);
+        query = `
+          ${baseSelect}
+          ${baseFrom}
+          ${filterClause}
+          ORDER BY t.created_at DESC
+          LIMIT $2 OFFSET $3
+        `;
       } else {
-        // ADMIN/MANAGER/SALES role sees all with simplified filters
+        // ADMIN/MANAGER role sees all with simplified filters
         let filterClauses = [];
         params = [];
         
@@ -932,51 +959,88 @@ export const updateTicket = async ({ ticketId, status, actorUserId }) => {
   });
 };
 
-export const getAdminStats = async () => {
+export const getAdminStats = async ({ userId, role } = {}) => {
   const client = await postgresPool.connect();
   try {
     await bulkCloseExpiredResolvedTickets(client);
-    const statsQuery = `
-      SELECT
-        (SELECT COUNT(*) FROM tickets) as total_tickets,
-        (SELECT COUNT(*) FROM tickets WHERE status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')) as active_tickets,
-        (SELECT COUNT(*) FROM tickets WHERE status = 'CLOSED') as closed_tickets,
-        (SELECT COUNT(*) FROM tickets WHERE status = 'RESOLVED') as resolved_tickets,
-        (SELECT COUNT(*) FROM tickets WHERE status = 'ESCALATED') as escalated_tickets,
-        (SELECT COUNT(*) FROM tickets WHERE status IN ('RESOLVED', 'CLOSED') AND updated_at >= NOW() - INTERVAL '24 hours') as resolved_today,
-        (SELECT COUNT(*) FROM tickets WHERE created_at >= NOW() - INTERVAL '24 hours') as tickets_last_24h,
-        (SELECT COUNT(*) FROM tickets WHERE created_at >= NOW() - INTERVAL '48 hours' AND created_at < NOW() - INTERVAL '24 hours') as tickets_previous_24h,
-        (SELECT COUNT(DISTINCT current_assigned_employee_id) FROM tickets WHERE status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')) as active_agents,
-        (SELECT COUNT(*) FROM employees e JOIN users u ON u.id = e.user_id WHERE u.role = 'SUPPORT_AGENT') as total_agents
-    `;
+    
+    let statsQuery;
+    let categoryQuery;
+    let agentsQuery;
+    let params = [];
 
-    const categoryQuery = `
-      SELECT ic.name, COALESCE(COUNT(t.id), 0) as count
-      FROM issue_categories ic
-      LEFT JOIN tickets t ON t.primary_issue_category_id = ic.id AND t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')
-      WHERE ic.is_active = TRUE
-      GROUP BY ic.id, ic.name
-      ORDER BY count DESC, ic.name ASC
-    `;
+    if (role === "SALES") {
+      params = [userId];
+      statsQuery = `
+        SELECT
+          (SELECT COUNT(*) FROM tickets WHERE created_by_user_id = $1) as total_tickets,
+          (SELECT COUNT(*) FROM tickets WHERE status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED') AND created_by_user_id = $1) as active_tickets,
+          (SELECT COUNT(*) FROM tickets WHERE status = 'CLOSED' AND created_by_user_id = $1) as closed_tickets,
+          (SELECT COUNT(*) FROM tickets WHERE status = 'RESOLVED' AND created_by_user_id = $1) as resolved_tickets,
+          (SELECT COUNT(*) FROM tickets WHERE status = 'ESCALATED' AND created_by_user_id = $1) as escalated_tickets,
+          (SELECT COUNT(*) FROM tickets WHERE status IN ('RESOLVED', 'CLOSED') AND updated_at >= NOW() - INTERVAL '24 hours' AND created_by_user_id = $1) as resolved_today,
+          (SELECT COUNT(*) FROM tickets WHERE created_at >= NOW() - INTERVAL '24 hours' AND created_by_user_id = $1) as tickets_last_24h,
+          (SELECT COUNT(*) FROM tickets WHERE created_at >= NOW() - INTERVAL '48 hours' AND created_at < NOW() - INTERVAL '24 hours' AND created_by_user_id = $1) as tickets_previous_24h,
+          0 as active_agents,
+          0 as total_agents
+      `;
+      categoryQuery = `
+        SELECT ic.name, COALESCE(COUNT(t.id), 0) as count
+        FROM issue_categories ic
+        LEFT JOIN tickets t ON t.primary_issue_category_id = ic.id AND t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED') AND t.created_by_user_id = $1
+        WHERE ic.is_active = TRUE
+        GROUP BY ic.id, ic.name
+        ORDER BY count DESC, ic.name ASC
+      `;
+      agentsQuery = `
+        SELECT 
+          0 AS employee_id,
+          '' AS name,
+          '' AS role,
+          0 AS total_assigned,
+          0 AS active_assigned
+        LIMIT 0
+      `;
+    } else {
+      statsQuery = `
+        SELECT
+          (SELECT COUNT(*) FROM tickets) as total_tickets,
+          (SELECT COUNT(*) FROM tickets WHERE status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')) as active_tickets,
+          (SELECT COUNT(*) FROM tickets WHERE status = 'CLOSED') as closed_tickets,
+          (SELECT COUNT(*) FROM tickets WHERE status = 'RESOLVED') as resolved_tickets,
+          (SELECT COUNT(*) FROM tickets WHERE status = 'ESCALATED') as escalated_tickets,
+          (SELECT COUNT(*) FROM tickets WHERE status IN ('RESOLVED', 'CLOSED') AND updated_at >= NOW() - INTERVAL '24 hours') as resolved_today,
+          (SELECT COUNT(*) FROM tickets WHERE created_at >= NOW() - INTERVAL '24 hours') as tickets_last_24h,
+          (SELECT COUNT(*) FROM tickets WHERE created_at >= NOW() - INTERVAL '48 hours' AND created_at < NOW() - INTERVAL '24 hours') as tickets_previous_24h,
+          (SELECT COUNT(DISTINCT current_assigned_employee_id) FROM tickets WHERE status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')) as active_agents,
+          (SELECT COUNT(*) FROM employees e JOIN users u ON u.id = e.user_id WHERE u.role = 'SUPPORT_AGENT') as total_agents
+      `;
+      categoryQuery = `
+        SELECT ic.name, COALESCE(COUNT(t.id), 0) as count
+        FROM issue_categories ic
+        LEFT JOIN tickets t ON t.primary_issue_category_id = ic.id AND t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')
+        WHERE ic.is_active = TRUE
+        GROUP BY ic.id, ic.name
+        ORDER BY count DESC, ic.name ASC
+      `;
+      agentsQuery = `
+        SELECT 
+          e.id AS employee_id,
+          u.name AS name,
+          u.role AS role,
+          COUNT(t.id)::integer AS total_assigned,
+          COALESCE(SUM(CASE WHEN t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED') THEN 1 ELSE 0 END), 0)::integer AS active_assigned
+        FROM employees e
+        JOIN users u ON u.id = e.user_id
+        LEFT JOIN tickets t ON t.current_assigned_employee_id = e.id
+        WHERE u.role = 'SUPPORT_AGENT'
+        GROUP BY e.id, u.name, u.role
+        ORDER BY active_assigned DESC, u.name ASC
+      `;
+    }
 
-
-    const agentsQuery = `
-      SELECT 
-        e.id AS employee_id,
-        u.name AS name,
-        u.role AS role,
-        COUNT(t.id)::integer AS total_assigned,
-        COALESCE(SUM(CASE WHEN t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED') THEN 1 ELSE 0 END), 0)::integer AS active_assigned
-      FROM employees e
-      JOIN users u ON u.id = e.user_id
-      LEFT JOIN tickets t ON t.current_assigned_employee_id = e.id
-      WHERE u.role = 'SUPPORT_AGENT'
-      GROUP BY e.id, u.name, u.role
-      ORDER BY active_assigned DESC, u.name ASC
-    `;
-
-    const statsRes = await client.query(statsQuery);
-    const categoryRes = await client.query(categoryQuery);
+    const statsRes = await client.query(statsQuery, params);
+    const categoryRes = await client.query(categoryQuery, params);
     const agentsRes = await client.query(agentsQuery);
     console.log("CategoryRes: ", categoryRes.rows)
 
