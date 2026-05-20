@@ -37,7 +37,7 @@ export const welcomeStaffTemplate = ({ name, email, password, role }) => ({
       <p style="font-size: 13px; color: #6b7280; margin-top: 20px;">Please change your password after your first login for security purposes.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -67,7 +67,7 @@ export const welcomeCustomerTemplate = ({ name, email, password }) => ({
       <p style="font-size: 13px; color: #6b7280;">For security purposes, you will be required to change your password during your first login.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -86,7 +86,7 @@ export const ticketCreatedTemplate = ({ ticketNo }) => ({
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -122,7 +122,7 @@ export const ticketCreatedHelpdeskTemplate = ({ customerName, ticketNo, category
       </div>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -141,7 +141,7 @@ export const ticketAssignedCustomer5MinTemplate = ({ ticketNo }) => ({
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -177,7 +177,7 @@ export const ticketAssignedToAgentTemplate = ({ ticketNo, customerName, category
       </div>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -196,7 +196,7 @@ export const ticketTroubleshootingCustomer15MinTemplate = ({ ticketNo }) => ({
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -212,7 +212,7 @@ export const ticketResolvedTemplate = ({ ticketNo }) => ({
       <p>We would appreciate it if you could take a moment to share your feedback on portal of your experience with our support team. Your input is valuable and helps us improve our services.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong></p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -233,7 +233,7 @@ export const ticketRcaTemplate = ({ ticketNo, rca }) => ({
       <p>Please feel free to reach out if you have any questions or need additional clarification.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong></p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -254,7 +254,7 @@ export const ticketUpdateByStaffTemplate = ({ ticketNo, agentName, message }) =>
       <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -276,7 +276,7 @@ export const passwordResetOtpTemplate = ({ name, otpCode }) => ({
       <p style="font-size: 13px; color: #6b7280;">If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -291,25 +291,18 @@ export const ticketStatusUpdateTemplate = ({ ticketNo, status, updateType }) => 
     REOPENED: {
       title: "Complaint Reopened",
       subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-      message: `Your ticket has been reopened. Our support team has been notified and will prioritize your request for further assistance.`,
-      footer: "Customer Support Team"
+      message: `Your ticket has been reopened. Our support team has been notified and will prioritize your request for further assistance.`
     },
     ESCALATED: {
       title: "Complaint Escalated",
       subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-      message: `Your ticket has been escalated to our senior support management. We are dedicating extra resources to ensure a swift resolution.`,
-      footer: "Customer Support Team"
+      message: `Your ticket has been escalated to our senior support management. We are dedicating extra resources to ensure a swift resolution.`
     }
   }[updateType] || {
     title: "Complaint Updated",
     subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-    message: `Your ticket status has been updated to ${status.replace('_', ' ')}.`,
-    footer: "Customer Support Team"
+    message: `Your ticket status has been updated to ${status.replace('_', ' ')}.`
   };
-
-  const footerLine = config.footer 
-    ? `Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>${config.footer}`
-    : `Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong>`;
 
   return {
     subject: config.subject,
@@ -322,7 +315,7 @@ export const ticketStatusUpdateTemplate = ({ ticketNo, status, updateType }) => 
         <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">www.fab5network.com/samadhan</a> for further updates.</p>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-          <p style="margin: 0; font-size: 14px;">${footerLine}</p>
+          <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
         </div>
       `
     )
@@ -342,7 +335,7 @@ export const troubleshootingUpdateTemplate = ({ ticketNo }) => ({
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
@@ -361,7 +354,7 @@ export const longDelayUpdateTemplate = ({ ticketNo }) => ({
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/>Customer Support Team</p>
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
     `
   )
