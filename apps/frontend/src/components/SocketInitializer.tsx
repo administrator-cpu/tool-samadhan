@@ -20,8 +20,32 @@ export const SocketInitializer = () => {
 
     let isActive = true;
 
-    const restoreSession = async () => {
+    const isTokenExpired = (token: string): boolean => {
       try {
+        const parts = token.split(".");
+        if (parts.length !== 3) return true;
+        const payload = JSON.parse(atob(parts[1]));
+        if (!payload.exp) return true;
+        return payload.exp * 1000 < Date.now() + 10000; // 10s buffer
+      } catch {
+        return true;
+      }
+    };
+
+    const restoreSession = async () => {
+      const storedToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
+      if (storedToken && !isTokenExpired(storedToken)) {
+        console.log("[AUTH] Access token is still valid. Restoring session.");
+        if (isActive) {
+          useAuthStore.setState({ isAuthenticated: true });
+        }
+        setSessionChecked(true);
+        return;
+      }
+
+      try {
+        console.log("[AUTH] Access token missing or expired. Attempting to refresh...");
         const data = await refreshToken();
 
         if (!isActive) return;
@@ -31,6 +55,9 @@ export const SocketInitializer = () => {
         }
       } catch (error) {
         console.error("[AUTH] Session restore failed:", error);
+        if (isActive) {
+          clearAuth();
+        }
       } finally {
         if (isActive) {
           setSessionChecked(true);
