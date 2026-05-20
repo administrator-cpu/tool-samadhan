@@ -57,7 +57,6 @@ export default function Timeline({ events }: TimelineProps) {
   };
 
   const getEventTitle = (event: TicketEvent) => {
-    console.log(event);
     switch (event.event_type) {
       case "TICKET_CREATED":
         return "Ticket Opened";
@@ -76,7 +75,7 @@ export default function Timeline({ events }: TimelineProps) {
         const actorName = event.actor_name || event.metadata?.actor_name;
         if (actorName) {
           const firstName = actorName.split(" ")[0];
-          return `${firstName} Reply`;
+          return `${firstName}`;
         }
         return event.event_type === "USER_REPLY" ? "Customer Reply" : "Support Reply";
       }
@@ -208,6 +207,8 @@ export default function Timeline({ events }: TimelineProps) {
                     </div>
                   </div>
                 )}
+
+
             </div>
           );
         })}
