@@ -50,6 +50,14 @@ export const updatePassword = async ({ userId, newPassword }) => {
       [passwordHash, userId],
     );
 
+    // Clear must_change_password on users table
+    await client.query(
+      `UPDATE users
+       SET must_change_password = FALSE
+       WHERE id = $1`,
+      [userId],
+    );
+
     // Clear must_change_password on employee table (if exists)
     await client.query(
       `UPDATE employees
@@ -389,7 +397,7 @@ export const loginUser = async ({ email, password, userAgent, ipAddress }) => {
     const result = await client.query(
       `SELECT 
         u.id, u.name, u.email, u.password, u.role,
-        COALESCE(e.must_change_password, c.must_change_password, FALSE) as must_change_password
+        COALESCE(u.must_change_password, e.must_change_password, c.must_change_password, FALSE) as must_change_password
        FROM users u
        LEFT JOIN employees e ON u.id = e.user_id
        LEFT JOIN customers c ON u.id = c.user_id
@@ -475,7 +483,7 @@ export const refreshSession = async ({ refreshToken, userAgent, ipAddress }) => 
     const userResult = await client.query(
       `SELECT 
         u.id, u.name, u.email, u.role,
-        COALESCE(e.must_change_password, c.must_change_password, FALSE) as must_change_password
+        COALESCE(u.must_change_password, e.must_change_password, c.must_change_password, FALSE) as must_change_password
        FROM users u
        LEFT JOIN employees e ON u.id = e.user_id
        LEFT JOIN customers c ON u.id = c.user_id
@@ -553,7 +561,7 @@ export const getCurrentUserDetails = async (userId) => {
       e.id AS employee_row_id,
       e.employee_id,
       e.joined_at AS employee_joined_at,
-      COALESCE(e.must_change_password, c.must_change_password, FALSE) as must_change_password,
+      COALESCE(u.must_change_password, e.must_change_password, c.must_change_password, FALSE) as must_change_password,
       COALESCE(
         json_agg(
           json_build_object('id', ic.id, 'name', ic.name)

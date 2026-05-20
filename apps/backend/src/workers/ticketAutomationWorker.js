@@ -2,14 +2,14 @@ import { Worker } from "bullmq";
 import { redisConnection } from "../config/queue.js";
 import postgresPool from "../config/db.js";
 import { 
-  sendTicketAssignmentEmails, 
+  sendCustomerAssignment5MinEmail, 
   sendTroubleshootingUpdateEmail, 
   sendLongDelayUpdateEmail 
 } from "../utils/emailService.js";
 
 const getTicketWithCustomer = async (ticketId) => {
   const res = await postgresPool.query(
-    `SELECT t.id, t.ticket_no, t.status, t.current_assigned_employee_id, 
+    `SELECT t.id, t.ticket_no, t.status, t.current_assigned_employee_id, t.created_at,
             u.name as customer_name, u.email as customer_email, c.customer_id,
             ic.name as category_name, te.message as initial_message
      FROM tickets t
@@ -74,26 +74,12 @@ export const ticketAutomationWorker = new Worker(
     try {
       switch (jobName) {
         case "AGENT_ASSIGNMENT_CHECK":
-          if (ticket.current_assigned_employee_id) {
-            const agentRes = await postgresPool.query(
-              `SELECT u.name, u.email FROM employees e JOIN users u ON u.id = e.user_id WHERE e.id = $1`,
-              [ticket.current_assigned_employee_id]
-            );
-            const agent = agentRes.rows[0];
-            if (agent) {
-              await sendTicketAssignmentEmails({
-                customerName: ticket.customer_name,
-                customerEmail: ticket.customer_email,
-                customerId: ticket.customer_id,
-                agentName: agent.name,
-                agentEmail: agent.email,
-                ticketNo: ticket.ticket_no,
-                category: ticket.category_name,
-                message: ticket.initial_message,
-              });
-              await logEmailSent(ticketId, jobName);
-            }
-          }
+          await sendCustomerAssignment5MinEmail({
+            name: ticket.customer_name,
+            email: ticket.customer_email,
+            ticketNo: ticket.ticket_no,
+          });
+          await logEmailSent(ticketId, jobName);
           break;
 
         case "TROUBLESHOOTING_UPDATE":
@@ -107,8 +93,13 @@ export const ticketAutomationWorker = new Worker(
           }
           break;
 
-        case "FINAL_ACTIVITY_CHECK":
-          if (!(await hasAgentReplied(ticketId))) {
+        case "FINAL_ACTIVITY_CHECK": {
+          const createdAt = new Date(ticket.created_at);
+          const now = new Date();
+          const diffMs = now.getTime() - createdAt.getTime();
+          const fortyFiveMinutesMs = 45 * 60 * 1000 - 5000; // 45 minutes minus a 5s buffer
+
+          if (diffMs >= fortyFiveMinutesMs && !(await hasAgentReplied(ticketId))) {
             await sendLongDelayUpdateEmail({
               name: ticket.customer_name,
               email: ticket.customer_email,
@@ -117,6 +108,7 @@ export const ticketAutomationWorker = new Worker(
             await logEmailSent(ticketId, jobName);
           }
           break;
+        }
 
         case "CLOSE_RESOLVED_TICKET": {
           const client = await postgresPool.connect();
