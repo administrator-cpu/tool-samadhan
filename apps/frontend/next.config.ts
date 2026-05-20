@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+    /* config options here */
     images: {
-        remotePatterns : [
+        remotePatterns: [
             {
                 protocol: 'https',
                 hostname: 'scontent.cdninstagram.com',
@@ -20,20 +20,20 @@ const nextConfig: NextConfig = {
                 protocol: 'https',
                 hostname: '*.fbcdn.net',
             },
-        {
-          protocol: 'https',
-          hostname: 'lh3.googleusercontent.com',
-        },
-        {
-            protocol: 'https',
-            hostname: 'images.unsplash.com',
-        },
+            {
+                protocol: 'https',
+                hostname: 'lh3.googleusercontent.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+            },
         ]
     },
 
     reactStrictMode: false,
     compiler: {
-      removeConsole: false,
+        removeConsole: true,
     },
 };
 
