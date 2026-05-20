@@ -43,7 +43,7 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
         user_id: publicKey,
         accessToken: privateKey,
         template_params: {
-          email: toEmail,
+          to_email: toEmail,
           to_name: toName,
           subject: subject,
           html_content: htmlContent,
