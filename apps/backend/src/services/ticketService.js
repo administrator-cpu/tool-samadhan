@@ -867,6 +867,20 @@ export const updateTicket = async ({ ticketId, status, actorUserId }) => {
       if (status === "ESCALATED" && !["OPEN", "IN_PROGRESS"].includes(currentTicket.status)) {
         throw new AppError(400, "Only open or in-progress tickets can be escalated.", "INVALID_TRANSITION");
       }
+
+      // Rule: CLOSED requires ticket to be RESOLVED first AND RCA must be filled
+      if (status === "CLOSED") {
+        if (currentTicket.status !== "RESOLVED") {
+          throw new AppError(400, "Tickets can only be closed after being resolved first.", "INVALID_TRANSITION");
+        }
+        const rcaCheck = await client.query(
+          `SELECT rca FROM tickets WHERE id = $1`,
+          [ticketId]
+        );
+        if (!rcaCheck.rows[0]?.rca || !rcaCheck.rows[0].rca.trim()) {
+          throw new AppError(400, "RCA must be documented before closing the ticket.", "RCA_REQUIRED");
+        }
+      }
     }
 
     const fields = [];
@@ -921,8 +935,8 @@ export const updateTicket = async ({ ticketId, status, actorUserId }) => {
       }
     }
 
-    // Send notification email for status changes
-    if (status && status !== currentTicket.status) {
+    // Send notification email for status changes — but NOT for CLOSED
+    if (status && status !== currentTicket.status && status !== "CLOSED") {
       let updateType = null;
       if (status === "OPEN" && ["RESOLVED", "CLOSED"].includes(currentTicket.status)) {
         updateType = "REOPENED";

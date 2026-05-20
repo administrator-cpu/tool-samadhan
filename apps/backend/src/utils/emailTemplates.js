@@ -344,10 +344,10 @@ export const troubleshootingUpdateTemplate = ({ ticketNo }) => ({
 export const longDelayUpdateTemplate = ({ ticketNo }) => ({
   subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
   html: emeraldLayout(
-    "Investigation Timeline Update",
+    "Media Outage",
     `
       <p>Dear Customer,</p>
-      <p>Your ticket is undergoing an in-depth investigation by our senior support specialists. We estimate it will take approximately 4 hours to fully resolve this issue.</p>
+      <p>We regret to inform you that the link is currently affected due to an outage in Bharti media. Our team is actively coordinating with the concerned team to expedite the restoration of services. The Estimated Restoration Time is 4hrs.</p>
       
       <p style="margin-top: 20px; font-weight: bold;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
       
