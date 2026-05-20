@@ -1,11 +1,6 @@
 import postgresPool from "../config/db.js";
 
 export const createUserTable = async () => {
-  try {
-    await postgresPool.query("ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'SALES'");
-  } catch (err) {
-    // Ignore error if user_role enum type doesn't exist yet
-  }
 
   const query = `
     -- 1. Create enum for role
@@ -29,12 +24,6 @@ export const createUserTable = async () => {
     );
   `;
   await postgresPool.query(query);
-
-  try {
-    await postgresPool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT TRUE");
-  } catch (err) {
-    // Ignore error if already exists
-  }
 };
 
 export const createEmployeeTable = async () => {
