@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, TrendingUp, Calendar } from "lucide-react";
+import ReassignModal from "@/components/ReassignModal";
 
 interface Ticket {
   id: number;
@@ -15,6 +16,8 @@ interface Ticket {
   created_at: string;
   updated_at: string;
   customer_name: string;
+  assigned_employee_name: string | null;
+  current_assigned_employee_id: number | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -41,6 +44,13 @@ export default function AgentTicketsPage() {
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ total: 0, pages: 0, currentPage: 1, limit: 10 });
   const [page, setPage] = useState(1);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openReassign = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setIsModalOpen(true);
+  };
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<"status" | "date">("date");
@@ -143,7 +153,7 @@ export default function AgentTicketsPage() {
         </div>
 
         {/* Tickets Table */}
-        <section className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl shadow-slate-200/40">
+        <section className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-2xl shadow-slate-200/40">
           <div className="overflow-x-auto">
             {loading ? (
               <div className="flex h-64 items-center justify-center">
@@ -163,6 +173,7 @@ export default function AgentTicketsPage() {
                   <tr className="border-b border-slate-50 bg-slate-50/30">
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Reference</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ticket & Customer</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ownership</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Last Updated</th>
                     <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">View</th>
@@ -179,6 +190,17 @@ export default function AgentTicketsPage() {
                           <span className="text-sm font-black text-slate-900 line-clamp-1">{ticket.subject}</span>
                           <span className="text-[11px] font-bold text-slate-400">{ticket.customer_name}</span>
                         </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <button
+                          onClick={() => openReassign(ticket)}
+                          className={`flex items-center gap-2 group/btn rounded-sm px-3 py-2 -ml-3 transition-all hover:bg-white hover:shadow-sm ring-1 ring-transparent hover:ring-slate-100 ${!ticket.assigned_employee_name ? 'text-amber-600' : 'text-slate-700'}`}
+                        >
+                          <span className="text-xs font-bold">
+                            {ticket.assigned_employee_name || "Unassigned"}
+                          </span>
+                          <ChevronDown size={14} className="opacity-40 group-hover/btn:opacity-100" />
+                        </button>
                       </td>
                       <td className="px-8 py-6">
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tight ${statusColors[ticket.status] || "bg-slate-100"}`}>
@@ -214,7 +236,7 @@ export default function AgentTicketsPage() {
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
+                  className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
                 >
                   <span className="material-symbols-outlined text-[18px]">chevron_left</span>
                   Previous
@@ -227,7 +249,7 @@ export default function AgentTicketsPage() {
                       onClick={() => setPage(p)}
                       className={`flex h-10 w-10 items-center justify-center rounded-lg text-xs font-black transition-all ${
                         page === p 
-                          ? "bg-emerald-600 text-white shadow-md shadow-emerald-200 " 
+                          ? "bg-emerald-600 text-white" 
                           : "text-slate-500 hover:bg-slate-50"
                       }`}
                     >
@@ -239,7 +261,7 @@ export default function AgentTicketsPage() {
                 <button
                   onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
                   disabled={page === pagination.pages}
-                  className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
+                  className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
                 >
                   Next
                   <span className="material-symbols-outlined text-[18px]">chevron_right</span>
@@ -249,6 +271,15 @@ export default function AgentTicketsPage() {
           )}
         </section>
       </main>
+      {selectedTicket && (
+        <ReassignModal
+          isOpen={isModalOpen}
+          ticketId={selectedTicket.id}
+          currentAgentId={selectedTicket.current_assigned_employee_id}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={fetchTickets}
+        />
+      )}
     </div>
   );
 }

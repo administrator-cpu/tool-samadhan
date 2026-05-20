@@ -5,7 +5,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useUICacheStore } from "@/store/useUICacheStore";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { User, Mail, Shield, Loader2, Clock, Hash, LogOut } from "lucide-react";
+import { User, Mail, Loader2, LogOut, Phone } from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -13,6 +13,17 @@ export default function ProfilePage() {
   const { profileData, profileLastFetched, setProfileData } = useUICacheStore();
   
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+
+  useEffect(() => {
+    if (profileData?.user) {
+      setName(profileData.user.name);
+      setPhone(profileData.user.phone || "");
+    }
+  }, [profileData]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -106,73 +117,134 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Account Information (Mixed) */}
-            <div className="w-full space-y-6 border-t border-slate-50 pt-10">
-              <div className="grid grid-cols-1 gap-6 text-left sm:grid-cols-2">
-                <ProfileDetail 
-                  icon={<Mail className="text-slate-400" size={18} />} 
-                  label="Email Address" 
-                  value={user.email} 
-                />
-                <ProfileDetail 
-                  icon={<Hash className="text-slate-400" size={18} />} 
-                  label="Account ID" 
-                  value={`#${user.id.toString().padStart(6, '0')}`} 
-                />
-                <ProfileDetail 
-                  icon={<Shield className="text-slate-400" size={18} />} 
-                  label="Status" 
-                  value="Active Account" 
-                />
-                <ProfileDetail 
-                  icon={<Clock className="text-slate-400" size={18} />} 
-                  label="Member Since" 
-                  value={new Date(user.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })} 
-                />
-                
-                {customer && (
-                  <ProfileDetail 
-                    icon={<Hash className="text-slate-400" size={18} />} 
-                    label="Customer Ref" 
-                    value={customer.customer_id} 
-                  />
-                )}
+            {isEditing ? (
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!name.trim()) {
+                    toast.error("Name cannot be empty");
+                    return;
+                  }
+                  if (phone) {
+                    const phoneRegex = /^[0-9]{10}$/;
+                    if (!phoneRegex.test(phone)) {
+                      toast.error("Phone number must be exactly 10 digits");
+                      return;
+                    }
+                  }
+                  try {
+                    setUpdatingProfile(true);
+                    const res = await api.patch("/me", { name, phone: phone || null });
+                    toast.success("Profile updated successfully");
+                    
+                    // Update cache state
+                    setProfileData({
+                      ...profileData,
+                      user: {
+                        ...profileData.user,
+                        name,
+                        phone,
+                      }
+                    });
 
-                {employee && (
-                  <ProfileDetail 
-                    icon={<Hash className="text-slate-400" size={18} />} 
-                    label="Employee ID" 
-                    value={employee.employee_id} 
-                  />
-                )}
-              </div>
+                    // Update auth store user details
+                    const { setUser } = useAuthStore.getState();
+                    if (profileData.user) {
+                      setUser({
+                        ...profileData.user,
+                        name,
+                      });
+                    }
 
-              {/* Specialties for Employees */}
-              {user.role !== 'USER' && user.specialties && user.specialties.length > 0 && (
-                <div className="mt-10 border-t border-slate-100 pt-8 text-left">
-                  <div className="mb-4 flex items-center gap-2">
-                    <Shield className="text-indigo-600" size={18} />
-                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Specialties & Expertise</h3>
-                  </div>
-                  <div className="flex flex-wrap gap-4">
-                    {user.specialties.map((specialty: string, index: number) => (
-                      <span 
-                        key={index}
-                        className="rounded-md bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-800 border border-indigo-100 shadow-sm transition-all hover:bg-white hover:shadow-md"
-                      >
-                        {specialty}
-                      </span>
-                    ))}
+                    setIsEditing(false);
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to update profile");
+                  } finally {
+                    setUpdatingProfile(false);
+                  }
+                }}
+                className="w-full space-y-6 text-left border-t border-slate-50 pt-10"
+              >
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 outline-hidden transition-all"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Phone Number</label>
+                  <input
+                    type="text"
+                    value={phone}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^[0-9]*$/.test(val) && val.length <= 10) {
+                        setPhone(val);
+                      }
+                    }}
+                    placeholder="e.g. 1234567890"
+                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 outline-hidden transition-all"
+                  />
+                </div>
+                <div className="flex gap-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setName(profileData.user.name);
+                      setPhone(profileData.user.phone || "");
+                      setIsEditing(false);
+                    }}
+                    className="flex-1 h-12 rounded-lg border border-slate-200 bg-white text-sm font-bold text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={updatingProfile}
+                    className="flex-1 h-12 rounded-lg bg-[#4b8264] text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-50 active:scale-[0.98] transition-all"
+                  >
+                    {updatingProfile ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                {/* Account Information (Mixed) */}
+                <div className="w-full space-y-6 border-t border-slate-50 pt-10">
+                  <div className="grid grid-cols-1 gap-6 text-left sm:grid-cols-2">
+                    <ProfileDetail 
+                      icon={<Mail className="text-slate-400" size={18} />} 
+                      label="Email Address" 
+                      value={user.email} 
+                    />
+                    <ProfileDetail 
+                      icon={<Phone className="text-slate-400" size={18} />} 
+                      label="Phone No." 
+                      value={user.phone || "Not provided"} 
+                    />
                   </div>
                 </div>
-              )}
-            </div>
-
+              </>
+            )}
+ 
             {/* Actions */}
             <div className="mt-12 flex w-full flex-col gap-4">
+              {!isEditing && (
+                <button 
+                  onClick={() => setIsEditing(true)}
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#4b8264] text-sm font-black text-white hover:bg-emerald-700 transition-all active:scale-[0.98]"
+                >
+                  <span className="material-symbols-outlined text-sm font-bold">edit</span>
+                  Edit Profile
+                </button>
+              )}
               <button 
                 onClick={handleLogout}
-                className="group flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-red-50 text-sm font-bold text-red-600 transition-all hover:bg-red-100 active:scale-[0.98]"
+                className="group flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-red-100 text-sm font-bold text-red-600 transition-all hover:bg-red-200 active:scale-[0.98]"
               >
                 <LogOut size={20} className="transition-transform group-hover:translate-x-1" />
                 Log Out

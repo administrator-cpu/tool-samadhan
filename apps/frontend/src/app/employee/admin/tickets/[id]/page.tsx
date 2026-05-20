@@ -12,6 +12,8 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { ChevronDown, CheckCircle2, XCircle, TrendingUp, User as UserIcon, Calendar, Info, Send, MessageSquare, Zap } from "lucide-react";
 import ProviderOutageTracker from "@/components/ProviderOutageTracker";
+import { useSocket } from "@/hooks/useSocket";
+import { useSocketStore } from "@/store/useSocketStore";
 
 interface TicketEvent {
   id: number;
@@ -42,6 +44,9 @@ interface TicketData {
     rca: string | null;
     problem_side: string | null;
     external_ticket_no: string | null;
+    rating: number | null;
+    rating_feedback: string | null;
+    allow_customer_reply: boolean;
   };
   events: TicketEvent[];
 }
@@ -86,13 +91,12 @@ export default function TicketDetailPage() {
   const [sending, setSending] = useState(false);
   const [rcaText, setRcaText] = useState("");
   const [savingRca, setSavingRca] = useState(false);
-
+  const [isEditingRca, setIsEditingRca] = useState(false);
+  const [togglingReply, setTogglingReply] = useState(false);
   const statusConfig = data?.ticket ? getStatusBadgeConfig(data.ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
   const fetchTicket = useCallback(async () => {
     try {
-      // We don't call setLoading(true) here if it's already loading
-      // to avoid cascading renders warning in some cases.
       const res = await api.get(`/tickets/${id}`);
       setData(res.data);
     } catch (err: any) {
@@ -107,6 +111,126 @@ export default function TicketDetailPage() {
       fetchTicket();
     }
   }, [id, fetchTicket]);
+
+  const { socket } = useSocket(id as string);
+  const markEventSeen = useSocketStore((state) => state.markEventSeen);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = (data: any) => {
+      console.log("[SOCKET] Received update:", data);
+
+      if (data.type === "EVENT_ADDED") {
+        setData((prev) => {
+          if (!prev) return null;
+          if (prev.events.some((e) => e.id === data.event.id)) return prev;
+
+          return {
+            ...prev,
+            events: [...prev.events, data.event].sort((a, b) => a.id - b.id)
+          };
+        });
+
+        markEventSeen(Number(id), data.event.id);
+
+        if (data.event.event_type !== "INTERNAL_NOTE") {
+          toast.info(`New update: ${data.event.message.substring(0, 50)}...`);
+        }
+      } else if (data.type === "REPLY_TOGGLED") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, allow_customer_reply: data.allow_customer_reply }
+          };
+        });
+        toast.info(`Customer reply ${data.allow_customer_reply ? "enabled" : "disabled"}`);
+      } else if (data.type === "TICKET_STATUS_UPDATED") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, ...data.ticket }
+          };
+        });
+        toast.success(`Ticket status updated to ${data.ticket.status}`);
+      } else if (data.type === "TICKET_OUTAGE_UPDATED") {
+        setData((prev) => {
+          if (!prev) return null;
+          let updatedEvents = prev.events;
+          if (data.event && !prev.events.some(e => e.id === data.event.id)) {
+            updatedEvents = [...prev.events, data.event].sort((a, b) => a.id - b.id);
+          }
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, ...data.ticket },
+            events: updatedEvents
+          };
+        });
+        toast.info("Provider outage details updated in real-time");
+      } else if (data.type === "TICKET_RCA_UPDATED") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, rca: data.rca }
+          };
+        });
+        toast.info("Root Cause Analysis (RCA) report has been updated!");
+      } else if (data.type === "TICKET_RATING_UPDATED") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ticket: { ...prev.ticket, rating: data.rating, rating_feedback: data.rating_feedback }
+          };
+        });
+        toast.info("Customer has submitted feedback rating!");
+      }
+    };
+
+    const handleMissedEvents = (data: { ticketId: number, events: TicketEvent[] }) => {
+      if (Number(data.ticketId) !== Number(id)) return;
+
+      console.log(`[SOCKET] Received ${data.events.length} missed events for admin`);
+      setData((prev) => {
+        if (!prev) return null;
+        const newEvents = data.events.filter(e => !prev.events.some(p => p.id === e.id));
+        if (newEvents.length === 0) return prev;
+
+        const combinedEvents = [...prev.events, ...newEvents].sort((a, b) => a.id - b.id);
+
+        const lastEvent = combinedEvents[combinedEvents.length - 1];
+        if (lastEvent) {
+          markEventSeen(Number(id), lastEvent.id);
+        }
+
+        return {
+          ...prev,
+          events: combinedEvents
+        };
+      });
+
+      toast.info(`Synced ${data.events.length} missed updates`);
+    };
+
+    socket.on("ticket_update", handleUpdate);
+    socket.on("missed_events", handleMissedEvents);
+
+    return () => {
+      socket.off("ticket_update", handleUpdate);
+      socket.off("missed_events", handleMissedEvents);
+    };
+  }, [socket, id, markEventSeen]);
+
+  // Mark initial events as seen
+  useEffect(() => {
+    if (data?.events?.length && id) {
+      const lastEvent = data.events[data.events.length - 1];
+      markEventSeen(Number(id), lastEvent.id);
+    }
+  }, [data?.events?.length, id, markEventSeen]);
 
   useEffect(() => {
     if (data?.ticket?.rca) {
@@ -124,6 +248,7 @@ export default function TicketDetailPage() {
       setSavingRca(true);
       await api.patch(`/tickets/${id}/rca`, { rca: rcaText });
       toast.success("Root Cause Analysis updated successfully");
+      setIsEditingRca(false);
       await fetchTicket();
     } catch (err: any) {
       toast.error(err.message || "Failed to update RCA");
@@ -160,6 +285,21 @@ export default function TicketDetailPage() {
       toast.error(err.message || "Failed to send reply");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleToggleCustomerReply = async () => {
+    if (!data?.ticket) return;
+    setTogglingReply(true);
+    try {
+      await api.patch(`/tickets/${id}/toggle-customer-reply`, {
+        allowCustomerReply: !data.ticket.allow_customer_reply
+      });
+      await fetchTicket();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to toggle customer reply");
+    } finally {
+      setTogglingReply(false);
     }
   };
 
@@ -200,17 +340,21 @@ export default function TicketDetailPage() {
         <div className="flex items-center gap-3">
           {ticket.status !== "CLOSED" && (
             <>
-              {/* Reopen Button - Only for RESOLVED */}
-              {ticket.status === "RESOLVED" ? (
-                <button
-                  onClick={() => handleUpdate({ status: "OPEN" })}
-                  disabled={updating}
-                  className="flex items-center gap-2 rounded-xl bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-100 transition-all disabled:opacity-50"
-                >
-                  <TrendingUp size={18} className="rotate-180" />
-                  Reopen Ticket
-                </button>
-              ) : (
+              {/* Customer Reply Toggle */}
+              <button
+                onClick={handleToggleCustomerReply}
+                disabled={updating || togglingReply || ticket.status === "RESOLVED"}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all disabled:opacity-50 ${
+                  ticket.allow_customer_reply
+                    ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                <MessageSquare size={18} />
+                {ticket.allow_customer_reply ? "Customer Reply ON" : "Customer Reply OFF"}
+              </button>
+
+              {ticket.status !== "RESOLVED" && (
                 <>
                   {/* Resolve Button - For everything except CLOSED/RESOLVED */}
                   <button
@@ -272,7 +416,7 @@ export default function TicketDetailPage() {
                     key={idx}
                     onClick={() => setReplyMessage(msg)}
                     disabled={sending}
-                    className="text-left p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 transition-all group disabled:opacity-50"
+                    className="text-left p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 transition-all group disabled:opacity-50"
                   >
                     <p className="text-xs font-medium text-slate-600 line-clamp-3 group-hover:text-indigo-700">{msg}</p>
                   </button>
@@ -285,19 +429,19 @@ export default function TicketDetailPage() {
                   <MessageSquare size={18} className="text-indigo-600" />
                   <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Custom Response</h3>
                 </div>
-                <div className="relative rounded-3xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/50 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
+                <div className="relative rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/50 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
                   <textarea
                     value={replyMessage}
                     onChange={(e) => setReplyMessage(e.target.value)}
                     placeholder="Compose your custom tactical update..."
-                    className="w-full min-h-[120px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
+                    className="w-full min-h-[120px] resize-none border-none bg-transparent p-4 text-sm font-medium font-body text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
                   />
                   <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
                     <p className="text-[10px] font-bold text-slate-400">Pressing Send will notify the customer immediately.</p>
                     <button
                       onClick={() => handleSendReply(replyMessage)}
                       disabled={sending || !replyMessage.trim()}
-                      className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-black text-white hover:bg-indigo-700 transition-all disabled:opacity-50 shadow-lg shadow-indigo-200"
+                      className="flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-black text-white hover:bg-indigo-700 transition-all disabled:opacity-50 shadow-lg shadow-indigo-200"
                     >
                       {sending ? "Transmitting..." : "Send Reply"}
                       <Send size={16} />
@@ -319,32 +463,115 @@ export default function TicketDetailPage() {
                     <p className="text-[10px] font-bold text-slate-400 uppercase">Internal Investigation Report</p>
                   </div>
                 </div>
-                {ticket.rca && (
+                {ticket.rca ? (
                   <span className="text-[10px] font-bold bg-emerald-50 text-emerald-600 px-2 py-1 rounded-md border border-emerald-100">
                     REPORT FILED
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-1 rounded-md border border-amber-100">
+                    PENDING AGENT SUBMISSION
                   </span>
                 )}
               </div>
 
-              <div className="relative rounded-3xl border border-emerald-100 bg-white p-2 shadow-xl shadow-emerald-500/5 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all">
-                <textarea
-                  value={rcaText}
-                  onChange={(e) => setRcaText(e.target.value)}
-                  placeholder="Document the technical root cause and resolution steps here for internal audit..."
-                  className="w-full min-h-[160px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
-                />
-                <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
-                  <p className="text-[10px] font-bold text-slate-400 italic">This information is only visible to the Samadhan Support Team.</p>
-                  <button
-                    onClick={handleUpdateRca}
-                    disabled={savingRca || !rcaText.trim()}
-                    className="flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50 shadow-lg shadow-emerald-200"
-                  >
-                    {savingRca ? "Saving Report..." : "Update RCA"}
-                    <CheckCircle2 size={16} />
-                  </button>
+              {ticket.rca && !isEditingRca ? (
+                /* Premium Read-Only View with Edit Button */
+                <div className="relative rounded-3xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm">
+                  <div className="whitespace-pre-line text-sm font-medium text-slate-800 leading-relaxed">
+                    {ticket.rca}
+                  </div>
+                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+                    <p className="text-[10px] font-bold text-slate-400 italic">This information is only visible to the Samadhan Support Team and Customer.</p>
+                    <button
+                      onClick={() => {
+                        setRcaText(ticket.rca || "");
+                        setIsEditingRca(true);
+                      }}
+                      className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs transition-all active:scale-95"
+                    >
+                      <span className="material-symbols-outlined text-xs">edit</span>
+                      Edit RCA
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Interactive RCA Editor */
+                <div className="relative rounded-3xl border border-emerald-100 bg-white p-2 shadow-xl shadow-emerald-500/5 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all">
+                  <textarea
+                    value={rcaText}
+                    onChange={(e) => setRcaText(e.target.value)}
+                    placeholder="Document the technical root cause and resolution steps here for internal audit..."
+                    className="w-full min-h-[160px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
+                  />
+                  <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
+                    <p className="text-[10px] font-bold text-slate-400 italic">This information is only visible to the Samadhan Support Team.</p>
+                    <div className="flex items-center gap-2">
+                      {ticket.rca && (
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingRca(false)}
+                          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-95"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                      <button
+                        onClick={async () => {
+                          await handleUpdateRca();
+                          setIsEditingRca(false);
+                        }}
+                        disabled={savingRca || !rcaText.trim()}
+                        className="flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50 shadow-lg shadow-emerald-200"
+                      >
+                        {savingRca ? "Saving Report..." : ticket.rca ? "Save Changes" : "Submit RCA"}
+                        <CheckCircle2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {ticket.rating && (
+            <div className="max-w-4xl mx-auto w-full mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-xs shrink-0">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
+                  <span className="material-symbols-outlined text-[18px]">star</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Customer Rating & Feedback</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Post-Resolution Satisfaction</p>
                 </div>
               </div>
+
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const isFilled = i < (ticket.rating || 0);
+                  return (
+                    <span
+                      key={i}
+                      className={`material-symbols-outlined text-[20px] ${
+                        isFilled ? "text-amber-500" : "text-slate-200"
+                      }`}
+                      style={{ fontVariationSettings: isFilled ? "'FILL' 1" : "'FILL' 0" }}
+                    >
+                      star
+                    </span>
+                  );
+                })}
+                <span className="ml-2 text-sm font-black text-slate-700">
+                  {ticket.rating} / 5 Stars
+                </span>
+              </div>
+
+              {ticket.rating_feedback && (
+                <div className="mt-3 rounded-lg bg-slate-50 border border-slate-100 px-4 py-3">
+                  <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
+                    "{ticket.rating_feedback}"
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </main>

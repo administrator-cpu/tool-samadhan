@@ -5,6 +5,7 @@ const createTicketSchema = Joi.object({
   message: Joi.string().trim().max(5000).allow("", null),
   circuitDescription: Joi.string().trim().max(500).allow("", null),
   issueCategoryId: Joi.number().required(),
+  customerEmail: Joi.string().email().lowercase().trim().optional().allow("", null),
 });
 
 const addTicketEventSchema = Joi.object({

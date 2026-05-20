@@ -26,6 +26,7 @@ const HARDCODED_CATEGORIES = [
 export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"SUPPORT_AGENT" | "SALES">("SUPPORT_AGENT");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -40,7 +41,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (selectedCategories.length === 0) {
+    if (role === "SUPPORT_AGENT" && selectedCategories.length === 0) {
       toast.error("Please select at least one specialty");
       return;
     }
@@ -54,8 +55,8 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
         name,
         email,
         password,
-        role: "SUPPORT_AGENT",
-        issueCategoryNames: selectedCategories,
+        role,
+        issueCategoryNames: role === "SUPPORT_AGENT" ? selectedCategories : [],
       });
 
       toast.success("Staff account created successfully!");
@@ -65,6 +66,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
       // Reset form
       setName("");
       setEmail("");
+      setRole("SUPPORT_AGENT");
       setSelectedCategories([]);
     } catch (err: any) {
       toast.error(err.message || "Failed to create staff account");
@@ -113,27 +115,41 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Specialties</label>
-            <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2">
-              {HARDCODED_CATEGORIES.map((catName) => (
-                <label key={catName} className="flex items-center gap-2 px-2 py-1.5 hover:bg-white rounded-lg cursor-pointer transition-colors border border-transparent hover:border-slate-100">
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(catName)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedCategories([...selectedCategories, catName]);
-                      } else {
-                        setSelectedCategories(selectedCategories.filter(name => name !== catName));
-                      }
-                    }}
-                    className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span className="text-sm font-medium text-slate-600">{catName}</span>
-                </label>
-              ))}
-            </div>
+            <label className="text-sm font-semibold text-slate-700">Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as "SUPPORT_AGENT" | "SALES")}
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden text-sm font-medium"
+            >
+              <option value="SUPPORT_AGENT">Support Agent</option>
+              <option value="SALES">Sales Person</option>
+            </select>
           </div>
+
+          {role === "SUPPORT_AGENT" && (
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700">Specialties</label>
+              <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2">
+                {HARDCODED_CATEGORIES.map((catName) => (
+                  <label key={catName} className="flex items-center gap-2 px-2 py-1.5 hover:bg-white rounded-lg cursor-pointer transition-colors border border-transparent hover:border-slate-100">
+                    <input
+                      type="checkbox"
+                      checked={selectedCategories.includes(catName)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedCategories([...selectedCategories, catName]);
+                        } else {
+                          setSelectedCategories(selectedCategories.filter(name => name !== catName));
+                        }
+                      }}
+                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span className="text-sm font-medium text-slate-600">{catName}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="pt-4">
             <button
