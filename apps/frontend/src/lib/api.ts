@@ -97,7 +97,7 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
   // 2. Prevent requests if unauthenticated (except public routes)
   const publicRoutes = ["/login", "/register", "/refresh", "/forgot-password", "/verify-otp", "/reset-password", "/logout"];
   const isAuthenticated = useAuthStore.getState().isAuthenticated;
-  let accessToken = useAuthStore.getState().accessToken;
+  let accessToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
   if (!isAuthenticated && !publicRoutes.includes(endpoint)) {
     console.warn(`[API] Blocked ${endpoint} while unauthenticated.`);
@@ -154,7 +154,7 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
   // 5. Handle 401 (Expired token)
   if (response.status === 401 && !["/refresh", "/login", "/register"].includes(endpoint)) {
     console.log(`[API] 401 Unauthorized for ${endpoint}. Attempting refresh...`);
-    const freshAccessToken = useAuthStore.getState().accessToken;
+    const freshAccessToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
     
     // Check if another concurrent request already refreshed it
     if (freshAccessToken && freshAccessToken !== accessToken) {
@@ -173,7 +173,7 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
       if (now - lastRefresh < 2000) {
         console.log(`[API] Refresh cooldown active for ${endpoint}. Waiting...`);
         await new Promise(r => setTimeout(r, 500));
-        const retryToken = useAuthStore.getState().accessToken;
+        const retryToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
         if (retryToken && retryToken !== accessToken) {
            headers.set("Authorization", `Bearer ${retryToken}`);
            return fetch(`${API_URL}${endpoint}`, { ...options, headers, credentials: "include" }).then(r => r.json());
