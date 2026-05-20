@@ -9,9 +9,7 @@ const setRefreshCookie = (res, token) => {
   res.cookie("refreshToken", token, {
     httpOnly: true,
     secure: isProd,
-    // For cross-site cookies (Render), we need sameSite: 'none' and secure: true
-    // sameSite: process.env.COOKIE_SAME_SITE || (isProd ? "none" : "lax"),
-    sameSite: "none",
+    sameSite: isProd ? "none" : "lax",
     path: "/",
     maxAge: REFRESH_TOKEN_MAX_AGE_MS,
   });
@@ -21,8 +19,7 @@ const clearRefreshCookie = (res) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: isProd,
-    // sameSite: process.env.COOKIE_SAME_SITE || (isProd ? "none" : "lax"),
-    sameSite: "none",
+    sameSite: isProd ? "none" : "lax",
     path: "/",
   });
 };
