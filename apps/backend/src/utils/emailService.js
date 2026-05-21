@@ -4,7 +4,7 @@ import {
   welcomeCustomerTemplate,
   ticketCreatedTemplate,
   ticketCreatedHelpdeskTemplate,
-  ticketAssignedCustomer5MinTemplate,
+  ticketAssignedCustomer2MinTemplate,
   ticketAssignedToAgentTemplate,
   ticketTroubleshootingCustomer15MinTemplate,
   ticketResolvedTemplate,
@@ -116,10 +116,10 @@ export const sendTicketCreatedHelpdeskEmail = async ({ customerName, ticketNo, c
 };
 
 /**
- * Sends a customer 5-minute assignment notification email
+ * Sends a customer 2-minute assignment notification email
  */
-export const sendCustomerAssignment5MinEmail = async ({ name, email, ticketNo }) => {
-  const { subject, html } = ticketAssignedCustomer5MinTemplate({ ticketNo });
+export const sendCustomerAssignment2MinEmail = async ({ name, email, ticketNo }) => {
+  const { subject, html } = ticketAssignedCustomer2MinTemplate({ ticketNo });
   await sendEmail({
     toEmail: email,
     toName: name,

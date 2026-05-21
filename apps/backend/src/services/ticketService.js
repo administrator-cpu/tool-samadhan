@@ -278,8 +278,8 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
     try {
       const jobData = { ticketId: ticket.id };
       
-      // 1. Agent Assignment Check at 5 minutes (300s)
-      await ticketAutomationQueue.add("AGENT_ASSIGNMENT_CHECK", jobData, { delay: 5 * 60 * 1000 });
+      // 1. Agent Assignment Check at 2 minutes (120s)
+      await ticketAutomationQueue.add("AGENT_ASSIGNMENT_CHECK", jobData, { delay: 2 * 60 * 1000 });
       
       // 2. Troubleshooting Update at 15 minutes (900s)
       await ticketAutomationQueue.add("TROUBLESHOOTING_UPDATE", jobData, { delay: 15 * 60 * 1000 });

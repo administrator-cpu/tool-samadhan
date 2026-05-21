@@ -128,7 +128,7 @@ export const ticketCreatedHelpdeskTemplate = ({ customerName, ticketNo, category
   )
 });
 
-export const ticketAssignedCustomer5MinTemplate = ({ ticketNo }) => ({
+export const ticketAssignedCustomer2MinTemplate = ({ ticketNo }) => ({
   subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
   html: emeraldLayout(
     "Complaint Under Process",

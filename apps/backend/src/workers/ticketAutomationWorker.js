@@ -2,7 +2,7 @@ import { Worker } from "bullmq";
 import { redisConnection } from "../config/queue.js";
 import postgresPool from "../config/db.js";
 import { 
-  sendCustomerAssignment5MinEmail, 
+  sendCustomerAssignment2MinEmail, 
   sendTroubleshootingUpdateEmail, 
   sendLongDelayUpdateEmail 
 } from "../utils/emailService.js";
@@ -74,7 +74,7 @@ export const ticketAutomationWorker = new Worker(
     try {
       switch (jobName) {
         case "AGENT_ASSIGNMENT_CHECK":
-          await sendCustomerAssignment5MinEmail({
+          await sendCustomerAssignment2MinEmail({
             name: ticket.customer_name,
             email: ticket.customer_email,
             ticketNo: ticket.ticket_no,
