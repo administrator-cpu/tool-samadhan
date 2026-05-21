@@ -6,10 +6,11 @@ import {
   sendTroubleshootingUpdateEmail, 
   sendLongDelayUpdateEmail 
 } from "../utils/emailService.js";
+import ticketEventEmitter from "../utils/eventEmitter.js";
 
 const getTicketWithCustomer = async (ticketId) => {
   const res = await postgresPool.query(
-    `SELECT t.id, t.ticket_no, t.status, t.current_assigned_employee_id, t.created_at,
+    `SELECT t.id, t.ticket_no, t.status, t.current_assigned_employee_id, t.created_at, t.resolved_at, t.rca,
             u.name as customer_name, u.email as customer_email, c.customer_id,
             ic.name as category_name, te.message as initial_message
      FROM tickets t
@@ -61,8 +62,9 @@ export const ticketAutomationWorker = new Worker(
     if (!ticket) return;
 
     // Strict State Checks
-    if (["RESOLVED", "CLOSED"].includes(ticket.status)) {
-      console.log(`[WORKER] Ticket #${ticketId} is ${ticket.status}. Skipping.`);
+    // For CLOSE_RESOLVED_TICKET, we allow the status to be RESOLVED
+    if (ticket.status === "CLOSED" || (ticket.status === "RESOLVED" && jobName !== "CLOSE_RESOLVED_TICKET")) {
+      console.log(`[WORKER] Ticket #${ticketId} is ${ticket.status} for job ${jobName}. Skipping.`);
       return;
     }
 
@@ -115,12 +117,18 @@ export const ticketAutomationWorker = new Worker(
           try {
             await client.query("BEGIN");
             const ticketRes = await client.query(
-              `SELECT status FROM tickets WHERE id = $1 FOR UPDATE`,
+              `SELECT status, rca FROM tickets WHERE id = $1 FOR UPDATE`,
               [ticketId]
             );
-            if (ticketRes.rowCount > 0 && ticketRes.rows[0].status === "RESOLVED") {
+            if (
+              ticketRes.rowCount > 0 && 
+              ticketRes.rows[0].status === "RESOLVED" && 
+              ticketRes.rows[0].rca && 
+              ticketRes.rows[0].rca.trim()
+            ) {
+              const now = new Date();
               await client.query(
-                `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW() WHERE id = $1`,
+                `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW(), allow_customer_reply = FALSE WHERE id = $1`,
                 [ticketId]
               );
               
@@ -138,7 +146,24 @@ export const ticketAutomationWorker = new Worker(
                 values
               );
               
+              // Emit real-time status update
+              ticketEventEmitter.emit("ticket_updated", {
+                ticketId,
+                data: {
+                  type: "TICKET_STATUS_UPDATED",
+                  ticket: {
+                    id: ticketId,
+                    status: "CLOSED",
+                    closed_at: now,
+                    updated_at: now,
+                    allow_customer_reply: false
+                  }
+                }
+              });
+              
               console.log(`[WORKER] Ticket #${ticketId} automatically closed after 24 hours.`);
+            } else {
+              console.log(`[WORKER] Ticket #${ticketId} not closed: either status is not RESOLVED or RCA is missing.`);
             }
             await client.query("COMMIT");
           } catch (err) {
