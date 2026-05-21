@@ -69,8 +69,12 @@ export default function StaffPage() {
     fetchEmployees();
   }, [fetchEmployees]);
 
+
+  const hideAdminEmail = ["ajay@finviatech.co", "administrator@fab5network.com"];
+
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
+    
       {/* Custom Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -148,7 +152,7 @@ export default function StaffPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {employees.map((emp) => (
+                {employees.filter((emp) => !hideAdminEmail.includes(emp.email)).map((emp) => (
                   <tr key={emp.employee_row_id} className="group transition-colors hover:bg-slate-50/50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
