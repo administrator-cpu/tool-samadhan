@@ -255,6 +255,7 @@ export const listAllEmployees = async () => {
       u.id as user_id,
       u.name,
       u.email,
+      u.phone,
       u.role,
       COALESCE(
         json_agg(
@@ -366,6 +367,77 @@ export const deleteEmployee = async (employeeRowId) => {
 
     await client.query("COMMIT");
     return { userId, employeeRowId };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+export const updateEmployee = async ({ employeeRowId, name, email, phone, issueCategoryNames = [] }) => {
+  const client = await postgresPool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 1. Find the user_id associated with this employee
+    const employeeRes = await client.query(
+      "SELECT user_id FROM employees WHERE id = $1",
+      [employeeRowId]
+    );
+
+    if (employeeRes.rowCount === 0) {
+      throw new AppError(404, "Employee not found", "EMPLOYEE_NOT_FOUND");
+    }
+
+    const userId = employeeRes.rows[0].user_id;
+
+    // 2. Check email uniqueness (exclude this user's own email)
+    const emailCheck = await client.query(
+      `SELECT id FROM users WHERE email = $1 AND id != $2 LIMIT 1`,
+      [email.toLowerCase(), userId]
+    );
+
+    if (emailCheck.rowCount > 0) {
+      throw new AppError(409, "This email is already in use by another account", "EMAIL_EXISTS");
+    }
+
+    // 3. Update the user record
+    const userResult = await client.query(
+      `UPDATE users
+       SET name = $1,
+           email = $2,
+           phone = $3,
+           updated_at = NOW()
+       WHERE id = $4
+       RETURNING id, name, email, role, phone`,
+      [name, email.toLowerCase(), phone || null, userId]
+    );
+
+    const user = userResult.rows[0];
+
+    // 4. If employee is a SUPPORT_AGENT, replace specialties
+    if (user.role === "SUPPORT_AGENT") {
+      // Delete existing categories
+      await client.query(
+        `DELETE FROM employee_issue_categories WHERE employee_id = $1`,
+        [employeeRowId]
+      );
+
+      // Insert new categories if provided
+      if (issueCategoryNames && issueCategoryNames.length > 0) {
+        await client.query(
+          `INSERT INTO employee_issue_categories (employee_id, issue_category_id)
+           SELECT $1, id FROM issue_categories WHERE name = ANY($2)`,
+          [employeeRowId, issueCategoryNames]
+        );
+      }
+    }
+
+    await client.query("COMMIT");
+
+    return { user };
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;

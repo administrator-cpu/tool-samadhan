@@ -1,4 +1,4 @@
-import { registerCustomer, createEmployee, loginUser, refreshSession, logoutSession, getCurrentUserDetails, listAllEmployees, listAllAgents, deleteEmployee, updatePassword, requestPasswordReset, verifyOtp, completePasswordReset, updateUserProfile, createCustomer, listAllCustomers, deleteCustomer } from "../services/authService.js";
+import { registerCustomer, createEmployee, loginUser, refreshSession, logoutSession, getCurrentUserDetails, listAllEmployees, listAllAgents, deleteEmployee, updateEmployee, updatePassword, requestPasswordReset, verifyOtp, completePasswordReset, updateUserProfile, createCustomer, listAllCustomers, deleteCustomer } from "../services/authService.js";
 import { listIssueCategories } from "../services/ticketService.js";
 import AppError from "../utils/AppError.js";
 import { REFRESH_TOKEN_MAX_AGE_MS } from "../services/jwt.js";
@@ -101,6 +101,25 @@ export const removeEmployee = async (req, res) => {
   return res.status(200).json({
     statusCode: 200,
     message: "Employee and user account deleted successfully",
+  });
+};
+
+export const editEmployee = async (req, res) => {
+  const { id } = req.params;
+  const { name, email, phone, issueCategoryNames } = req.body;
+
+  const result = await updateEmployee({
+    employeeRowId: id,
+    name,
+    email,
+    phone,
+    issueCategoryNames,
+  });
+
+  return res.status(200).json({
+    statusCode: 200,
+    message: "Employee updated successfully",
+    data: result,
   });
 };
 

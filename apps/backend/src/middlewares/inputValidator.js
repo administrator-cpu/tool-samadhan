@@ -22,6 +22,15 @@ const employeeCreateSchema = Joi.object({
   issueCategoryNames: Joi.array().items(Joi.string()).optional(),
 });
 
+const employeeUpdateSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(255).required(),
+  email: Joi.string().email().lowercase().trim().required(),
+  phone: Joi.string().trim().pattern(/^[0-9]{10}$/).optional().allow('', null).messages({
+    'string.pattern.base': 'Phone number must be exactly 10 digits'
+  }),
+  issueCategoryNames: Joi.array().items(Joi.string()).optional(),
+});
+
 const customerCreateSchema = Joi.object({
   name: Joi.string().trim().min(2).max(255).required(),
   email: Joi.string().email().lowercase().trim().required(),
@@ -65,4 +74,5 @@ export const validateCustomerRegister = validateBody(customerRegisterSchema);
 export const validateCustomerCreate = validateBody(customerCreateSchema);
 export const validateLogin = validateBody(loginSchema);
 export const validateEmployeeCreate = validateBody(employeeCreateSchema);
+export const validateEmployeeUpdate = validateBody(employeeUpdateSchema);
 export const validateUpdateProfile = validateBody(updateProfileSchema);
