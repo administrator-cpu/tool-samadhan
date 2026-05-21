@@ -22,6 +22,8 @@ export const createUserTable = async () => {
         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
   `;
   await postgresPool.query(query);
 };
@@ -94,11 +96,13 @@ export const passwordResetOtps = async () => {
   const query = `
       CREATE TABLE IF NOT EXISTS password_reset_otps (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         otp_code VARCHAR(6) NOT NULL,
         expires_at TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE INDEX IF NOT EXISTS idx_password_reset_user_created ON password_reset_otps(user_id, created_at DESC);
     `;
   await postgresPool.query(query);
 };
