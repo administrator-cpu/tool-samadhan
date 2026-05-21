@@ -1056,7 +1056,6 @@ export const getAdminStats = async ({ userId, role } = {}) => {
     const statsRes = await client.query(statsQuery, params);
     const categoryRes = await client.query(categoryQuery, params);
     const agentsRes = await client.query(agentsQuery);
-    console.log("CategoryRes: ", categoryRes.rows)
 
     return {
       summary: statsRes.rows[0],
