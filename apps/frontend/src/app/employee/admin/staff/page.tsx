@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AddStaffModal from "@/components/AddStaffModal";
+import EditStaffModal from "@/components/EditStaffModal";
 
 interface Employee {
   employee_row_id: number;
@@ -12,6 +13,7 @@ interface Employee {
   user_id: number;
   name: string;
   email: string;
+  phone: string | null;
   role: string;
   categories: { id: number; name: string }[];
 }
@@ -25,6 +27,10 @@ export default function StaffPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<number | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Edit Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
 
   const fetchEmployees = useCallback(async () => {
     try {
@@ -176,13 +182,22 @@ export default function StaffPage() {
                       {new Date(emp.joined_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => openDeleteModal(emp.employee_row_id)}
-                        className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-red-600 transition-all hover:bg-red-50 rounded-lg active:scale-95"
-                        title="Delete Employee Account"
-                      >
-                        <span className="material-symbols-outlined">delete</span>
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button 
+                          onClick={() => { setEmployeeToEdit(emp); setIsEditModalOpen(true); }}
+                          className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-indigo-600 transition-all hover:bg-indigo-50 rounded-lg active:scale-95"
+                          title="Edit Employee"
+                        >
+                          <span className="material-symbols-outlined">edit</span>
+                        </button>
+                        <button 
+                          onClick={() => openDeleteModal(emp.employee_row_id)}
+                          className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-red-600 transition-all hover:bg-red-50 rounded-lg active:scale-95"
+                          title="Delete Employee Account"
+                        >
+                          <span className="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -196,6 +211,13 @@ export default function StaffPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={fetchEmployees}
+      />
+
+      <EditStaffModal
+        isOpen={isEditModalOpen}
+        onClose={() => { setIsEditModalOpen(false); setEmployeeToEdit(null); }}
+        onSuccess={fetchEmployees}
+        employee={employeeToEdit}
       />
     </div>
   );
