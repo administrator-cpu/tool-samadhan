@@ -101,6 +101,11 @@ export const createTicketTable = async () => {
             REFERENCES issue_categories(id)
             ON DELETE SET NULL
     );
+
+    CREATE INDEX IF NOT EXISTS idx_tickets_customer_id ON tickets(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_tickets_created_by ON tickets(created_by_user_id);
+    CREATE INDEX IF NOT EXISTS idx_tickets_assigned_status ON tickets(current_assigned_employee_id, status);
+    CREATE INDEX IF NOT EXISTS idx_tickets_status_dates ON tickets(status, updated_at, created_at);
   `;
   await postgresPool.query(query);
 };
@@ -127,6 +132,8 @@ export const createTicketEventTable = async () => {
             REFERENCES users(id)
             ON DELETE SET NULL
     );
+
+    CREATE INDEX IF NOT EXISTS idx_ticket_events_ticket_created ON ticket_events(ticket_id, created_at);
   `;
   await postgresPool.query(query);
 };

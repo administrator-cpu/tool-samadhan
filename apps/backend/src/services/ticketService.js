@@ -471,8 +471,8 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
 
     const ticket = ticketResult.rows[0];
 
-    // Automatically close resolved tickets that are older than 24 hours
-    if (ticket.status === "RESOLVED" && ticket.resolved_at) {
+    // Automatically close resolved tickets that are older than 24 hours (only if RCA is documented)
+    if (ticket.status === "RESOLVED" && ticket.resolved_at && ticket.rca && ticket.rca.trim()) {
       const resolvedAt = new Date(ticket.resolved_at);
       const now = new Date();
       const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
@@ -619,7 +619,7 @@ export const getTicketTimeline = async ({ ticketId, requesterUserId }) => {
 
 const bulkCloseExpiredResolvedTickets = async (client) => {
   const expiredTicketsRes = await client.query(
-    `SELECT id FROM tickets WHERE status = 'RESOLVED' AND resolved_at < NOW() - INTERVAL '24 hours'`
+    `SELECT id FROM tickets WHERE status = 'RESOLVED' AND resolved_at < NOW() - INTERVAL '24 hours' AND rca IS NOT NULL AND TRIM(rca) <> ''`
   );
   if (expiredTicketsRes.rowCount > 0) {
     for (const row of expiredTicketsRes.rows) {
@@ -1056,7 +1056,6 @@ export const getAdminStats = async ({ userId, role } = {}) => {
     const statsRes = await client.query(statsQuery, params);
     const categoryRes = await client.query(categoryQuery, params);
     const agentsRes = await client.query(agentsQuery);
-    console.log("CategoryRes: ", categoryRes.rows)
 
     return {
       summary: statsRes.rows[0],
@@ -1242,7 +1241,7 @@ export const updateTicketRca = async ({ ticketId, rca, actorUserId }) => {
 
     // 2. Fetch ticket and check status
     const ticketRes = await client.query(
-      "SELECT status FROM tickets WHERE id = $1",
+      "SELECT status, resolved_at FROM tickets WHERE id = $1",
       [ticketId]
     );
 
@@ -1268,6 +1267,47 @@ export const updateTicketRca = async ({ ticketId, rca, actorUserId }) => {
     );
 
     const updatedRcaVal = result.rows[0];
+
+    // Check if ticket status is RESOLVED and resolved_at is older than 24 hours
+    if (ticket.status === "RESOLVED" && ticket.resolved_at && rca && rca.trim()) {
+      const resolvedAt = new Date(ticket.resolved_at);
+      const now = new Date();
+      const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
+      if (diffHours > 24) {
+        // Auto-close immediately since RCA is now filled and 24 hours have passed
+        await client.query(
+          `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW(), allow_customer_reply = FALSE WHERE id = $1`,
+          [ticketId]
+        );
+        await client.query(
+          `INSERT INTO ticket_events (ticket_id, actor_user_id, event_type, message, metadata, visible_to_customer)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            ticketId,
+            null,
+            "STATUS_CHANGED",
+            "Ticket automatically closed after resolution window and RCA documentation.",
+            JSON.stringify({ status: "CLOSED", autoClosed: true }),
+            true
+          ]
+        );
+
+        // Emit real-time status update
+        ticketEventEmitter.emit("ticket_updated", {
+          ticketId,
+          data: {
+            type: "TICKET_STATUS_UPDATED",
+            ticket: {
+              id: ticketId,
+              status: "CLOSED",
+              closed_at: now,
+              updated_at: now,
+              allow_customer_reply: false
+            }
+          }
+        });
+      }
+    }
 
     // Emit real-time update
     ticketEventEmitter.emit("ticket_updated", {
