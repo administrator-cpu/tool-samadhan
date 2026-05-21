@@ -3,7 +3,7 @@ import crypto from "crypto";
 
 const ACCESS_SECRET = process.env.JWT_SECRET;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-const ACCESS_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "2m";
+const ACCESS_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "3d";
 const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
 
 if (!ACCESS_SECRET) throw new Error("JWT_SECRET is missing");
