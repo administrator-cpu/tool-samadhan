@@ -1,4 +1,4 @@
-import { registerCustomer, createEmployee, loginUser, refreshSession, logoutSession, getCurrentUserDetails, listAllEmployees, listAllAgents, deleteEmployee, updateEmployee, updatePassword, requestPasswordReset, verifyOtp, completePasswordReset, updateUserProfile, createCustomer, listAllCustomers, deleteCustomer } from "../services/authService.js";
+import { createEmployee, loginUser, refreshSession, logoutSession, getCurrentUserDetails, listAllEmployees, listAllAgents, deleteEmployee, updateEmployee, updatePassword, requestPasswordReset, verifyOtp, completePasswordReset, updateUserProfile, createCustomer, listAllCustomers, deleteCustomer } from "../services/authService.js";
 import { listIssueCategories } from "../services/ticketService.js";
 import AppError from "../utils/AppError.js";
 import { REFRESH_TOKEN_MAX_AGE_MS } from "../services/jwt.js";
@@ -8,7 +8,7 @@ const isProd = process.env.NODE_ENV === "production";
 const setRefreshCookie = (res, token) => {
   res.cookie("refreshToken", token, {
     httpOnly: true,
-    secure: true, // SameSite=None requires Secure: true
+    secure: true, // SameSite = None requires Secure: true
     sameSite: "none",
     path: "/",
     maxAge: REFRESH_TOKEN_MAX_AGE_MS,
@@ -18,7 +18,7 @@ const setRefreshCookie = (res, token) => {
 const clearRefreshCookie = (res) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    secure: true, // SameSite=None requires Secure: true
+    secure: true, // SameSite = None requires Secure: true
     sameSite: "none",
     path: "/",
   });
