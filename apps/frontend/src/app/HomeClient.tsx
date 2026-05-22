@@ -6,7 +6,7 @@ import { ArrowRight, Gauge, ShieldCheck, Eye } from "lucide-react";
 import SamadhanLogo from "../assets/Samadhan-Logo.png";
 import TicketWorkflowStepper from "../components/TicketWorkflowStepper";
 import { useAuthStore } from "../store/useAuthStore";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function HomeClient() {
