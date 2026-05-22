@@ -6,7 +6,7 @@ import { ArrowRight, Gauge, ShieldCheck, Eye } from "lucide-react";
 import SamadhanLogo from "../assets/Samadhan-Logo.png";
 import TicketWorkflowStepper from "../components/TicketWorkflowStepper";
 import { useAuthStore } from "../store/useAuthStore";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function HomeClient() {
@@ -102,7 +102,7 @@ export default function HomeClient() {
               </Link>
 
               <Link
-                href="/dashboard"
+                href="/auth/login"
                 className="w-full rounded-full border border-slate-200 bg-white px-8 py-4 text-lg font-medium text-slate-700 transition hover:bg-slate-50 sm:w-auto"
               >
                 Login to Dashboard
