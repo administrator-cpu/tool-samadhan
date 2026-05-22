@@ -177,7 +177,7 @@ export default function HomeClient() {
                   Report an Issue Now
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/auth/login"
                   className="w-full rounded-full border border-emerald-400 px-8 py-4 text-lg font-medium text-white transition hover:bg-emerald-800 sm:w-auto"
                 >
                   Login to Dashboard
