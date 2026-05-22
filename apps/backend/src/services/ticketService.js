@@ -239,20 +239,20 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
     const categoryName = catRes.rows[0]?.name || "General Support";
 
     if (contact) {
-      sendTicketConfirmationEmail({
+      await sendTicketConfirmationEmail({
         name: contact.name,
         email: contact.email,
         ticketNo: contact.ticket_no,
         category: categoryName,
-      }).catch(err => console.error("[EMAIL] Creation notification failed:", err));
+      });
 
       // Send immediate helpdesk registration notification
-      sendTicketCreatedHelpdeskEmail({
+      await sendTicketCreatedHelpdeskEmail({
         customerName: contact.name,
         ticketNo: contact.ticket_no,
         category: categoryName,
         circuitId: ticket.circuit_description
-      }).catch(err => console.error("[EMAIL] Helpdesk creation notification failed:", err));
+      });
 
       // If an agent is assigned, notify immediately
       if (assignedEmployeeId) {
@@ -262,14 +262,14 @@ export const createTicket = async ({ userId, message, circuitDescription, issueC
         );
         const employee = employeeResult.rows[0];
         if (employee) {
-          sendImmediateAgentAssignmentEmails({
+          await sendImmediateAgentAssignmentEmails({
             customerName: contact.name,
             agentName: employee.name,
             agentEmail: employee.email,
             ticketNo: contact.ticket_no,
             category: categoryName,
             circuitId: ticket.circuit_description
-          }).catch(err => console.error("[EMAIL] Immediate assignment notification failed:", err));
+          });
         }
       }
     }
