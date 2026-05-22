@@ -102,7 +102,7 @@ export default function HomeClient() {
               </Link>
 
               <Link
-                href="/dashboard"
+                href="/auth/login"
                 className="w-full rounded-full border border-slate-200 bg-white px-8 py-4 text-lg font-medium text-slate-700 transition hover:bg-slate-50 sm:w-auto"
               >
                 Login to Dashboard
