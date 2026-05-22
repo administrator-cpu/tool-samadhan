@@ -80,9 +80,7 @@ export const ticketCreatedTemplate = ({ ticketNo }) => ({
     `
       <p>Dear Customer,</p>
       <p>This is to acknowledge that your complaint has been successfully registered in our system. Your Ticket ID is <strong>${ticketNo}</strong>. Please refer to this ID for any future communication regarding your concern.</p>
-      
-      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
-      
+            
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
@@ -135,9 +133,7 @@ export const ticketAssignedCustomer2MinTemplate = ({ ticketNo }) => ({
     `
       <p>Dear Customer,</p>
       <p>We would like to inform you that your complaint has been assigned to the concerned department for further investigation and necessary action.</p>
-      
-      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
-      
+            
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
@@ -194,9 +190,7 @@ export const ticketTroubleshootingCustomer15MinTemplate = ({ ticketNo }) => ({
     `
       <p>Dear Customer,</p>
       <p>To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.</p>
-      
-      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
-      
+            
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
@@ -254,9 +248,7 @@ export const ticketUpdateByStaffTemplate = ({ ticketNo, agentName, message }) =>
       <div style="background-color: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 20px 0; border-radius: 4px; font-style: italic;">
         "${message}"
       </div>
-      
-      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
-      
+            
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
       </div>
@@ -315,9 +307,7 @@ export const ticketStatusUpdateTemplate = ({ ticketNo, status, updateType }) => 
       `
         <p>Dear Customer,</p>
         <p>${config.message}</p>
-        
-        <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
-        
+                
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
           <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
         </div>
@@ -333,9 +323,7 @@ export const troubleshootingUpdateTemplate = ({ ticketNo }) => ({
     `
       <p>Dear Customer,</p>
       <p>To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.</p>
-      
-      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
-      
+            
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
@@ -352,9 +340,7 @@ export const longDelayUpdateTemplate = ({ ticketNo }) => ({
     `
       <p>Dear Customer,</p>
       <p>We regret to inform you that the link is currently affected due to an outage in Bharti media. Our team is actively coordinating with the concerned team to expedite the restoration of services. The Estimated Restoration Time is 4hrs.</p>
-      
-      <p style="margin-top: 20px; font-weight: medium;">You can also track your complaint online at <a href="https://www.fab5network.com/samadhan" style="color: #059669; text-decoration: underline;">fab5network.com/samadhan</a> for further updates.</p>
-      
+            
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
