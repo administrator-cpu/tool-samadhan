@@ -327,6 +327,14 @@ export default function TicketDetailPage() {
               <textarea
                 value={replyMessage}
                 onChange={(e) => setReplyMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (replyMessage.trim() && !sending) {
+                      handleSendReply();
+                    }
+                  }
+                }}
                 placeholder="Agent requested more information. Type your message here..."
                 className="w-full min-h-[100px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
               />
