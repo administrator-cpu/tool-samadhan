@@ -33,7 +33,7 @@ export default function CustomersPage() {
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/customers?page=${page}&limit=10`);
+      const res = await api.get(`/users/customers?page=${page}&limit=10`);
       setCustomers(res.data.customers);
       setTotalPages(res.data.totalPages);
       setTotalCount(res.data.total);
@@ -54,7 +54,7 @@ export default function CustomersPage() {
     
     setDeleteLoading(true);
     try {
-      await api.delete(`/customers/${customerToDelete}`);
+      await api.delete(`/users/customers/${customerToDelete}`);
       toast.success("Customer account deleted successfully");
       setDeleteModalOpen(false);
       fetchCustomers();

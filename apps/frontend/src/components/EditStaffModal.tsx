@@ -64,7 +64,7 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
     setLoading(true);
 
     try {
-      await api.patch(`/employees/${employee.employee_row_id}`, {
+      await api.put(`/users/employees/${employee.employee_row_id}`, {
         name,
         email,
         phone: phone || null,

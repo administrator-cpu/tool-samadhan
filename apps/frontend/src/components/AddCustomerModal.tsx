@@ -37,7 +37,7 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }: AddCust
     setLoading(true);
 
     try {
-      await api.post("/customers", {
+      await api.post("/users/customers", {
         name,
         email,
         phone,

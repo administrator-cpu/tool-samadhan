@@ -34,7 +34,7 @@ export default function StaffPage() {
 
   const fetchEmployees = useCallback(async () => {
     try {
-      const res = await api.get("/employees");
+      const res = await api.get("/users/employees");
       setEmployees(res.data);
     } catch (err) {
       toast.error("Failed to fetch staff list");
@@ -53,7 +53,7 @@ export default function StaffPage() {
     
     setDeleteLoading(true);
     try {
-      await api.delete(`/employees/${employeeToDelete}`);
+      await api.delete(`/users/employees/${employeeToDelete}`);
       toast.success("Staff member deleted successfully");
       setDeleteModalOpen(false);
       fetchEmployees();
