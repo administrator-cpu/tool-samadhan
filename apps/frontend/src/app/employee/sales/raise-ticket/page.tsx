@@ -5,16 +5,12 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { ArrowLeft, Send } from "lucide-react";
-
-interface Category {
-  id: number;
-  name: string;
-}
+import { useCategoryStore } from "@/store/useCategoryStore";
 
 export default function SalesCreateTicketPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { categories, fetchCategories } = useCategoryStore();
   const [formData, setFormData] = useState({
     customerEmail: "",
     categoryId: "",
@@ -23,16 +19,8 @@ export default function SalesCreateTicketPage() {
   });
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await api.get("/categories");
-        setCategories(res.data || []);
-      } catch (err) {
-        toast.error("Failed to load categories");
-      }
-    };
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>) => {
     const { name, value } = e.target;
