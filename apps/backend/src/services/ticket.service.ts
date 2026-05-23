@@ -214,7 +214,7 @@ export class TicketService {
         eventType = 'ADMIN_REPLY';
       }
 
-      const event = await TicketEventRepository.insertEvent(client, {
+      const rawEvent = await TicketEventRepository.insertEvent(client, {
         ticket_id: ticketId,
         actor_user_id: actorUserId,
         event_type: eventType,
@@ -223,11 +223,13 @@ export class TicketService {
         visible_to_customer: visibleToCustomer
       });
 
+      const actor = await UserRepository.findById(client, actorUserId);
+      const event = { ...rawEvent, actor_name: actor?.name || null };
+
       const isFirstReply = eventType === 'AGENT_REPLY' || eventType === 'ADMIN_REPLY';
       
       if (isFirstReply) {
         const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
-        const actor = await UserRepository.findById(client, actorUserId);
         
         if (info && actor && visibleToCustomer) {
           await sendTicketUpdateEmail({
