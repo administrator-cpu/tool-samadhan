@@ -167,8 +167,20 @@ export class TicketService {
         events = await TicketEventRepository.findByTicketId(client, ticketId, role === UserRole.USER);
       }
 
+      const formattedTicket = {
+        ...ticketInfo,
+        customer: {
+          name: ticketInfo.customer_name,
+          customer_id: ticketInfo.customer_id,
+          email: ticketInfo.customer_email
+        },
+        assigned_employee: ticketInfo.current_assigned_employee_id ? {
+          name: ticketInfo.assigned_employee_name
+        } : null
+      };
+
       return {
-        ticket: ticketInfo,
+        ticket: formattedTicket,
         events,
         hasMore
       };
