@@ -508,6 +508,15 @@ export class TicketService {
         rating_feedback: feedback
       });
 
+      ticketEventEmitter.emit('ticket_updated', {
+        ticketId,
+        data: { 
+          type: 'TICKET_RATING_UPDATED', 
+          rating, 
+          rating_feedback: feedback 
+        }
+      });
+
       return updatedTicket;
     });
   }
