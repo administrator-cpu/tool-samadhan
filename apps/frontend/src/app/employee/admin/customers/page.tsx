@@ -157,7 +157,7 @@ export default function CustomersPage() {
                           {customer.name.charAt(0)}
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-semibold text-slate-900">{customer.name}</span>
+                          <span className="font-semibold text-slate-900 uppercase">{customer.name}</span>
                           <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">{customer.customer_id}</span>
                         </div>
                       </div>
