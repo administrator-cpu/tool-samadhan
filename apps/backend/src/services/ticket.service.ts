@@ -4,13 +4,12 @@ import { TicketEventRepository } from '../repositories/ticket-event.repository.j
 import { EmployeeRepository } from '../repositories/employee.repository.js';
 import { CustomerRepository } from '../repositories/customer.repository.js';
 import { UserRepository } from '../repositories/user.repository.js';
-import { AutomatedEmailLogRepository } from '../repositories/automated-email-log.repository.js';
 import { AssignmentService } from './assignment.service.js';
 import { sendTicketConfirmationEmail, sendTicketCreatedHelpdeskEmail, sendImmediateAgentAssignmentEmails, sendTicketUpdateEmail, sendTicketStatusUpdateEmail, sendTicketRcaEmail } from './email.service.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
-import { TicketStatus, UserRole } from '../types/dto.js';
+import { UserRole } from '../types/dto.js';
 import { ticketAutomationQueue } from '../config/redis.js';
 
 export class TicketService {
