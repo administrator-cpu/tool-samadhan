@@ -124,7 +124,7 @@ export default function TicketDetailPage() {
     const handleUpdate = (data: any) => {
       console.log("[SOCKET] Received update:", data);
 
-      if (data.type === "EVENT_ADDED") {
+      if (data.event) {
         setData((prev) => {
           if (!prev) return null;
           if (prev.events.some((e) => e.id === data.event.id)) return prev;
@@ -134,12 +134,11 @@ export default function TicketDetailPage() {
             events: [...prev.events, data.event].sort((a, b) => a.id - b.id)
           };
         });
-
         markEventSeen(Number(id), data.event.id);
+      }
 
-        if (data.event.event_type !== "INTERNAL_NOTE") {
-          toast.info(`New update: ${data.event.message.substring(0, 50)}...`);
-        }
+      if (data.type === "NEW_EVENT") {
+        // No toast needed, the message is automatically appended to the timeline above
       } else if (data.type === "REPLY_TOGGLED") {
         setData((prev) => {
           if (!prev) return null;
@@ -157,18 +156,15 @@ export default function TicketDetailPage() {
             ticket: { ...prev.ticket, ...data.ticket }
           };
         });
-        toast.success(`Ticket status updated to ${data.ticket.status}`);
-      } else if (data.type === "TICKET_OUTAGE_UPDATED") {
+        toast.success(`Ticket status updated to ${data.ticket?.status || "a new status"}`);
+      } else if (data.type === "TICKET_ASSIGNED") {
+        toast.info("Ticket assignment has been updated");
+      } else if (data.type === "OUTAGE_DETAILS_UPDATED") {
         setData((prev) => {
           if (!prev) return null;
-          let updatedEvents = prev.events;
-          if (data.event && !prev.events.some(e => e.id === data.event.id)) {
-            updatedEvents = [...prev.events, data.event].sort((a, b) => a.id - b.id);
-          }
           return {
             ...prev,
-            ticket: { ...prev.ticket, ...data.ticket },
-            events: updatedEvents
+            ticket: { ...prev.ticket, ...data.ticket }
           };
         });
         toast.info("Provider outage details updated in real-time");
