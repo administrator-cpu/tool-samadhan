@@ -56,7 +56,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
         email,
         password,
         role,
-        issueCategoryNames: role === "SUPPORT_AGENT" ? selectedCategories : [],
+        issueCategories: role === "SUPPORT_AGENT" ? selectedCategories : [],
       });
 
       toast.success("Staff account created successfully!");

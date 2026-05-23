@@ -204,7 +204,7 @@ export default function TicketDetailPage() {
 
   const handleStatusUpdate = async (newStatus: string) => {
     try {
-      await api.patch(`/tickets/${id}`, { status: newStatus });
+      await api.patch(`/tickets/${id}/status`, { status: newStatus });
       // Refresh data
       const response = await api.get(`/tickets/${id}`);
       setTicket(response.data.ticket);
