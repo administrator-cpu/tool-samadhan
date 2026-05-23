@@ -149,7 +149,9 @@ export const seedDefaultIssueCategories = async () => {
       ('SLOW_BROWSING', 'Slow Browsing'),
       ('WEBSITE_RELATED_ISSUE', 'Website Related Issue'),
       ('IP_RELATED', 'IP Related'),
-      ('OTHERS', 'Others')
+      ('OTHERS', 'Others'),
+      ('BGP_ISSUE', 'BGP Issue'),
+      ('HARDWARE_CONFIGURATION', 'Hardware configuration')
     ON CONFLICT (code) DO NOTHING;
   `;
   await postgresPool.query(query);
