@@ -300,7 +300,7 @@ export default function TicketDetailPage() {
             if (diffHours <= 24) {
               return (
                 <button
-                  onClick={() => handleStatusUpdate("OPEN")}
+                  onClick={() => handleStatusUpdate("REOPENED")}
                   className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-emerald-100"
                 >
                   <span className="material-symbols-outlined text-sm">restart_alt</span>
@@ -642,7 +642,7 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
           onChange={(e) => setFeedback(e.target.value)}
           placeholder="Share your thoughts on how we handled your issue..."
           rows={3}
-          className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-500 focus:bg-white outline-hidden transition-all placeholder:text-slate-400 font-medium"
+          className="w-full mt-2 rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-500 focus:bg-white outline-hidden transition-all placeholder:text-slate-400 font-medium"
         />
       </div>
 
