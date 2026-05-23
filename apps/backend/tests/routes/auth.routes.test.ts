@@ -60,7 +60,7 @@ describe('Auth Routes (/api/auth)', () => {
       expect(res.body.data.user.name).toBe('Test User');
       
       expect(res.headers['set-cookie']).toBeDefined();
-      expect(res.headers['set-cookie'].join(';')).toMatch(/refreshToken=mock-refresh-token/);
+      expect((res.headers['set-cookie'] as unknown as string[]).join(';')).toMatch(/refreshToken=mock-refresh-token/);
     });
   });
 
@@ -75,7 +75,7 @@ describe('Auth Routes (/api/auth)', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.headers['set-cookie'].join(';')).toMatch(/refreshToken=;/);
+      expect((res.headers['set-cookie'] as unknown as string[]).join(';')).toMatch(/refreshToken=;/);
     });
   });
 });
