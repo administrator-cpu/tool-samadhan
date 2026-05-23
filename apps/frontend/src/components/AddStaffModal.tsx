@@ -51,7 +51,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
 
     try {
       // 1. Create account (Backend will now handle email sending)
-      await api.post("/employees", {
+      await api.post("/users/employees", {
         name,
         email,
         password,
