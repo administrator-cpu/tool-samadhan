@@ -32,7 +32,7 @@ export default function ProviderOutageTracker({
       const pSide = tempProblemSide ? tempProblemSide : null;
       const tNo = tempTicketNo && tempTicketNo.trim() ? tempTicketNo.trim() : null;
 
-      await api.patch(`/tickets/${ticketId}/outage-details`, {
+      await api.patch(`/tickets/${ticketId}/outage`, {
         problemSide: pSide,
         externalTicketNo: tNo,
       });

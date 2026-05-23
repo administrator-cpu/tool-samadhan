@@ -162,7 +162,7 @@ export default function AdminDashboard() {
           
           {/* Left Column: Issue Categories & Agents Workload */}
           <div className="lg:col-span-2 space-y-8">
-            
+
             {/* Agent Workload Card */}
             <div className="rounded-[1rem] border border-slate-100 bg-white p-8 shadow-2xl shadow-slate-200/40">
               <div className="mb-6 flex items-center justify-between">
@@ -236,12 +236,11 @@ export default function AdminDashboard() {
                         <span className="text-xs font-black text-slate-400">{cat.count} Tickets</span>
                       </div>
                       <div className="h-3 w-full overflow-hidden rounded-full bg-slate-50 border border-slate-100 shadow-inner">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${
-                            i % 3 === 0 ? 'bg-indigo-600' : 
-                            i % 3 === 1 ? 'bg-indigo-400' : 
-                            'bg-indigo-200'
-                          }`}
+                        <div
+                          className={`h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${i % 3 === 0 ? 'bg-indigo-600' :
+                              i % 3 === 1 ? 'bg-indigo-400' :
+                                'bg-indigo-200'
+                            }`}
                           style={{ width: `${percentage}%` }}
                         ></div>
                       </div>

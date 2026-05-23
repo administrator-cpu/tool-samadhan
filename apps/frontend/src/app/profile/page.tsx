@@ -44,7 +44,7 @@ export default function ProfilePage() {
 
       try {
         console.log("[PROFILE] Fetching from DB...");
-        const response = await api.get("/me");
+        const response = await api.get("/users/me");
         setProfileData(response.data);
       } catch (error: any) {
         if (error.code === "SESSION_CLEARED_SILENT") return;
@@ -134,7 +134,7 @@ export default function ProfilePage() {
                   }
                   try {
                     setUpdatingProfile(true);
-                    const res = await api.patch("/me", { name, phone: phone || null });
+                    const res = await api.put("/users/profile", { name, phone: phone || null });
                     toast.success("Profile updated successfully");
                     
                     // Update cache state

@@ -524,7 +524,7 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
     }
     setLoading(true);
     try {
-      await api.patch(`/tickets/${ticket.id}/rate`, {
+      await api.post(`/tickets/${ticket.id}/rate`, {
         rating,
         feedback: feedback.trim() || null
       });
