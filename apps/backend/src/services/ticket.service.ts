@@ -327,9 +327,25 @@ export class TicketService {
         throw new AppError(403, 'Cannot update RCA for a closed ticket', ErrorCodes.TICKET_CLOSED);
       }
 
-      const updatedTicket = await TicketRepository.updateFields(client, ticketId, { rca });
+      let autoClosed = false;
+      const fieldsToUpdate: any = { rca };
 
-      const event = await TicketEventRepository.insertEvent(client, {
+      if (ticket.status === 'RESOLVED' && ticket.resolved_at) {
+        const resolvedTime = new Date(ticket.resolved_at).getTime();
+        const now = Date.now();
+        const hoursPassed = (now - resolvedTime) / (1000 * 60 * 60);
+
+        if (hoursPassed >= 24) {
+          fieldsToUpdate.status = 'CLOSED';
+          fieldsToUpdate.closed_at = new Date().toISOString();
+          fieldsToUpdate.allow_customer_reply = false;
+          autoClosed = true;
+        }
+      }
+
+      const updatedTicket = await TicketRepository.updateFields(client, ticketId, fieldsToUpdate);
+
+      const rcaEvent = await TicketEventRepository.insertEvent(client, {
         ticket_id: ticketId,
         actor_user_id: actorUserId,
         event_type: 'TICKET_RCA_UPDATED',
@@ -337,6 +353,18 @@ export class TicketService {
         metadata: { rca },
         visible_to_customer: true
       });
+
+      let statusEvent = null;
+      if (autoClosed) {
+        statusEvent = await TicketEventRepository.insertEvent(client, {
+          ticket_id: ticketId,
+          actor_user_id: null,
+          event_type: 'STATUS_CHANGED',
+          message: 'Ticket automatically closed after late RCA submission.',
+          metadata: { old_status: 'RESOLVED', new_status: 'CLOSED' },
+          visible_to_customer: true
+        });
+      }
 
       const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
       if (info) {
@@ -350,8 +378,15 @@ export class TicketService {
 
       ticketEventEmitter.emit('ticket_updated', {
         ticketId,
-        data: { type: 'TICKET_RCA_UPDATED', rca, event }
+        data: { type: 'TICKET_RCA_UPDATED', rca, event: rcaEvent }
       });
+
+      if (autoClosed) {
+        ticketEventEmitter.emit('ticket_updated', {
+          ticketId,
+          data: { type: 'TICKET_STATUS_UPDATED', ticket: updatedTicket, event: statusEvent }
+        });
+      }
 
       return updatedTicket;
     });
