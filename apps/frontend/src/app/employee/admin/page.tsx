@@ -51,6 +51,8 @@ export default function AdminDashboard() {
       try {
         console.log("[DASHBOARD] Fetching fresh intelligence from DB...");
         const res = await api.get("/tickets/stats");
+        console.log("Raw response:", res)
+        console.log("Admin Dashboard Data: ", res.data);
         setDashboardStats(res.data);
       } catch (err: any) {
         if (err.code === "SESSION_CLEARED_SILENT") return;
@@ -76,8 +78,8 @@ export default function AdminDashboard() {
     );
   }
 
-  const stats = dashboardStats as AdminStats;
-  if (!stats) return null;
+  const stats = (dashboardStats.stats ? dashboardStats.stats : dashboardStats) as AdminStats;
+  if (!stats || !stats.summary) return null;
 
   const { summary, categories } = stats;
 
