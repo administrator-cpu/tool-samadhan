@@ -260,7 +260,7 @@ export default function TicketDetailPage() {
   const handleUpdate = async (updates: { status?: string }) => {
     setUpdating(true);
     try {
-      await api.patch(`/tickets/${id}`, updates);
+      await api.patch(`/tickets/${id}/status`, updates);
       toast.success("Ticket updated successfully");
       await fetchTicket();
     } catch (err: any) {
