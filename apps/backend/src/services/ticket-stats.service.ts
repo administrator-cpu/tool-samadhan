@@ -29,14 +29,15 @@ export class TicketStatsService {
         statusCounts.TOTAL += parseInt(row.count, 10);
       });
 
-      // 2. Active Unassigned Tickets
-      const unassignedRes = await client.query(`
-        SELECT COUNT(*) as count 
-        FROM tickets 
-        WHERE current_assigned_employee_id IS NULL 
-        AND status NOT IN ('RESOLVED', 'CLOSED')
+      // Time-based stats
+      const timeStatsRes = await client.query(`
+        SELECT 
+          COUNT(CASE WHEN status = 'RESOLVED' AND DATE(resolved_at AT TIME ZONE 'UTC') = CURRENT_DATE THEN 1 END) as resolved_today,
+          COUNT(CASE WHEN created_at >= NOW() - INTERVAL '24 hours' THEN 1 END) as tickets_last_24h,
+          COUNT(CASE WHEN created_at >= NOW() - INTERVAL '48 hours' AND created_at < NOW() - INTERVAL '24 hours' THEN 1 END) as tickets_previous_24h
+        FROM tickets
       `);
-      const unassignedCount = parseInt(unassignedRes.rows[0].count, 10);
+      const timeStats = timeStatsRes.rows[0];
 
       // 3. Tickets by Category
       const categoryRes = await client.query(`
@@ -50,44 +51,42 @@ export class TicketStatsService {
       // 4. Agent Workload
       const workloadRes = await client.query(`
         SELECT 
-          u.name as agent_name,
+          u.name,
+          u.role,
           e.employee_id,
-          COUNT(t.id) as assigned_tickets,
-          COUNT(CASE WHEN t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED') THEN 1 END) as active_tickets
+          COUNT(t.id) as total_assigned,
+          COUNT(CASE WHEN t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED') THEN 1 END) as active_assigned
         FROM employees e
         JOIN users u ON u.id = e.user_id
         LEFT JOIN tickets t ON t.current_assigned_employee_id = e.id
         WHERE u.role = 'SUPPORT_AGENT'
-        GROUP BY e.id, u.name, e.employee_id
-        ORDER BY active_tickets DESC
+        GROUP BY e.id, u.name, u.role, e.employee_id
+        ORDER BY active_assigned DESC
       `);
 
-      // 5. Recent Activity
-      const activityRes = await client.query(`
-        SELECT 
-          te.id, te.ticket_id, t.ticket_no, te.event_type, 
-          u.name as actor_name, te.created_at
-        FROM ticket_events te
-        JOIN tickets t ON t.id = te.ticket_id
-        LEFT JOIN users u ON u.id = te.actor_user_id
-        ORDER BY te.created_at DESC
-        LIMIT 10
-      `);
-
-      // 6. User Stats
-      const userRes = await client.query(`
-        SELECT role, COUNT(*) as count 
-        FROM users 
-        GROUP BY role
-      `);
+      const total_agents = workloadRes.rows.length;
+      const active_agents = workloadRes.rows.filter(r => parseInt(r.active_assigned, 10) > 0).length;
 
       return {
-        ticketCounts: statusCounts,
-        unassignedActiveTickets: unassignedCount,
-        ticketsByCategory: categoryRes.rows,
-        agentWorkload: workloadRes.rows,
-        recentActivity: activityRes.rows,
-        userCounts: userRes.rows
+        summary: {
+          total_tickets: statusCounts.TOTAL.toString(),
+          active_tickets: (statusCounts.OPEN + statusCounts.IN_PROGRESS + statusCounts.ESCALATED).toString(),
+          escalated_tickets: statusCounts.ESCALATED.toString(),
+          resolved_today: timeStats.resolved_today.toString(),
+          tickets_last_24h: timeStats.tickets_last_24h.toString(),
+          tickets_previous_24h: timeStats.tickets_previous_24h.toString(),
+          active_agents: active_agents.toString(),
+          total_agents: total_agents.toString()
+        },
+        categories: categoryRes.rows,
+        volumeMix: categoryRes.rows,
+        agents: workloadRes.rows.map(row => ({
+          employee_id: parseInt(row.employee_id, 10) || 0,
+          name: row.name,
+          role: row.role,
+          total_assigned: parseInt(row.total_assigned, 10),
+          active_assigned: parseInt(row.active_assigned, 10)
+        }))
       };
     } finally {
       client.release();
