@@ -6,14 +6,7 @@ import { CustomerRepository } from '../repositories/customer.repository.js';
 import { UserRepository } from '../repositories/user.repository.js';
 import { AutomatedEmailLogRepository } from '../repositories/automated-email-log.repository.js';
 import { AssignmentService } from './assignment.service.js';
-import { 
-  sendTicketConfirmationEmail, 
-  sendTicketCreatedHelpdeskEmail,
-  sendImmediateAgentAssignmentEmails,
-  sendTicketUpdateEmail,
-  sendTicketStatusUpdateEmail,
-  sendTicketRcaEmail
-} from './email.service.js';
+import { sendTicketConfirmationEmail, sendTicketCreatedHelpdeskEmail, sendImmediateAgentAssignmentEmails, sendTicketUpdateEmail, sendTicketStatusUpdateEmail, sendTicketRcaEmail } from './email.service.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
