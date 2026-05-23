@@ -68,7 +68,7 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
         name,
         email,
         phone: phone || null,
-        issueCategoryNames: employee.role === "SUPPORT_AGENT" ? selectedCategories : [],
+        issueCategories: employee.role === "SUPPORT_AGENT" ? selectedCategories : [],
       });
 
       toast.success("Staff details updated successfully!");
