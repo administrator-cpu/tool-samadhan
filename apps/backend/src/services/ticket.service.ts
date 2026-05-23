@@ -48,12 +48,24 @@ export class TicketService {
 
       const assignedAgentId = await AssignmentService.assignAgentAutomatically(client, ticket.id, dto.issueCategoryId);
 
+      let assignedAgentName = 'Agent';
+      let agent = null;
+      let agentUser = null;
+
       if (assignedAgentId) {
+        agent = await EmployeeRepository.findByRowId(client, assignedAgentId);
+        if (agent) {
+           agentUser = await UserRepository.findById(client, agent.user_id);
+           if (agentUser) {
+             assignedAgentName = agentUser.name;
+           }
+        }
+
         await TicketEventRepository.insertEvent(client, {
           ticket_id: ticket.id,
           actor_user_id: null,
           event_type: 'TICKET_ASSIGNED',
-          message: 'Ticket automatically assigned to an agent based on issue category.',
+          message: `Ticket assign to ${assignedAgentName}`,
           metadata: { assigned_to: assignedAgentId },
           visible_to_customer: true
         });
@@ -77,19 +89,15 @@ export class TicketService {
             { delay: 2 * 60 * 1000 }
           );
         } else {
-          const agent = await EmployeeRepository.findByRowId(client, assignedAgentId);
-          if (agent) {
-             const agentUser = await UserRepository.findById(client, agent.user_id);
-             if (agentUser) {
-               await sendImmediateAgentAssignmentEmails({
-                 customerName: info.name,
-                 agentName: agentUser.name,
-                 agentEmail: agentUser.email,
-                 ticketNo: info.ticket_no,
-                 category: info.category,
-                 circuitId: info.circuit_description
-               });
-             }
+          if (agentUser) {
+            await sendImmediateAgentAssignmentEmails({
+              customerName: info.name,
+              agentName: agentUser.name,
+              agentEmail: agentUser.email,
+              ticketNo: info.ticket_no,
+              category: info.category,
+              circuitId: info.circuit_description
+            });
           }
         }
       }
@@ -430,11 +438,20 @@ export class TicketService {
         current_assigned_employee_id: employeeId
       });
 
+      let agentName = 'Agent';
+      const agent = await EmployeeRepository.findByRowId(client, employeeId);
+      if (agent) {
+         const agentUser = await UserRepository.findById(client, agent.user_id);
+         if (agentUser) {
+           agentName = agentUser.name;
+         }
+      }
+
       const event = await TicketEventRepository.insertEvent(client, {
         ticket_id: ticketId,
         actor_user_id: actorUserId,
         event_type: 'TICKET_ASSIGNED',
-        message: 'Ticket manually reassigned.',
+        message: `Ticket reassigned to ${agentName}`,
         metadata: { assigned_to: employeeId },
         visible_to_customer: true
       });
