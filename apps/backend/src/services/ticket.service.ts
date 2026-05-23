@@ -45,7 +45,7 @@ export class TicketService {
         visible_to_customer: true
       });
 
-      const assignedAgentId = await AssignmentService.assignAgentAutomatically(ticket.id, dto.issueCategoryId);
+      const assignedAgentId = await AssignmentService.assignAgentAutomatically(client, ticket.id, dto.issueCategoryId);
 
       if (assignedAgentId) {
         await TicketEventRepository.insertEvent(client, {
