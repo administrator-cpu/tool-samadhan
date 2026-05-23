@@ -151,7 +151,6 @@ export default function TicketDetailPage() {
           if (!prev) return null;
           return { ...prev, rating: data.rating, rating_feedback: data.rating_feedback };
         });
-        toast.info("Ticket feedback rating has been updated!");
       } else if (data.type === "OUTAGE_DETAILS_UPDATED") {
         setTicket((prev) => {
           if (!prev) return null;
@@ -532,7 +531,7 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
         rating,
         feedback: feedback.trim() || undefined
       });
-      toast.success("Thank you for your feedback!");
+      toast.success(ticket.rating ? "Ticket feedback rating has been updated!" : "Thank you for your feedback!");
       onUpdateRating(rating, feedback.trim() || null);
       setIsEditing(false);
     } catch (err: any) {
