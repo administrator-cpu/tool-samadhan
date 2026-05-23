@@ -268,7 +268,7 @@ export class TicketService {
          throw new AppError(403, 'Cannot update a closed ticket', ErrorCodes.TICKET_CLOSED);
       }
 
-      if (role === UserRole.USER && newStatus === 'REOPENED') {
+      if (newStatus === 'REOPENED') {
          if (oldStatus !== 'RESOLVED' && oldStatus !== 'CLOSED') {
              throw new AppError(400, 'Only resolved/closed tickets can be reopened', ErrorCodes.INVALID_TRANSITION);
          }
@@ -276,12 +276,6 @@ export class TicketService {
          const resolvedDate = ticket.resolved_at || ticket.closed_at;
          if (resolvedDate && new Date().getTime() - resolvedDate.getTime() > 24 * 60 * 60 * 1000) {
              throw new AppError(403, 'Ticket cannot be reopened after 24 hours', ErrorCodes.REOPEN_EXPIRED);
-         }
-      }
-
-      if (newStatus === 'RESOLVED') {
-         if (!ticket.rca || ticket.rca.trim() === '') {
-             throw new AppError(400, 'Root Cause Analysis (RCA) is required before resolving the ticket.', ErrorCodes.RCA_REQUIRED);
          }
       }
       
