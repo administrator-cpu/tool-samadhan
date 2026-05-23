@@ -137,3 +137,13 @@ button:hover {
     transform: translateY(0);
   }
 }
+
+.flow-gradient-btn {
+    background: linear-gradient(180deg, #059669 0%, #047857 100%);
+    transition: all 0.1s ease;
+}
+
+.flow-gradient-btn:hover {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    transform: translateY(-1px);
+}
