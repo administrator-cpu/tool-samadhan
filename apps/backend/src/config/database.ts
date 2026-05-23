@@ -21,9 +21,9 @@ export const postgresPool = new Pool({
 logger.info(`[DB] Attempting to connect to ${env.postgres.host}:${env.postgres.port}...`);
 
 postgresPool.on('connect', () => {
-  if (!isProd) {
-    logger.debug('Connected to the database.');
-  }
+  // A new physical connection has been added to the pool.
+  // We don't log this to avoid confusion, as the pool automatically 
+  // manages and reuses these connections in the background.
 });
 
 postgresPool.on('error', (err) => {
