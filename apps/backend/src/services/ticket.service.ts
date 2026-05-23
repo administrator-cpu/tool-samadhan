@@ -36,7 +36,7 @@ export class TicketService {
         circuitDescription: dto.circuitDescription ? String(dto.circuitDescription) : '',
       });
 
-      const initialMessage = dto.message || `Ticket created by ${actorRole === UserRole.USER ? 'customer' : 'staff'}.`;
+      const initialMessage = dto.message && dto.message.trim() !== '' ? dto.message.trim() : null;
       await TicketEventRepository.insertEvent(client, {
         ticket_id: ticket.id,
         actor_user_id: actorUserId,
