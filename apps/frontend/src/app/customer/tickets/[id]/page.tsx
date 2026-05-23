@@ -530,7 +530,7 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
     try {
       await api.post(`/tickets/${ticket.id}/rate`, {
         rating,
-        feedback: feedback.trim() || null
+        feedback: feedback.trim() || undefined
       });
       toast.success("Thank you for your feedback!");
       onUpdateRating(rating, feedback.trim() || null);
