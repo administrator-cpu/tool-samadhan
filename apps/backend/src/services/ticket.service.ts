@@ -11,6 +11,7 @@ import { ErrorCodes } from '../errors/error-codes.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
 import { UserRole } from '../types/dto.js';
 import { ticketAutomationQueue } from '../config/redis.js';
+import { logger } from '../lib/logger.js';
 
 export class TicketService {
   static async createTicket(dto: any, actorUserId: string, actorRole: string) {
@@ -226,18 +227,22 @@ export class TicketService {
       const actor = await UserRepository.findById(client, actorUserId);
       const event = { ...rawEvent, actor_name: actor?.name || null };
 
-      const isFirstReply = eventType === 'AGENT_REPLY' || eventType === 'ADMIN_REPLY';
+      const isStaffReply = eventType === 'AGENT_REPLY' || eventType === 'ADMIN_REPLY';
       
-      if (isFirstReply) {
+      if (isStaffReply) {
         const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
         
         if (info && actor && visibleToCustomer) {
-          await sendTicketUpdateEmail({
+          // Fire-and-forget the email so it doesn't bottleneck the HTTP response
+          sendTicketUpdateEmail({
              name: info.name,
              email: info.email,
              ticketNo: info.ticket_no,
              agentName: actor.name,
              message: dto.message
+          }).catch(err => {
+             // We can just log it, no need to fail the entire ticket reply
+             logger.error('[EMAIL] Failed to send ticket update email', err);
           });
         }
       }
