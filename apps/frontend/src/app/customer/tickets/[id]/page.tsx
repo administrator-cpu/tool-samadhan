@@ -117,21 +117,16 @@ export default function TicketDetailPage() {
     const handleUpdate = (data: any) => {
       console.log("[SOCKET] Received update:", data);
 
-      if (data.type === "EVENT_ADDED") {
-        if (!data.event.visible_to_customer) {
-          return;
-        }
-
+      if (data.event && data.event.visible_to_customer !== false) {
         setEvents((prev) => {
           if (prev.some((e) => e.id === data.event.id)) return prev;
           return [...prev, data.event].sort((a, b) => a.id - b.id);
         });
-
         markEventSeen(Number(id), data.event.id);
+      }
 
-        if (data.event.event_type !== "INTERNAL_NOTE") {
-          toast.info(`New message: ${data.event.message.substring(0, 50)}...`);
-        }
+      if (data.type === "NEW_EVENT") {
+        // No toast needed, the message is automatically appended to the timeline above
       } else if (data.type === "REPLY_TOGGLED") {
         setTicket((prev) => {
           if (!prev) return null;
@@ -142,13 +137,9 @@ export default function TicketDetailPage() {
           if (!prev) return null;
           return { ...prev, ...data.ticket };
         });
-        toast.success(`Ticket status updated to ${data.ticket.status}`);
-      } else if (data.type === "TICKET_REASSIGNED") {
-        setTicket((prev) => {
-          if (!prev) return null;
-          return { ...prev, assigned_employee: data.assigned_employee };
-        });
-        toast.info(`Ticket reassigned to ${data.assigned_employee.name}`);
+        toast.success(`Ticket status updated to ${data.ticket?.status || "a new status"}`);
+      } else if (data.type === "TICKET_ASSIGNED") {
+        toast.info("Ticket assignment has been updated");
       } else if (data.type === "TICKET_RCA_UPDATED") {
         setTicket((prev) => {
           if (!prev) return null;
@@ -161,6 +152,11 @@ export default function TicketDetailPage() {
           return { ...prev, rating: data.rating, rating_feedback: data.rating_feedback };
         });
         toast.info("Ticket feedback rating has been updated!");
+      } else if (data.type === "OUTAGE_DETAILS_UPDATED") {
+        setTicket((prev) => {
+          if (!prev) return null;
+          return { ...prev, ...data.ticket };
+        });
       }
     };
 
