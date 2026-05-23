@@ -435,6 +435,14 @@ export default function TicketDetailPage() {
                   <textarea
                     value={replyMessage}
                     onChange={(e) => setReplyMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (replyMessage.trim() && !sending) {
+                          handleSendReply(replyMessage);
+                        }
+                      }
+                    }}
                     placeholder="Compose your custom tactical update..."
                     className="w-full min-h-[120px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
                   />
