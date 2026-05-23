@@ -48,6 +48,7 @@ interface TicketData {
     rating: number | null;
     rating_feedback: string | null;
     allow_customer_reply: boolean;
+    resolved_at?: string | null;
   };
   events: TicketEvent[];
 }
@@ -391,6 +392,27 @@ export default function TicketDetailPage() {
                   Close
                 </button>
               )}
+
+              {/* Reopen Button */}
+              {ticket.status === "RESOLVED" && ticket.resolved_at && (() => {
+                const resolvedAt = new Date(ticket.resolved_at);
+                const now = new Date();
+                const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
+
+                if (diffHours <= 24) {
+                  return (
+                    <button
+                      onClick={() => handleUpdate({ status: "REOPENED" })}
+                      disabled={updating}
+                      className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">restart_alt</span>
+                        Reopen Ticket
+                    </button>
+                  );
+                }
+                return null;
+              })()}
             </>
           )}
         </div>
