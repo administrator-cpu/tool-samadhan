@@ -296,7 +296,7 @@ export default function TicketDetailPage() {
     if (!data?.ticket) return;
     setTogglingReply(true);
     try {
-      await api.patch(`/tickets/${id}/toggle-customer-reply`, {
+      await api.patch(`/tickets/${id}/reply-status`, {
         allowCustomerReply: !data.ticket.allow_customer_reply
       });
       await fetchTicket();
