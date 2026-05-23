@@ -59,7 +59,7 @@ export default function ReassignModal({ isOpen, ticketId, currentAgentId, onClos
     setLoading(true);
     try {
       await api.post(`/tickets/${ticketId}/reassign`, {
-        employeeId: Number(selectedAgentId),
+        employeeId: selectedAgentId,
       });
       toast.success("Ticket reassigned successfully");
       onSuccess();
