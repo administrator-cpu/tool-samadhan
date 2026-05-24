@@ -104,27 +104,27 @@ export class TicketService {
     });
 
     if (result.info) {
-      if (!result.assignedAgentId) {
-        Promise.allSettled([
-          sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no }),
-          sendTicketCreatedHelpdeskEmail({
-            customerName: result.info.name,
-            ticketNo: result.info.ticket_no,
-            category: result.info.category,
-            circuitId: result.info.circuit_description
-          })
-        ]).catch(err => logger.error('[EMAIL] Failed to send ticket creation emails', err));
-      } else {
-        if (result.agentUser) {
-          sendImmediateAgentAssignmentEmails({
-            customerName: result.info.name,
-            agentName: result.agentUser.name,
-            agentEmail: result.agentUser.email,
-            ticketNo: result.info.ticket_no,
-            category: result.info.category,
-            circuitId: result.info.circuit_description
-          }).catch(err => logger.error('[EMAIL] Failed to send agent assignment emails', err));
-        }
+      // ALWAYS send confirmation to customer and helpdesk upon registration
+      Promise.allSettled([
+        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no }),
+        sendTicketCreatedHelpdeskEmail({
+          customerName: result.info.name,
+          ticketNo: result.info.ticket_no,
+          category: result.info.category,
+          circuitId: result.info.circuit_description
+        })
+      ]).catch(err => logger.error('[EMAIL] Failed to send ticket creation emails', err));
+
+      // If automatically assigned, also send assignment notification
+      if (result.assignedAgentId && result.agentUser) {
+        sendImmediateAgentAssignmentEmails({
+          customerName: result.info.name,
+          agentName: result.agentUser.name,
+          agentEmail: result.agentUser.email,
+          ticketNo: result.info.ticket_no,
+          category: result.info.category,
+          circuitId: result.info.circuit_description
+        }).catch(err => logger.error('[EMAIL] Failed to send agent assignment email', err));
       }
     }
 
