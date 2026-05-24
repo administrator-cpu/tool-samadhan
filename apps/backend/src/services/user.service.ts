@@ -76,8 +76,17 @@ export class UserService {
     });
   }
 
-  static async listAllEmployees() {
-    return EmployeeRepository.findAllWithCategories(postgresPool);
+  static async listAllEmployees(page: number, limit: number): Promise<PaginatedResponse<any>> {
+    const { employees, total } = await EmployeeRepository.findAllWithCategories(postgresPool, page, limit);
+    return {
+      employees,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
+      },
+    };
   }
 
   static async listAllAgents() {

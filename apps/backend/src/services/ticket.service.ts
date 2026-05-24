@@ -118,7 +118,12 @@ export class TicketService {
     const client = await postgresPool.connect();
     try {
       const offset = (page - 1) * limit;
-      const queryFilters: any = { statusGroup: filters.statusGroup };
+      const queryFilters: any = { 
+        statusGroup: filters.statusGroup,
+        searchQuery: filters.searchQuery,
+        sortField: filters.sortField,
+        sortOrder: filters.sortOrder,
+      };
 
       if (role === UserRole.USER) {
         const cust = await CustomerRepository.findByUserId(client, userId);

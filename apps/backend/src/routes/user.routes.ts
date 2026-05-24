@@ -11,10 +11,9 @@ router.use(requireAuth);
 router.get('/me', UserController.getCurrentUser);
 router.put('/profile', validateUpdateProfile, UserController.updateProfile);
 
-// Employee Management (ADMIN, MANAGER)
 router.post(
   '/employees',
-  requireRole([UserRole.ADMIN]), // Originally only ADMIN/MANAGER, adjusted to what exists
+  requireRole([UserRole.ADMIN]),
   validateRegister,
   UserController.registerEmployee
 );

@@ -32,7 +32,12 @@ export class EmployeeRepository {
     return result.rowCount && result.rowCount > 0 ? result.rows[0] : null;
   }
 
-  static async findAllWithCategories(pool: Pool): Promise<any[]> {
+  static async findAllWithCategories(pool: Pool, page: number = 1, limit: number = 10): Promise<{ employees: any[]; total: number }> {
+    const offset = (page - 1) * limit;
+
+    const countResult = await pool.query(`SELECT COUNT(*) FROM employees`);
+    const total = parseInt(countResult.rows[0].count, 10);
+
     const result = await pool.query(`
       SELECT 
         e.id as employee_row_id,
@@ -55,8 +60,9 @@ export class EmployeeRepository {
       LEFT JOIN issue_categories ic ON eic.issue_category_id = ic.id
       GROUP BY e.id, u.id
       ORDER BY e.joined_at DESC
-    `);
-    return result.rows;
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+    return { employees: result.rows, total };
   }
 
   static async findAllAgents(pool: Pool): Promise<any[]> {
