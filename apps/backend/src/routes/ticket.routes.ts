@@ -2,16 +2,7 @@ import { Router } from 'express';
 import { TicketController } from '../controllers/ticket.controller.js';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { UserRole } from '../types/dto.js';
-import {
-  validateCreateTicket,
-  validateUpdateStatus,
-  validateAddEvent,
-  validateUpdateRca,
-  validateUpdateOutage,
-  validateReassign,
-  validateToggleReply,
-  validateRateTicket
-} from '../middleware/validators/ticket.validator.js';
+import { validateCreateTicket, validateUpdateStatus, validateAddEvent, validateUpdateRca, validateUpdateOutage, validateReassign, validateToggleReply, validateRateTicket } from '../middleware/validators/ticket.validator.js';
 
 const router = Router();
 

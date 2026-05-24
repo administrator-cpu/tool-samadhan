@@ -1,13 +1,7 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
-import {
-  validateLogin,
-  validateForgotPassword,
-  validateVerifyOtp,
-  validateResetPassword,
-  validateChangePassword
-} from '../middleware/validators/user.validator.js';
+import { validateLogin, validateForgotPassword, validateVerifyOtp, validateResetPassword, validateChangePassword } from '../middleware/validators/user.validator.js';
 
 const router = Router();
 

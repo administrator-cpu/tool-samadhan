@@ -1,9 +1,6 @@
-import { withTransaction } from '../config/database.js';
 import { EmployeeRepository } from '../repositories/employee.repository.js';
 import { TicketRepository } from '../repositories/ticket.repository.js';
 import { logger } from '../lib/logger.js';
-import { postgresPool } from '../config/database.js';
-
 import { PoolClient } from 'pg';
 
 export class AssignmentService {

@@ -42,7 +42,7 @@ We mock `auth.middleware` to instantly authenticate a test user (Admin). We then
 - ❌ **Fails gracefully (400 Bad Request):** If an agent tries to update a ticket status to an invalid state (e.g., "SUPER_RESOLVED").
 - ✅ **Passes (200 OK):** When a ticket status is successfully updated to "RESOLVED".
 
-### 3. Ticket Service Testing (Business Logic)
+### 3. Ticket Service Testing
 **File:** `tests/services/ticket.service.test.ts`
 **Purpose:** Ensure that the internal logic for creating tickets behaves correctly, calculating default values, and firing background events.
 
@@ -55,7 +55,7 @@ We test `TicketService.createTicket`. We mock `TicketRepository`, `TicketEventRe
 - ✅ **Passes:** Confirms that the Email Notification service is triggered to alert the helpdesk.
 - ❌ **Fails:** Rejects creation if the database payload is critically malformed.
 
-### 4. Assignment Service Testing (Business Logic)
+### 4. Assignment Service Testing
 **File:** `tests/services/assignment.service.test.ts`
 **Purpose:** Ensure tickets can only be assigned to agents under valid conditions.
 
