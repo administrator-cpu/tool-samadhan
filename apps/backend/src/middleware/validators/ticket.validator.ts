@@ -3,6 +3,7 @@ import { validateBody } from './validate.js';
 
 export const createTicketSchema = z.object({
   customerId: z.string().optional(),
+  customerEmail: z.string().email().optional(),
   issueCategoryId: z.string(),
   circuitDescription: z.string(),
   message: z.string().optional(),
@@ -26,8 +27,10 @@ export const updateRcaSchema = z.object({
 });
 
 export const updateOutageSchema = z.object({
-  problemSide: z.string().optional(),
-  externalTicketNo: z.string().optional(),
+  problemSide: z.string({ 
+    message: "Problem Side is required",
+  }).min(1, "Problem Side is required"),
+  externalTicketNo: z.string().nullable().optional(),
 });
 
 export const reassignSchema = z.object({

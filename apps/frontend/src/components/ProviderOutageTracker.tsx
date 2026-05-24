@@ -8,6 +8,7 @@ interface ProviderOutageTrackerProps {
   ticketId: number;
   problemSide: string | null;
   externalTicketNo: string | null;
+  readOnly?: boolean;
   onUpdate: (problemSide: string | null, externalTicketNo: string | null) => void;
 }
 
@@ -15,6 +16,7 @@ export default function ProviderOutageTracker({
   ticketId,
   problemSide,
   externalTicketNo,
+  readOnly = false,
   onUpdate,
 }: ProviderOutageTrackerProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -29,7 +31,7 @@ export default function ProviderOutageTracker({
 
   const handleSave = async () => {
     try {
-      const pSide = tempProblemSide ? tempProblemSide : null;
+      const pSide = tempProblemSide; // Send empty string directly so Zod handles it
       const tNo = tempTicketNo && tempTicketNo.trim() ? tempTicketNo.trim() : null;
 
       await api.patch(`/tickets/${ticketId}/outage`, {
@@ -37,7 +39,7 @@ export default function ProviderOutageTracker({
         externalTicketNo: tNo,
       });
 
-      onUpdate(pSide, tNo);
+      onUpdate(pSide || null, tNo);
       setIsEditing(false);
       toast.success("Outage details updated successfully");
     } catch (err: any) {
@@ -58,7 +60,7 @@ export default function ProviderOutageTracker({
         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
           Provider Outage
         </h4>
-        {!isEditing && (
+        {!readOnly && !isEditing && (
           <button
             onClick={() => setIsEditing(true)}
             className="text-emerald-600 hover:text-emerald-700 font-bold uppercase tracking-wider text-[9px] cursor-pointer"

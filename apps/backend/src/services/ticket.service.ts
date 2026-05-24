@@ -15,7 +15,7 @@ import { logger } from '../lib/logger.js';
 
 export class TicketService {
   static async createTicket(dto: any, actorUserId: string, actorRole: string) {
-    return withTransaction(async (client) => {
+    const result = await withTransaction(async (client) => {
       let customerId: string | null = null;
 
       if (actorRole === UserRole.USER) {
@@ -23,7 +23,16 @@ export class TicketService {
         if (!cust) throw new AppError(404, 'Customer record not found', ErrorCodes.CUSTOMER_NOT_FOUND);
         customerId = cust.id;
       } else {
-        customerId = dto.customerId;
+        if (dto.customerId) {
+          customerId = dto.customerId;
+        } else if (dto.customerEmail) {
+          const user = await UserRepository.findByEmail(client, dto.customerEmail);
+          if (!user) throw new AppError(404, 'Customer with this email not found', ErrorCodes.CUSTOMER_NOT_FOUND);
+          if (user.role !== UserRole.USER) throw new AppError(400, 'Provided email does not belong to a customer', ErrorCodes.VALIDATION_ERROR);
+          const cust = await CustomerRepository.findByUserId(client, user.id);
+          if (!cust) throw new AppError(404, 'Customer record not found', ErrorCodes.CUSTOMER_NOT_FOUND);
+          customerId = cust.id;
+        }
       }
 
       if (!customerId) throw new AppError(400, 'Customer ID is required', ErrorCodes.VALIDATION_ERROR);
@@ -75,30 +84,11 @@ export class TicketService {
       
       if (info) {
         if (!assignedAgentId) {
-          await sendTicketConfirmationEmail({ name: info.name, email: info.email, ticketNo: info.ticket_no });
-          await sendTicketCreatedHelpdeskEmail({
-            customerName: info.name,
-            ticketNo: info.ticket_no,
-            category: info.category,
-            circuitId: info.circuit_description
-          });
-          
           await ticketAutomationQueue.add(
             'AGENT_ASSIGNMENT_CHECK',
             { ticketId: ticket.id },
             { delay: 2 * 60 * 1000 }
           );
-        } else {
-          if (agentUser) {
-            await sendImmediateAgentAssignmentEmails({
-              customerName: info.name,
-              agentName: agentUser.name,
-              agentEmail: agentUser.email,
-              ticketNo: info.ticket_no,
-              category: info.category,
-              circuitId: info.circuit_description
-            });
-          }
         }
       }
 
@@ -110,8 +100,35 @@ export class TicketService {
         data: { type: 'TICKET_CREATED', ticket }
       });
 
-      return { ticket, assignedAgentId };
+      return { ticket, assignedAgentId, info, agentUser };
     });
+
+    if (result.info) {
+      if (!result.assignedAgentId) {
+        Promise.allSettled([
+          sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no }),
+          sendTicketCreatedHelpdeskEmail({
+            customerName: result.info.name,
+            ticketNo: result.info.ticket_no,
+            category: result.info.category,
+            circuitId: result.info.circuit_description
+          })
+        ]).catch(err => logger.error('[EMAIL] Failed to send ticket creation emails', err));
+      } else {
+        if (result.agentUser) {
+          sendImmediateAgentAssignmentEmails({
+            customerName: result.info.name,
+            agentName: result.agentUser.name,
+            agentEmail: result.agentUser.email,
+            ticketNo: result.info.ticket_no,
+            category: result.info.category,
+            circuitId: result.info.circuit_description
+          }).catch(err => logger.error('[EMAIL] Failed to send agent assignment emails', err));
+        }
+      }
+    }
+
+    return { ticket: result.ticket, assignedAgentId: result.assignedAgentId };
   }
 
   static async listUserTickets(userId: string, role: string, page: number, limit: number, filters: any) {
@@ -270,7 +287,7 @@ export class TicketService {
   }
 
   static async updateTicketStatus(ticketId: string, dto: any, actorUserId: string, role: string) {
-    return withTransaction(async (client) => {
+    const result = await withTransaction(async (client) => {
       const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
       
@@ -305,16 +322,7 @@ export class TicketService {
       });
 
       const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
-      if (info) {
-        await sendTicketStatusUpdateEmail({
-          name: info.name,
-          email: info.email,
-          ticketNo: info.ticket_no,
-          status: updatedStatus,
-          updateType: newStatus
-        });
-      }
-
+      
       if (updatedStatus === 'RESOLVED') {
         await ticketAutomationQueue.add(
           'CLOSE_RESOLVED_TICKET',
@@ -328,12 +336,24 @@ export class TicketService {
         data: { type: 'TICKET_STATUS_UPDATED', ticket: updatedTicket, event }
       });
       
-      return updatedTicket;
+      return { updatedTicket, info, newStatus, updatedStatus };
     });
+
+    if (result.info) {
+      sendTicketStatusUpdateEmail({
+        name: result.info.name,
+        email: result.info.email,
+        ticketNo: result.info.ticket_no,
+        status: result.updatedStatus,
+        updateType: result.newStatus
+      }).catch(err => logger.error('[EMAIL] Failed to send status update email', err));
+    }
+
+    return result.updatedTicket;
   }
 
   static async updateTicketRca(ticketId: string, rca: string, actorUserId: string) {
-    return withTransaction(async (client) => {
+    const result = await withTransaction(async (client) => {
       const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
       
@@ -381,15 +401,7 @@ export class TicketService {
       }
 
       const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
-      if (info) {
-        await sendTicketRcaEmail({
-          name: info.name,
-          email: info.email,
-          ticketNo: info.ticket_no,
-          rca
-        });
-      }
-
+      
       ticketEventEmitter.emit('ticket_updated', {
         ticketId,
         data: { type: 'TICKET_RCA_UPDATED', rca, event: rcaEvent }
@@ -402,8 +414,19 @@ export class TicketService {
         });
       }
 
-      return updatedTicket;
+      return { updatedTicket, info };
     });
+
+    if (result.info) {
+      sendTicketRcaEmail({
+        name: result.info.name,
+        email: result.info.email,
+        ticketNo: result.info.ticket_no,
+        rca
+      }).catch(err => logger.error('[EMAIL] Failed to send ticket RCA email', err));
+    }
+
+    return result.updatedTicket;
   }
 
   static async updateOutageDetails(ticketId: string, dto: any, actorUserId: string) {

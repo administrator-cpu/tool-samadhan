@@ -13,7 +13,7 @@ router.post('/', validateCreateTicket, TicketController.createTicket);
 router.get('/', TicketController.getTickets);
 
 // Dashboard Stats
-router.get('/stats', requireRole([UserRole.ADMIN]), TicketController.getAdminStats);
+router.get('/stats', requireRole([UserRole.ADMIN, UserRole.SALES]), TicketController.getAdminStats);
 router.get('/agent-stats', requireRole([UserRole.SUPPORT_AGENT]), TicketController.getAgentStats);
 
 // Resolved Export
