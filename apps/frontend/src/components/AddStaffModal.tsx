@@ -90,6 +90,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
             <input
               type="text"
               required
+              autoComplete="off"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Ajay Negi"
@@ -102,6 +103,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
             <input
               type="email"
               required
+              autoComplete="off"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. ajaynegi@example.com"
