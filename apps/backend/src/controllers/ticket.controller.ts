@@ -32,6 +32,9 @@ export class TicketController {
         ownership: req.query.ownership as unknown as string,
         agentId: req.query.agentId as unknown as string,
         statusGroup: req.query.statusGroup as unknown as string,
+        searchQuery: req.query.searchQuery as unknown as string,
+        sortField: req.query.sortField as unknown as string,
+        sortOrder: req.query.sortOrder as unknown as string,
       };
 
       const result = await TicketService.listUserTickets(req.user!.userId, req.user!.role, page, limit, filters);

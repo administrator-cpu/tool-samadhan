@@ -92,7 +92,9 @@ export class UserController {
 
   static async getAllEmployees(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await UserService.listAllEmployees();
+      const page = parseInt(req.query.page as unknown as string) || 1;
+      const limit = parseInt(req.query.limit as unknown as string) || 10;
+      const data = await UserService.listAllEmployees(page, limit);
       return sendResponse({ res, data });
     } catch (error) {
       next(error);

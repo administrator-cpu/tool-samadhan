@@ -209,6 +209,9 @@ export class TicketRepository {
       salesUserId?: string;
       ownership?: string;
       statusGroup?: string;
+      searchQuery?: string;
+      sortField?: string;
+      sortOrder?: string;
     },
     limit: number,
     offset: number
@@ -260,6 +263,15 @@ export class TicketRepository {
       filterClauses.push(`t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED', 'ON_HOLD')`);
     }
 
+    if (filters.searchQuery) {
+      let q = filters.searchQuery.trim();
+      if (/^\d+$/.test(q)) {
+        q = `TCK-${q}`;
+      }
+      filterClauses.push(`t.ticket_no ILIKE $${paramIdx++}`);
+      params.push(`%${q}%`);
+    }
+
     const whereClause = filterClauses.length > 0 ? `WHERE ${filterClauses.join(' AND ')}` : '';
 
     // Separate count query to avoid window function overhead
@@ -267,12 +279,20 @@ export class TicketRepository {
     const countResult = await client.query(countQuery, params);
     const total = parseInt(countResult.rows[0].count, 10);
 
+    let orderByClause = 'ORDER BY t.created_at DESC';
+    if (filters.sortField && filters.sortOrder) {
+      const allowedSortFields = ['created_at', 'status', 'ticket_no', 'updated_at'];
+      const field = allowedSortFields.includes(filters.sortField) ? `t.${filters.sortField}` : 't.created_at';
+      const order = filters.sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+      orderByClause = `ORDER BY ${field} ${order}`;
+    }
+
     params.push(limit, offset);
     const dataQuery = `
       ${baseSelect}
       ${baseFrom}
       ${whereClause}
-      ORDER BY t.created_at DESC
+      ${orderByClause}
       LIMIT $${paramIdx} OFFSET $${paramIdx + 1}
     `;
 
