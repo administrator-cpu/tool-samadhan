@@ -32,6 +32,7 @@ export interface PaginatedResponse<T> {
   data?: T[];
   tickets?: T[]; // Sometimes we use tickets key
   customers?: T[]; // Sometimes we use customers key
+  employees?: T[];
   total?: number;
   pagination?: {
     total: number;
