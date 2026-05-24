@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { useSocket } from "@/hooks/useSocket";
 import { useSocketStore } from "@/store/useSocketStore";
 import { toast } from "sonner";
+import { useRef } from "react";
 
 interface Ticket {
   id: number;
@@ -85,6 +86,8 @@ export default function TicketDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const statusConfig = ticket ? getStatusBadgeConfig(ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
@@ -211,15 +214,60 @@ export default function TicketDetailPage() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    
+    const newFiles = Array.from(e.target.files);
+    if (selectedFiles.length + newFiles.length > 10) {
+      toast.error("Maximum of 10 images allowed.");
+      return;
+    }
+
+    const validFiles: File[] = [];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+
+    for (const file of newFiles) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`Invalid file type: ${file.name}. Only JPEG, PNG, WEBP, HEIC, HEIF allowed.`);
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`File too large: ${file.name}. Maximum size is 5MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    setSelectedFiles(prev => [...prev, ...validFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeFile = (indexToRemove: number) => {
+    setSelectedFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
   const handleSendReply = async () => {
-    if (!replyMessage.trim()) return;
+    if (!replyMessage.trim() && selectedFiles.length === 0) return;
     setSending(true);
     try {
-      await api.post(`/tickets/${id}/events`, {
-        event_type: "USER_REPLY",
-        message: replyMessage.trim()
-      });
+      if (selectedFiles.length > 0) {
+        const formData = new FormData();
+        formData.append("event_type", "USER_REPLY");
+        if (replyMessage.trim()) formData.append("message", replyMessage.trim());
+        selectedFiles.forEach(f => formData.append("images", f));
+        
+        await api.post(`/tickets/${id}/events`, formData);
+      } else {
+        await api.post(`/tickets/${id}/events`, {
+          event_type: "USER_REPLY",
+          message: replyMessage.trim()
+        });
+      }
+
       setReplyMessage("");
+      setSelectedFiles([]);
       toast.success("Reply sent successfully");
       
       const response = await api.get(`/tickets/${id}`);
@@ -318,34 +366,90 @@ export default function TicketDetailPage() {
           <Timeline events={events} />
           
           {ticket.allow_customer_reply && !["RESOLVED", "CLOSED"].includes(ticket.status) && (
-            <div className="mt-4 mb-6 rounded-lg border border-slate-200 bg-white p-2 shadow-xl focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all shrink-0">
-              <div className="px-4 pt-3 flex items-center gap-2 mb-1">
-                <span className="material-symbols-outlined text-emerald-600 text-[18px]">chat</span>
-                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Send a Reply</h3>
+            <div className={`mt-4 mb-6 rounded-lg border bg-white p-2 shadow-xl transition-all shrink-0 ${sending ? "border-slate-200 opacity-80" : "border-slate-200 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5"}`}>
+              <div className="px-4 pt-3 flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-600 text-[18px]">chat</span>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Send a Reply</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending || selectedFiles.length >= 10}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
+                  title="Attach images (Max 10)"
+                >
+                  <span className="material-symbols-outlined text-[18px]">attach_file</span>
+                  Attach Image
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  multiple 
+                  accept="image/jpeg, image/png, image/webp, image/heic, image/heif" 
+                  className="hidden" 
+                />
               </div>
+
+              {selectedFiles.length > 0 && (
+                <div className="px-4 py-2 flex flex-wrap gap-3">
+                  {selectedFiles.map((file, idx) => (
+                    <div key={idx} className="relative group">
+                      <div className="w-16 h-16 rounded-lg border border-slate-200 overflow-hidden bg-slate-50">
+                        <img 
+                          src={URL.createObjectURL(file)} 
+                          alt="preview" 
+                          className={`w-full h-full object-cover ${sending ? "opacity-50" : ""}`}
+                          onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
+                        />
+                      </div>
+                      {!sending && (
+                        <button 
+                          onClick={() => removeFile(idx)}
+                          className="absolute -top-2 -right-2 bg-slate-800 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <textarea
                 value={replyMessage}
                 onChange={(e) => setReplyMessage(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    if (replyMessage.trim() && !sending) {
+                    if ((replyMessage.trim() || selectedFiles.length > 0) && !sending) {
                       handleSendReply();
                     }
                   }
                 }}
-                placeholder="Agent requested more information. Type your message here..."
-                className="w-full min-h-[100px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
+                disabled={sending}
+                placeholder={selectedFiles.length > 0 ? "Add an optional message..." : "Agent requested more information. Type your message here..."}
+                className="w-full min-h-[100px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden disabled:bg-transparent"
               />
               <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
                 <p className="text-[10px] font-bold text-slate-400">Agent will be notified immediately.</p>
                 <button
                   onClick={handleSendReply}
-                  disabled={sending || !replyMessage.trim()}
+                  disabled={sending || (!replyMessage.trim() && selectedFiles.length === 0)}
                   className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50"
                 >
-                  {sending ? "Sending..." : "Send Reply"}
-                  <span className="material-symbols-outlined text-[16px]">send</span>
+                  {sending ? (
+                    <>
+                      <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
+                      {selectedFiles.length > 0 ? `Uploading secure files...` : "Sending..."}
+                    </>
+                  ) : (
+                    <>
+                      Send Reply
+                      <span className="material-symbols-outlined text-[16px]">send</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
