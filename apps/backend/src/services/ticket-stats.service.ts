@@ -52,6 +52,7 @@ export class TicketStatsService {
           u.name,
           u.role,
           e.employee_id,
+          e.id,
           COUNT(t.id) as total_assigned,
           COUNT(CASE WHEN t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED') THEN 1 END) as active_assigned
         FROM employees e
