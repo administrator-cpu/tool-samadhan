@@ -26,7 +26,7 @@ router.get(
 
 router.get(
   '/agents',
-  requireRole([UserRole.ADMIN]),
+  requireRole([UserRole.ADMIN, UserRole.SUPPORT_AGENT]),
   UserController.getAllAgents
 );
 
@@ -55,6 +55,13 @@ router.get(
   '/customers',
   requireRole([UserRole.SALES, UserRole.ADMIN]),
   UserController.getAllCustomers
+);
+
+router.put(
+  '/customers/:id',
+  requireRole([UserRole.ADMIN]),
+  validateUpdateProfile,
+  UserController.updateCustomer
 );
 
 router.delete(

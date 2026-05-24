@@ -48,7 +48,7 @@ router.patch(
 
 router.post(
   '/:id/reassign',
-  requireRole([UserRole.ADMIN]),
+  requireRole([UserRole.ADMIN, UserRole.SUPPORT_AGENT]),
   validateReassign,
   TicketController.reassignTicket
 );
