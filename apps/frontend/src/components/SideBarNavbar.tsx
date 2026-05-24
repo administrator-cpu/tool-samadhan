@@ -96,7 +96,7 @@ const SidebarContent = ({
     <div className="mt-auto flex flex-col gap-3 border-t border-slate-100 pt-6 overflow-hidden">
       <Link
         href="/profile"
-        className="group flex w-full items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-slate-50"
+        className="group flex w-full items-center gap-3 rounded-lg px-1 py-3 transition-colors hover:bg-slate-50"
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
           <span className="material-symbols-outlined">person</span>

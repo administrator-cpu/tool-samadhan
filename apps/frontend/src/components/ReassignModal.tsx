@@ -36,7 +36,7 @@ export default function ReassignModal({ isOpen, ticketId, currentAgentId, onClos
 
     try {
       console.log("[AGENTS] Fetching fresh agent list from DB...");
-      const res = await api.get("/agents");
+      const res = await api.get("/users/agents");
       setAgentsList(res.data);
     } catch (err) {
       toast.error("Failed to load agents");
@@ -58,8 +58,8 @@ export default function ReassignModal({ isOpen, ticketId, currentAgentId, onClos
 
     setLoading(true);
     try {
-      await api.patch(`/tickets/${ticketId}/reassign`, {
-        employeeId: Number(selectedAgentId),
+      await api.post(`/tickets/${ticketId}/reassign`, {
+        employeeId: selectedAgentId,
       });
       toast.success("Ticket reassigned successfully");
       onSuccess();

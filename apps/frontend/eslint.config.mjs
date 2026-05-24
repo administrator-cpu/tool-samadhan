@@ -12,6 +12,7 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-unused-vars": "warn",
       "react-hooks/exhaustive-deps": "warn",
       "react/no-unescaped-entities": "off",
+      "react/display-name": "off",
     },
   },
   // Override default ignores of eslint-config-next.
