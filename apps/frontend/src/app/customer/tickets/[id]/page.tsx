@@ -117,21 +117,16 @@ export default function TicketDetailPage() {
     const handleUpdate = (data: any) => {
       console.log("[SOCKET] Received update:", data);
 
-      if (data.type === "EVENT_ADDED") {
-        if (!data.event.visible_to_customer) {
-          return;
-        }
-
+      if (data.event && data.event.visible_to_customer !== false) {
         setEvents((prev) => {
           if (prev.some((e) => e.id === data.event.id)) return prev;
           return [...prev, data.event].sort((a, b) => a.id - b.id);
         });
-
         markEventSeen(Number(id), data.event.id);
+      }
 
-        if (data.event.event_type !== "INTERNAL_NOTE") {
-          toast.info(`New message: ${data.event.message.substring(0, 50)}...`);
-        }
+      if (data.type === "NEW_EVENT") {
+        // No toast needed, the message is automatically appended to the timeline above
       } else if (data.type === "REPLY_TOGGLED") {
         setTicket((prev) => {
           if (!prev) return null;
@@ -142,13 +137,9 @@ export default function TicketDetailPage() {
           if (!prev) return null;
           return { ...prev, ...data.ticket };
         });
-        toast.success(`Ticket status updated to ${data.ticket.status}`);
-      } else if (data.type === "TICKET_REASSIGNED") {
-        setTicket((prev) => {
-          if (!prev) return null;
-          return { ...prev, assigned_employee: data.assigned_employee };
-        });
-        toast.info(`Ticket reassigned to ${data.assigned_employee.name}`);
+        toast.success(`Ticket status updated to ${data.ticket?.status || "a new status"}`);
+      } else if (data.type === "TICKET_ASSIGNED") {
+        toast.info("Ticket assignment has been updated");
       } else if (data.type === "TICKET_RCA_UPDATED") {
         setTicket((prev) => {
           if (!prev) return null;
@@ -160,7 +151,11 @@ export default function TicketDetailPage() {
           if (!prev) return null;
           return { ...prev, rating: data.rating, rating_feedback: data.rating_feedback };
         });
-        toast.info("Ticket feedback rating has been updated!");
+      } else if (data.type === "OUTAGE_DETAILS_UPDATED") {
+        setTicket((prev) => {
+          if (!prev) return null;
+          return { ...prev, ...data.ticket };
+        });
       }
     };
 
@@ -204,7 +199,7 @@ export default function TicketDetailPage() {
 
   const handleStatusUpdate = async (newStatus: string) => {
     try {
-      await api.patch(`/tickets/${id}`, { status: newStatus });
+      await api.patch(`/tickets/${id}/status`, { status: newStatus });
       // Refresh data
       const response = await api.get(`/tickets/${id}`);
       setTicket(response.data.ticket);
@@ -304,7 +299,7 @@ export default function TicketDetailPage() {
             if (diffHours <= 24) {
               return (
                 <button
-                  onClick={() => handleStatusUpdate("OPEN")}
+                  onClick={() => handleStatusUpdate("REOPENED")}
                   className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-emerald-100"
                 >
                   <span className="material-symbols-outlined text-sm">restart_alt</span>
@@ -331,6 +326,14 @@ export default function TicketDetailPage() {
               <textarea
                 value={replyMessage}
                 onChange={(e) => setReplyMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (replyMessage.trim() && !sending) {
+                      handleSendReply();
+                    }
+                  }
+                }}
                 placeholder="Agent requested more information. Type your message here..."
                 className="w-full min-h-[100px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
               />
@@ -524,11 +527,11 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
     }
     setLoading(true);
     try {
-      await api.patch(`/tickets/${ticket.id}/rate`, {
+      await api.post(`/tickets/${ticket.id}/rate`, {
         rating,
-        feedback: feedback.trim() || null
+        feedback: feedback.trim() || undefined
       });
-      toast.success("Thank you for your feedback!");
+      toast.success(ticket.rating ? "Ticket feedback rating has been updated!" : "Thank you for your feedback!");
       onUpdateRating(rating, feedback.trim() || null);
       setIsEditing(false);
     } catch (err: any) {
@@ -638,7 +641,7 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
           onChange={(e) => setFeedback(e.target.value)}
           placeholder="Share your thoughts on how we handled your issue..."
           rows={3}
-          className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-500 focus:bg-white outline-hidden transition-all placeholder:text-slate-400 font-medium"
+          className="w-full mt-2 rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-500 focus:bg-white outline-hidden transition-all placeholder:text-slate-400 font-medium"
         />
       </div>
 

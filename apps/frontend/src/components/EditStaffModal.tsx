@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { useCategoryStore } from "@/store/useCategoryStore";
 
 interface Employee {
   employee_row_id: number;
@@ -23,24 +24,19 @@ interface EditStaffModalProps {
   employee: Employee | null;
 }
 
-const HARDCODED_CATEGORIES = [
-  "Link Down",
-  "Packet Drops",
-  "Slow Browsing",
-  "Latency Very High",
-  "Link Fluctuating",
-  "IP Related",
-  "Website Related Issue",
-  "BTS Access",
-  "Others"
-];
-
 export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }: EditStaffModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const { categories, fetchCategories } = useCategoryStore();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen, fetchCategories]);
 
   // Pre-populate form when employee changes
   useEffect(() => {
@@ -64,11 +60,11 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
     setLoading(true);
 
     try {
-      await api.patch(`/employees/${employee.employee_row_id}`, {
+      await api.put(`/users/employees/${employee.employee_row_id}`, {
         name,
         email,
         phone: phone || null,
-        issueCategoryNames: employee.role === "SUPPORT_AGENT" ? selectedCategories : [],
+        issueCategories: employee.role === "SUPPORT_AGENT" ? selectedCategories : [],
       });
 
       toast.success("Staff details updated successfully!");
@@ -138,28 +134,28 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
               maxLength={10}
               className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-hidden"
             />
-            <p className="text-xs text-slate-400">Optional · 10 digits only</p>
+            {/* <p className="text-xs text-slate-400">Optional · 10 digits only</p> */}
           </div>
 
           {employee.role === "SUPPORT_AGENT" && (
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Specialties</label>
-              <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2">
-                {HARDCODED_CATEGORIES.map((catName) => (
-                  <label key={catName} className="flex items-center gap-2 px-2 py-1.5 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-indigo-100">
+              <div className="grid grid-cols-2 gap-2 max-h-65 overflow-y-auto p-2 scroll-smooth">
+                {categories.map((cat) => (
+                  <label key={cat.name} className="flex items-center gap-2 px-2 py-1.5 hover:bg-white rounded-lg cursor-pointer transition-colors border border-transparent hover:border-slate-100">
                     <input
                       type="checkbox"
-                      checked={selectedCategories.includes(catName)}
+                      checked={selectedCategories.includes(cat.name)}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedCategories([...selectedCategories, catName]);
+                          setSelectedCategories([...selectedCategories, cat.name]);
                         } else {
-                          setSelectedCategories(selectedCategories.filter(n => n !== catName));
+                          setSelectedCategories(selectedCategories.filter(n => n !== cat.name));
                         }
                       }}
-                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                     />
-                    <span className="text-sm font-medium text-slate-600">{catName}</span>
+                    <span className="text-sm font-medium text-slate-600">{cat.name}</span>
                   </label>
                 ))}
               </div>

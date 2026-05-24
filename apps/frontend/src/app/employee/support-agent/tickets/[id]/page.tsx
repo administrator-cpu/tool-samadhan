@@ -48,6 +48,7 @@ interface TicketData {
     rating: number | null;
     rating_feedback: string | null;
     allow_customer_reply: boolean;
+    resolved_at?: string | null;
   };
   events: TicketEvent[];
 }
@@ -124,7 +125,7 @@ export default function TicketDetailPage() {
     const handleUpdate = (data: any) => {
       console.log("[SOCKET] Received update:", data);
 
-      if (data.type === "EVENT_ADDED") {
+      if (data.event) {
         setData((prev) => {
           if (!prev) return null;
           if (prev.events.some((e) => e.id === data.event.id)) return prev;
@@ -134,12 +135,11 @@ export default function TicketDetailPage() {
             events: [...prev.events, data.event].sort((a, b) => a.id - b.id)
           };
         });
-
         markEventSeen(Number(id), data.event.id);
+      }
 
-        if (data.event.event_type !== "INTERNAL_NOTE") {
-          toast.info(`New update: ${data.event.message.substring(0, 50)}...`);
-        }
+      if (data.type === "NEW_EVENT") {
+        // No toast needed, the message is automatically appended to the timeline above
       } else if (data.type === "REPLY_TOGGLED") {
         setData((prev) => {
           if (!prev) return null;
@@ -157,18 +157,15 @@ export default function TicketDetailPage() {
             ticket: { ...prev.ticket, ...data.ticket }
           };
         });
-        toast.success(`Ticket status updated to ${data.ticket.status}`);
-      } else if (data.type === "TICKET_OUTAGE_UPDATED") {
+        toast.success(`Ticket status updated to ${data.ticket?.status || "a new status"}`);
+      } else if (data.type === "TICKET_ASSIGNED") {
+        toast.info("Ticket assignment has been updated");
+      } else if (data.type === "OUTAGE_DETAILS_UPDATED") {
         setData((prev) => {
           if (!prev) return null;
-          let updatedEvents = prev.events;
-          if (data.event && !prev.events.some(e => e.id === data.event.id)) {
-            updatedEvents = [...prev.events, data.event].sort((a, b) => a.id - b.id);
-          }
           return {
             ...prev,
-            ticket: { ...prev.ticket, ...data.ticket },
-            events: updatedEvents
+            ticket: { ...prev.ticket, ...data.ticket }
           };
         });
         toast.info("Provider outage details updated in real-time");
@@ -245,7 +242,7 @@ export default function TicketDetailPage() {
   const handleUpdate = async (updates: { status?: string }) => {
     setUpdating(true);
     try {
-      await api.patch(`/tickets/${id}`, updates);
+      await api.patch(`/tickets/${id}/status`, updates);
       toast.success("Ticket updated successfully");
       await fetchTicket();
     } catch (err: any) {
@@ -296,7 +293,7 @@ export default function TicketDetailPage() {
     if (!data?.ticket) return;
     setTogglingReply(true);
     try {
-      await api.patch(`/tickets/${id}/toggle-customer-reply`, {
+      await api.patch(`/tickets/${id}/reply-status`, {
         allowCustomerReply: !data.ticket.allow_customer_reply
       });
       await fetchTicket();
@@ -395,6 +392,27 @@ export default function TicketDetailPage() {
                   Close
                 </button>
               )}
+
+              {/* Reopen Button */}
+              {ticket.status === "RESOLVED" && ticket.resolved_at && (() => {
+                const resolvedAt = new Date(ticket.resolved_at);
+                const now = new Date();
+                const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
+
+                if (diffHours <= 24) {
+                  return (
+                    <button
+                      onClick={() => handleUpdate({ status: "REOPENED" })}
+                      disabled={updating}
+                      className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">restart_alt</span>
+                        Reopen Ticket
+                    </button>
+                  );
+                }
+                return null;
+              })()}
             </>
           )}
         </div>
@@ -439,6 +457,14 @@ export default function TicketDetailPage() {
                   <textarea
                     value={replyMessage}
                     onChange={(e) => setReplyMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (replyMessage.trim() && !sending) {
+                          handleSendReply(replyMessage);
+                        }
+                      }
+                    }}
                     placeholder="Compose your custom tactical update..."
                     className="w-full min-h-[120px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
                   />

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import { useCategoryStore } from "@/store/useCategoryStore";
 
 interface AddStaffModalProps {
   isOpen: boolean;
@@ -11,24 +11,19 @@ interface AddStaffModalProps {
   onSuccess: () => void;
 }
 
-const HARDCODED_CATEGORIES = [
-  "Link Down",
-  "Packet Drops",
-  "Slow Browsing",
-  "Latency Very High",
-  "Link Fluctuating",
-  "IP Related",
-  "Website Related Issue",
-  "BTS Access",
-  "Others"
-];
-
 export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"SUPPORT_AGENT" | "SALES">("SUPPORT_AGENT");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const { categories, fetchCategories } = useCategoryStore();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen, fetchCategories]);
 
   const generatePassword = () => {
     const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -51,12 +46,12 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
 
     try {
       // 1. Create account (Backend will now handle email sending)
-      await api.post("/employees", {
+      await api.post("/users/employees", {
         name,
         email,
         password,
         role,
-        issueCategoryNames: role === "SUPPORT_AGENT" ? selectedCategories : [],
+        issueCategories: role === "SUPPORT_AGENT" ? selectedCategories : [],
       });
 
       toast.success("Staff account created successfully!");
@@ -129,22 +124,22 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
           {role === "SUPPORT_AGENT" && (
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Specialties</label>
-              <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2">
-                {HARDCODED_CATEGORIES.map((catName) => (
-                  <label key={catName} className="flex items-center gap-2 px-2 py-1.5 hover:bg-white rounded-lg cursor-pointer transition-colors border border-transparent hover:border-slate-100">
+              <div className="grid grid-cols-2 gap-2 max-h-65 overflow-y-auto p-2">
+                {categories.map((cat) => (
+                  <label key={cat.name} className="flex items-center gap-2 px-2 py-1.5 hover:bg-white rounded-lg cursor-pointer transition-colors border border-transparent hover:border-slate-100">
                     <input
                       type="checkbox"
-                      checked={selectedCategories.includes(catName)}
+                      checked={selectedCategories.includes(cat.name)}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedCategories([...selectedCategories, catName]);
+                          setSelectedCategories([...selectedCategories, cat.name]);
                         } else {
-                          setSelectedCategories(selectedCategories.filter(name => name !== catName));
+                          setSelectedCategories(selectedCategories.filter(name => name !== cat.name));
                         }
                       }}
                       className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                     />
-                    <span className="text-sm font-medium text-slate-600">{catName}</span>
+                    <span className="text-sm font-medium text-slate-600">{cat.name}</span>
                   </label>
                 ))}
               </div>
