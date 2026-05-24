@@ -7,7 +7,6 @@ import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import { sendPasswordResetEmail } from './email.service.js';
 import { disconnectUser } from './socket.service.js';
-import { postgresPool } from '../config/database.js';
 
 export class PasswordResetService {
   static async requestPasswordReset(email: string): Promise<{ message: string }> {
