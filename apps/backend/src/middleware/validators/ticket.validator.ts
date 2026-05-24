@@ -17,7 +17,7 @@ export const updateStatusSchema = z.object({
 });
 
 export const addEventSchema = z.object({
-  message: z.string(),
+  message: z.string().optional().default(""),
   metadata: z.record(z.string(), z.any()).optional(),
   visibleToCustomer: z.boolean().optional(),
 });

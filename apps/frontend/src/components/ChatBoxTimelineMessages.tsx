@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import FAB5Logo from "@/assets/FAB5-logo.webp";
 import Image from "next/image";
@@ -19,6 +20,7 @@ interface TimelineProps {
 export default function Timeline({ events }: TimelineProps) {
   const { user } = useAuthStore();
   const isEmployee = !!user && user.role !== "USER";
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   const visibleEvents = events;
 
@@ -124,7 +126,7 @@ export default function Timeline({ events }: TimelineProps) {
 
               {/* Message Card */}
 
-              {event.message && event.message.trim() !== "" && !(event.event_type === "STATUS_CHANGED" && !isEmployee) && (
+              {((event.message && event.message.trim() !== "") || (event.metadata?.attachments && event.metadata.attachments.length > 0)) && !(event.event_type === "STATUS_CHANGED" && !isEmployee) && (
                   <div
                     className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}
                   >
@@ -168,39 +170,58 @@ export default function Timeline({ events }: TimelineProps) {
                             ""
                           )}
 
-                          <div
-                            className={`pt-2 pb-3 px-3  rounded-2xl shadow-xs border overflow-hidden w-full ${isUser
-                                ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm"
-                                : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
-                              }`}
-                          >
-                            {!isUser &&
-                              [
-                                "AGENT_REPLY",
-                                "MANAGER_REPLY",
-                                "ADMIN_REPLY",
-                              ].includes(event.event_type) ? (
-                              <div className="flex items-center gap-2 justify-end mb-2 align-middle">
-                                <span className="text-xs font-body text-muted font-semibold ml-1">
-                                  {format(
-                                    new Date(event.created_at),
-                                    "MMM d, yyyy, h:mm a",
-                                  )}
-                                </span>
-                                <Image
-                                  src={FAB5Logo.src}
-                                  alt="FAB5 Logo"
-                                  width={30}
-                                  height={30}
-                                  className="bg-transparent"
-                                />
+                          <div className="flex flex-col gap-2 w-full">
+                            {event.message && event.message.trim() !== "" && (
+                              <div
+                                className={`pt-2 pb-3 px-3 rounded-2xl shadow-xs border overflow-hidden max-w-fit ${isUser
+                                    ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm self-end"
+                                    : "bg-white text-slate-900 border-gray-200 rounded-tl-sm self-start"
+                                  }`}
+                              >
+                                {!isUser &&
+                                  [
+                                    "AGENT_REPLY",
+                                    "MANAGER_REPLY",
+                                    "ADMIN_REPLY",
+                                  ].includes(event.event_type) ? (
+                                  <div className="flex items-center gap-2 justify-end mb-2 align-middle">
+                                    <span className="text-xs font-body text-muted font-semibold ml-1">
+                                      {format(
+                                        new Date(event.created_at),
+                                        "MMM d, yyyy, h:mm a",
+                                      )}
+                                    </span>
+                                    <Image
+                                      src={FAB5Logo.src}
+                                      alt="FAB5 Logo"
+                                      width={30}
+                                      height={30}
+                                      className="bg-transparent"
+                                    />
+                                  </div>
+                                ) : (
+                                  ""
+                                )}
+                                <p className="text-[15px] leading-relaxed font-body font-medium whitespace-pre-wrap">
+                                  {event.message}
+                                </p>
                               </div>
-                            ) : (
-                              ""
                             )}
-                            <p className="text-[15px] leading-relaxed font-body font-medium  whitespace-pre-wrap">
-                              {event.message}
-                            </p>
+
+                            {event.metadata?.attachments && Array.isArray(event.metadata.attachments) && event.metadata.attachments.length > 0 && (
+                              <div className={`grid gap-2 ${isUser ? "self-end" : "self-start"} ${event.metadata.attachments.length === 1 ? 'grid-cols-1 max-w-xs' : event.metadata.attachments.length === 2 ? 'grid-cols-2 max-w-sm' : 'grid-cols-2 sm:grid-cols-3 max-w-md'}`}>
+                                {event.metadata.attachments.map((url: string, imgIdx: number) => (
+                                  <button 
+                                    key={imgIdx} 
+                                    onClick={() => setLightboxImage(url)} 
+                                    type="button" 
+                                    className="block relative aspect-square rounded-lg overflow-hidden border border-black/10 shadow-sm hover:opacity-90 hover:scale-[1.02] transition-all bg-slate-100 cursor-zoom-in"
+                                  >
+                                    <img src={url} alt={`Attachment ${imgIdx + 1}`} className="object-cover w-full h-full" />
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -213,6 +234,27 @@ export default function Timeline({ events }: TimelineProps) {
           );
         })}
       </div>
+
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm cursor-zoom-out animate-in fade-in duration-200"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center animate-in zoom-in-95 duration-200">
+            <button 
+              className="absolute -top-4 -right-4 md:-top-10 md:-right-10 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors"
+              onClick={(e) => { e.stopPropagation(); setLightboxImage(null); }}
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <img 
+              src={lightboxImage} 
+              alt="Enlarged attachment" 
+              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" 
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
