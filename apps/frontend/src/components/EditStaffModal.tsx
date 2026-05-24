@@ -105,6 +105,7 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
             <input
               type="text"
               required
+              autoComplete="off"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Ajay Negi"
@@ -117,6 +118,7 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
             <input
               type="email"
               required
+              autoComplete="off"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. ajaynegi@example.com"
@@ -128,6 +130,7 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
             <label className="text-sm font-semibold text-slate-700">Phone Number</label>
             <input
               type="tel"
+              autoComplete="off"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="e.g. 9876543210"
