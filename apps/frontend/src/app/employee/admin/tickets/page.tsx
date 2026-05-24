@@ -60,6 +60,9 @@ export default function AdminTicketsPage() {
       setLoading(true);
       const queryParams = new URLSearchParams();
       if (ownershipFilter !== "ALL") queryParams.append("ownership", ownershipFilter);
+      if (searchQuery.trim()) queryParams.append("searchQuery", searchQuery.trim());
+      queryParams.append("sortField", sortField);
+      queryParams.append("sortOrder", sortOrder);
       queryParams.append("page", page.toString());
       queryParams.append("limit", "10");
 
@@ -74,36 +77,12 @@ export default function AdminTicketsPage() {
   };
 
   useEffect(() => {
+    // Reset page to 1 when filters change (but avoid doing it inside the effect to prevent loop, 
+    // actually it's fine if we handle page reset in the onChange handlers, but for now we just fetch)
     fetchTickets();
-  }, [ownershipFilter, page]);
+  }, [ownershipFilter, page, searchQuery, sortField, sortOrder]);
 
-
-  const filteredAndSortedTickets = useMemo(() => {
-    let result = [...tickets];
-
-    // Search Logic
-    if (searchQuery.trim()) {
-      let q = searchQuery.trim().toUpperCase();
-      // Auto-prefix if numeric and not already prefixed
-      if (/^\d+$/.test(q)) {
-        q = `TCK-${q}`;
-      }
-      result = result.filter(t => t.ticket_no.toUpperCase().includes(q));
-    }
-
-    // Sort Logic
-    result.sort((a, b) => {
-      let comparison = 0;
-      if (sortField === "status") {
-        comparison = (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
-      } else {
-        comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      }
-      return sortOrder === "desc" ? -comparison : comparison;
-    });
-
-    return result;
-  }, [tickets, searchQuery, sortField, sortOrder]);
+  const filteredAndSortedTickets = tickets;
 
   const openReassign = (ticket: Ticket) => {
     setSelectedTicket(ticket);
@@ -134,7 +113,10 @@ export default function AdminTicketsPage() {
                 type="text"
                 placeholder="Search by ID (e.g. 10003)"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
                 className="h-12 w-full rounded-lg border border-slate-200 bg-white pl-11 pr-4 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all outline-hidden"
               />
             </div>
@@ -142,8 +124,13 @@ export default function AdminTicketsPage() {
             <div className="flex h-12 items-center rounded-lg border border-slate-200 bg-white px-2 py-1">
               <button
                 onClick={() => {
-                  if (sortField === "status") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  else { setSortField("status"); setSortOrder("desc"); }
+                  if (sortField === "status") {
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                  } else { 
+                    setSortField("status"); 
+                    setSortOrder("desc"); 
+                  }
+                  setPage(1);
                 }}
                 className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "status" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
               >
@@ -153,8 +140,13 @@ export default function AdminTicketsPage() {
               </button>
               <button
                 onClick={() => {
-                  if (sortField === "date") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  else { setSortField("date"); setSortOrder("desc"); }
+                  if (sortField === "date") {
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                  } else { 
+                    setSortField("date"); 
+                    setSortOrder("desc"); 
+                  }
+                  setPage(1);
                 }}
                 className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
               >
@@ -171,6 +163,7 @@ export default function AdminTicketsPage() {
                     UNASSIGNED: "ALL"
                   };
                   setOwnershipFilter(cycle[ownershipFilter]);
+                  setPage(1);
                 }}
                 className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${ownershipFilter !== "ALL" ? "bg-slate-900 text-white shadow-lg shadow-slate-200" : "text-slate-500 hover:bg-slate-50"}`}
               >
