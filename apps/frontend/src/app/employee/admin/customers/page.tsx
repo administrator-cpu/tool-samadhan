@@ -35,8 +35,8 @@ export default function CustomersPage() {
     try {
       const res = await api.get(`/users/customers?page=${page}&limit=10`);
       setCustomers(res.data.customers);
-      setTotalPages(res.data.totalPages);
-      setTotalCount(res.data.total);
+      setTotalPages(res.data.pagination.pages);
+      setTotalCount(res.data.pagination.total);
     } catch (err) {
       toast.error("Failed to fetch customers list");
     } finally {
