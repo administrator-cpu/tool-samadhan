@@ -57,6 +57,13 @@ router.get(
   UserController.getAllCustomers
 );
 
+router.put(
+  '/customers/:id',
+  requireRole([UserRole.ADMIN]),
+  validateUpdateProfile,
+  UserController.updateCustomer
+);
+
 router.delete(
   '/customers/:id',
   requireRole([UserRole.ADMIN]),
