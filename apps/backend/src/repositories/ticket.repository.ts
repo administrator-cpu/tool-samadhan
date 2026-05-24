@@ -168,6 +168,7 @@ export class TicketRepository {
         c.customer_id,
         cu.name AS customer_name,
         cu.email AS customer_email,
+        cu.phone AS customer_phone,
         t.current_assigned_employee_id,
         eu.name AS assigned_employee_name,
         t.circuit_description,
