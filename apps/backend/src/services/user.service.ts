@@ -146,6 +146,27 @@ export class UserService {
     });
   }
 
+  static async updateCustomer(customerRowId: string, dto: any) {
+    return withTransaction(async (client) => {
+      const custInfo = await CustomerRepository.findByRowId(client, customerRowId);
+      if (!custInfo) throw new AppError(404, 'Customer not found', ErrorCodes.CUSTOMER_NOT_FOUND);
+
+      const userId = custInfo.user_id;
+
+      if (dto.name || dto.email || dto.phone) {
+        if (dto.email) {
+          const userCheck = await UserRepository.findByEmail(client, dto.email);
+          if (userCheck && userCheck.id !== userId) {
+            throw new AppError(400, 'Email already in use', ErrorCodes.EMAIL_EXISTS);
+          }
+        }
+        await UserRepository.update(client, userId, dto);
+      }
+
+      return UserRepository.findById(client, userId);
+    });
+  }
+
   static async deleteCustomer(customerRowId: string) {
     return withTransaction(async (client) => {
       const custInfo = await CustomerRepository.findByRowId(client, customerRowId);
