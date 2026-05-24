@@ -104,7 +104,7 @@ export class TicketService {
     });
 
     if (result.info) {
-      // ALWAYS send confirmation to customer and helpdesk upon registration
+      // ALWAYS send confirmation to customer and helpdesk upon registration FIRST
       Promise.allSettled([
         sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no }),
         sendTicketCreatedHelpdeskEmail({
@@ -113,19 +113,21 @@ export class TicketService {
           category: result.info.category,
           circuitId: result.info.circuit_description
         })
-      ]).catch(err => logger.error('[EMAIL] Failed to send ticket creation emails', err));
-
-      // If automatically assigned, also send assignment notification
-      if (result.assignedAgentId && result.agentUser) {
-        sendImmediateAgentAssignmentEmails({
-          customerName: result.info.name,
-          agentName: result.agentUser.name,
-          agentEmail: result.agentUser.email,
-          ticketNo: result.info.ticket_no,
-          category: result.info.category,
-          circuitId: result.info.circuit_description
-        }).catch(err => logger.error('[EMAIL] Failed to send agent assignment email', err));
-      }
+      ])
+      .then(() => {
+        // If automatically assigned, send assignment notification AFTER registration emails complete
+        if (result.assignedAgentId && result.agentUser) {
+          sendImmediateAgentAssignmentEmails({
+            customerName: result.info.name,
+            agentName: result.agentUser.name,
+            agentEmail: result.agentUser.email,
+            ticketNo: result.info.ticket_no,
+            category: result.info.category,
+            circuitId: result.info.circuit_description
+          }).catch(err => logger.error('[EMAIL] Failed to send agent assignment email', err));
+        }
+      })
+      .catch(err => logger.error('[EMAIL] Failed to send ticket creation emails', err));
     }
 
     return { ticket: result.ticket, assignedAgentId: result.assignedAgentId };
@@ -203,7 +205,8 @@ export class TicketService {
         customer: {
           name: ticketInfo.customer_name,
           customer_id: ticketInfo.customer_id,
-          email: ticketInfo.customer_email
+          email: ticketInfo.customer_email,
+          phone: ticketInfo.customer_phone
         },
         assigned_employee: ticketInfo.current_assigned_employee_id ? {
           name: ticketInfo.assigned_employee_name

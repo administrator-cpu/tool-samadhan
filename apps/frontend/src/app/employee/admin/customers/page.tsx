@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AddCustomerModal from "@/components/AddCustomerModal";
+import EditCustomerModal from "@/components/EditCustomerModal";
 
 interface Customer {
   customer_row_id: number;
@@ -20,6 +21,8 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -178,13 +181,22 @@ export default function CustomersPage() {
                       {new Date(customer.joined_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => openDeleteModal(customer.customer_row_id)}
-                        className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-red-600 transition-all hover:bg-red-50 rounded-lg active:scale-95"
-                        title="Delete Customer Account"
-                      >
-                        <span className="material-symbols-outlined">delete</span>
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button 
+                          onClick={() => { setCustomerToEdit(customer); setIsEditModalOpen(true); }}
+                          className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-emerald-600 transition-all hover:bg-emerald-50 rounded-lg active:scale-95"
+                          title="Edit Customer"
+                        >
+                          <span className="material-symbols-outlined">edit</span>
+                        </button>
+                        <button 
+                          onClick={() => openDeleteModal(customer.customer_row_id)}
+                          className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-red-600 transition-all hover:bg-red-50 rounded-lg active:scale-95"
+                          title="Delete Customer Account"
+                        >
+                          <span className="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -244,6 +256,13 @@ export default function CustomersPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => fetchCustomers()}
+      />
+
+      <EditCustomerModal
+        isOpen={isEditModalOpen}
+        onClose={() => { setIsEditModalOpen(false); setCustomerToEdit(null); }}
+        onSuccess={() => fetchCustomers()}
+        customer={customerToEdit}
       />
     </div>
   );

@@ -139,6 +139,15 @@ export class UserController {
     }
   }
 
+  static async updateCustomer(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await UserService.updateCustomer((req.params.id as string), req.body);
+      return sendResponse({ res, message: 'Customer updated successfully', data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async deleteCustomer(req: Request, res: Response, next: NextFunction) {
     try {
       await UserService.deleteCustomer((req.params.id as string));
