@@ -28,8 +28,7 @@ export const updateRcaSchema = z.object({
 
 export const updateOutageSchema = z.object({
   problemSide: z.string({ 
-    required_error: "Problem Side is required",
-    invalid_type_error: "Problem Side is required",
+    message: "Problem Side is required",
   }).min(1, "Problem Side is required"),
   externalTicketNo: z.string().nullable().optional(),
 });

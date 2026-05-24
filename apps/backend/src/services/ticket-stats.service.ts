@@ -101,55 +101,42 @@ export class TicketStatsService {
       }
       const employeeId = empRes.rows[0].id;
 
-      // 1. My Assigned Tickets Counts
-      const countsRes = await client.query(`
-        SELECT status, COUNT(*) as count 
-        FROM tickets 
+      // 1. Summary stats
+      const summaryRes = await client.query(`
+        SELECT 
+          COUNT(id) as total_assigned,
+          COALESCE(SUM(CASE WHEN status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED') THEN 1 ELSE 0 END), 0) as active_tickets,
+          COALESCE(SUM(CASE WHEN status IN ('RESOLVED', 'CLOSED') THEN 1 ELSE 0 END), 0) as total_resolved,
+          COALESCE(SUM(CASE WHEN status = 'RESOLVED' AND updated_at >= NOW() - INTERVAL '24 hours' THEN 1 ELSE 0 END), 0) as resolved_today
+        FROM tickets
         WHERE current_assigned_employee_id = $1
-        GROUP BY status
       `, [employeeId]);
       
-      const statusCounts = {
-        OPEN: 0,
-        IN_PROGRESS: 0,
-        ESCALATED: 0,
-        RESOLVED: 0,
-        CLOSED: 0,
-        TOTAL_ACTIVE: 0
+      const summary = {
+        total_assigned: summaryRes.rows[0].total_assigned || '0',
+        active_tickets: summaryRes.rows[0].active_tickets || '0',
+        total_resolved: summaryRes.rows[0].total_resolved || '0',
+        resolved_today: summaryRes.rows[0].resolved_today || '0',
       };
-      
-      countsRes.rows.forEach(row => {
-        statusCounts[row.status as keyof typeof statusCounts] = parseInt(row.count, 10);
-        if (['OPEN', 'IN_PROGRESS', 'ESCALATED'].includes(row.status)) {
-           statusCounts.TOTAL_ACTIVE += parseInt(row.count, 10);
-        }
-      });
 
-      // 2. Unassigned Active Tickets by Category (Opportunities)
-      const unassignedRes = await client.query(`
-        SELECT ic.name as category_name, COUNT(t.id) as count
+      // 2. Recent Tickets
+      const recentTicketsRes = await client.query(`
+        SELECT t.id, t.ticket_no, ic.name as subject, t.status, t.created_at, u.name as customer_name
         FROM tickets t
-        JOIN issue_categories ic ON ic.id = t.primary_issue_category_id
-        JOIN employee_issue_categories eic ON eic.issue_category_id = ic.id
-        WHERE t.current_assigned_employee_id IS NULL
-          AND t.status NOT IN ('RESOLVED', 'CLOSED')
-          AND eic.employee_id = $1
-        GROUP BY ic.id, ic.name
+        LEFT JOIN issue_categories ic ON ic.id = t.primary_issue_category_id
+        JOIN customers c ON c.id = t.customer_id
+        JOIN users u ON u.id = c.user_id
+        WHERE t.current_assigned_employee_id = $1
+          AND t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')
+        ORDER BY t.updated_at DESC
+        LIMIT 5
       `, [employeeId]);
-
-      // 3. Recently Assigned to Me (Last 24h)
-      const recentlyAssignedRes = await client.query(`
-        SELECT COUNT(DISTINCT ticket_id) as count
-        FROM ticket_events
-        WHERE event_type = 'TICKET_ASSIGNED'
-          AND metadata->>'assigned_to' = $1
-          AND created_at >= NOW() - INTERVAL '24 hours'
-      `, [employeeId.toString()]); // Ensure it matches string representation in metadata
+      
+      const recentTickets = recentTicketsRes.rows;
 
       return {
-        myTickets: statusCounts,
-        unassignedOpportunities: unassignedRes.rows,
-        recentlyAssignedCount: parseInt(recentlyAssignedRes.rows[0]?.count || '0', 10)
+        summary,
+        recentTickets
       };
     } finally {
       client.release();

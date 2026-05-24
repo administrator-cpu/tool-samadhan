@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useUICacheStore } from "@/store/useUICacheStore";
-import { CheckCircle2, Clock, Activity,ArrowRight,ShieldAlert,Target,Zap} from "lucide-react";
+import { CheckCircle2, Clock, Activity, ArrowRight, Target, Zap} from "lucide-react";
 import Link from "next/link";
 
 interface AgentStats {
@@ -33,7 +32,8 @@ export default function AgentDashboard() {
     const fetchStats = async () => {
       try {
         const res = await api.get("/tickets/agent-stats");
-        setStats(res.data);
+        // The backend returns { data: { stats: { summary, recentTickets } } }
+        setStats(res.data?.stats || res.data);
       } catch (err) {
         // Only show toast if user is still authenticated
         if (useAuthStore.getState().isAuthenticated) {
