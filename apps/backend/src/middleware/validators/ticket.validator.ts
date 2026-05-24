@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { validateBody } from './validate.js';
-import { TicketStatus } from '../../types/enums.js';
 
 export const createTicketSchema = z.object({
   customerId: z.string().optional(),

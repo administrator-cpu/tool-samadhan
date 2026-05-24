@@ -1,7 +1,6 @@
 import { PoolClient, Pool } from 'pg';
 import { Ticket } from '../types/models.js';
 import { TicketStatus } from '../types/enums.js';
-// from '../types/models.js';
 
 export class TicketRepository {
   static async create(
