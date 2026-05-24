@@ -23,7 +23,16 @@ export class TicketService {
         if (!cust) throw new AppError(404, 'Customer record not found', ErrorCodes.CUSTOMER_NOT_FOUND);
         customerId = cust.id;
       } else {
-        customerId = dto.customerId;
+        if (dto.customerId) {
+          customerId = dto.customerId;
+        } else if (dto.customerEmail) {
+          const user = await UserRepository.findByEmail(client, dto.customerEmail);
+          if (!user) throw new AppError(404, 'Customer with this email not found', ErrorCodes.CUSTOMER_NOT_FOUND);
+          if (user.role !== UserRole.USER) throw new AppError(400, 'Provided email does not belong to a customer', ErrorCodes.VALIDATION_ERROR);
+          const cust = await CustomerRepository.findByUserId(client, user.id);
+          if (!cust) throw new AppError(404, 'Customer record not found', ErrorCodes.CUSTOMER_NOT_FOUND);
+          customerId = cust.id;
+        }
       }
 
       if (!customerId) throw new AppError(400, 'Customer ID is required', ErrorCodes.VALIDATION_ERROR);

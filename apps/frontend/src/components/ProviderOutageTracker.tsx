@@ -29,7 +29,7 @@ export default function ProviderOutageTracker({
 
   const handleSave = async () => {
     try {
-      const pSide = tempProblemSide ? tempProblemSide : null;
+      const pSide = tempProblemSide; // Send empty string directly so Zod handles it
       const tNo = tempTicketNo && tempTicketNo.trim() ? tempTicketNo.trim() : null;
 
       await api.patch(`/tickets/${ticketId}/outage`, {
@@ -37,7 +37,7 @@ export default function ProviderOutageTracker({
         externalTicketNo: tNo,
       });
 
-      onUpdate(pSide, tNo);
+      onUpdate(pSide || null, tNo);
       setIsEditing(false);
       toast.success("Outage details updated successfully");
     } catch (err: any) {
