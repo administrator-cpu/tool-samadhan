@@ -26,7 +26,7 @@ router.get(
 
 router.get(
   '/agents',
-  requireRole([UserRole.ADMIN]),
+  requireRole([UserRole.ADMIN, UserRole.SUPPORT_AGENT]),
   UserController.getAllAgents
 );
 
