@@ -1,7 +1,5 @@
 import { PoolClient } from 'pg';
 import { User } from '../types/models.js';
-import { UserRole } from '../types/enums.js';
-// from '../types/models.js';
 
 export class UserRepository {
   static async findByEmail(client: PoolClient, email: string): Promise<User | null> {

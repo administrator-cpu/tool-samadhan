@@ -1,5 +1,5 @@
 import { Pool, PoolClient } from 'pg';
-import { env, isProd } from './environment.js';
+import { env } from './environment.js';
 import { logger } from '../lib/logger.js';
 
 export const postgresPool = new Pool({

@@ -1,8 +1,6 @@
-import { withTransaction, postgresPool } from '../config/database.js';
-import { TicketRepository } from '../repositories/ticket.repository.js';
+import { postgresPool } from '../config/database.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
-import { UserRole } from '../types/dto.js';
 
 export class TicketStatsService {
   static async getAdminStats(userId: string, role: string) {

@@ -1,6 +1,5 @@
 import { PoolClient, Pool } from 'pg';
 import { Customer } from '../types/models.js';
-import { PaginatedResponse } from '../types/dto.js';
 
 export class CustomerRepository {
   static async create(client: PoolClient, userId: string): Promise<Customer> {

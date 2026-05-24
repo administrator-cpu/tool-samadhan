@@ -2,16 +2,7 @@ import { Router } from 'express';
 import { UserController } from '../controllers/user.controller.js';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { UserRole } from '../types/dto.js';
-import {
-  validateRegister,
-  validateLogin,
-  validateChangePassword,
-  validateUpdateProfile,
-  validateForgotPassword,
-  validateVerifyOtp,
-  validateResetPassword
-} from '../middleware/validators/user.validator.js';
-
+import { validateRegister, validateUpdateProfile } from '../middleware/validators/user.validator.js';
 const router = Router();
 
 // Protected Routes

@@ -7,8 +7,6 @@ import {
   ticketCreatedHelpdeskTemplate,
   ticketAssignedCustomer2MinTemplate,
   ticketAssignedToAgentTemplate,
-  ticketTroubleshootingCustomer15MinTemplate,
-  ticketResolvedTemplate,
   ticketRcaTemplate,
   ticketUpdateByStaffTemplate,
   passwordResetOtpTemplate,

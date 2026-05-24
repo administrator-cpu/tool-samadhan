@@ -33,7 +33,7 @@ describe('AssignmentService', () => {
       vi.mocked(TicketRepository.findByIdForUpdate).mockResolvedValue({
         id: '123',
         current_assigned_employee_id: 'emp-99'
-      });
+      } as any);
 
       const result = await AssignmentService.assignAgentAutomatically(mockClient, '123', 'cat-1');
       
@@ -46,7 +46,7 @@ describe('AssignmentService', () => {
       vi.mocked(TicketRepository.findByIdForUpdate).mockResolvedValue({
         id: '123',
         current_assigned_employee_id: null
-      });
+      } as any);
 
       vi.mocked(EmployeeRepository.findBestAgentForCategory).mockResolvedValue({
         employee_id: 'emp-42'
@@ -64,7 +64,7 @@ describe('AssignmentService', () => {
       vi.mocked(TicketRepository.findByIdForUpdate).mockResolvedValue({
         id: '123',
         current_assigned_employee_id: null
-      });
+      } as any);
 
       // No agents available
       vi.mocked(EmployeeRepository.findBestAgentForCategory).mockResolvedValue(null);

@@ -40,7 +40,7 @@ describe('TicketService - updateTicketRca', () => {
   it('should throw an error if ticket is already closed', async () => {
     vi.mocked(TicketRepository.findByIdForUpdate).mockResolvedValue({
       status: 'CLOSED'
-    });
+    } as any);
 
     await expect(
       TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, MOCK_ACTOR_ID)
@@ -54,10 +54,10 @@ describe('TicketService - updateTicketRca', () => {
     vi.mocked(TicketRepository.findByIdForUpdate).mockResolvedValue({
       status: 'RESOLVED',
       resolved_at: twoHoursAgo
-    });
+    } as any);
 
-    vi.mocked(TicketRepository.updateFields).mockResolvedValue({ id: MOCK_TICKET_ID, rca: MOCK_RCA });
-    vi.mocked(TicketEventRepository.insertEvent).mockResolvedValue({ id: 'evt-1' });
+    vi.mocked(TicketRepository.updateFields).mockResolvedValue({ id: MOCK_TICKET_ID, rca: MOCK_RCA } as any);
+    vi.mocked(TicketEventRepository.insertEvent).mockResolvedValue({ id: 'evt-1' } as any);
 
     await TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, MOCK_ACTOR_ID);
 
@@ -82,10 +82,10 @@ describe('TicketService - updateTicketRca', () => {
     vi.mocked(TicketRepository.findByIdForUpdate).mockResolvedValue({
       status: 'RESOLVED',
       resolved_at: fortyEightHoursAgo
-    });
+    } as any);
 
-    vi.mocked(TicketRepository.updateFields).mockResolvedValue({ id: MOCK_TICKET_ID, status: 'CLOSED' });
-    vi.mocked(TicketEventRepository.insertEvent).mockResolvedValue({ id: 'evt-1' });
+    vi.mocked(TicketRepository.updateFields).mockResolvedValue({ id: MOCK_TICKET_ID, status: 'CLOSED' } as any);
+    vi.mocked(TicketEventRepository.insertEvent).mockResolvedValue({ id: 'evt-1' } as any);
 
     await TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, MOCK_ACTOR_ID);
 

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/auth.service.js';
 import { UserService } from '../services/user.service.js';
 import { PasswordResetService } from '../services/password-reset.service.js';
-import { env, isProd } from '../config/environment.js';
+import { isProd } from '../config/environment.js';
 import { sendResponse } from '../utils/response.js';
 
 const cookieOptions = {
