@@ -21,7 +21,6 @@ declare global {
       JWT_REFRESH_EXPIRES_IN?: string;
 
       CORS_ORIGIN?: string;
-      FRONTEND_URL?: string;
 
       EMAILJS_SERVICE_ID?: string;
       EMAILJS_TEMPLATE_ID?: string;
