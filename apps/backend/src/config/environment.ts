@@ -37,7 +37,7 @@ export const env = {
     host: getEnvStr('POSTGRES_HOST', 'localhost'),
     database: getEnvStr('POSTGRES_DB', 'samadhandb'),
     port: getEnvNum('POSTGRES_PORT', 5432),
-    poolMax: getEnvNum('PG_POOL_MAX', 10), // Increased from 1
+    poolMax: getEnvNum('PG_POOL_MAX', 1),
   },
 
   redis: {
