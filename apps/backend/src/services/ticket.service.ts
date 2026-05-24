@@ -203,7 +203,8 @@ export class TicketService {
         customer: {
           name: ticketInfo.customer_name,
           customer_id: ticketInfo.customer_id,
-          email: ticketInfo.customer_email
+          email: ticketInfo.customer_email,
+          phone: ticketInfo.customer_phone
         },
         assigned_employee: ticketInfo.current_assigned_employee_id ? {
           name: ticketInfo.assigned_employee_name

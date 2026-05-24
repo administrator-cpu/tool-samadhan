@@ -33,6 +33,7 @@ interface TicketData {
       name: string;
       customer_id?: string;
       email?: string;
+      phone?: string;
     };
     assigned_employee: {
       name: string;
@@ -176,12 +177,18 @@ export default function SalesTicketDetailPage() {
                 {/* Customer */}
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Customer</p>
-                  <p className="text-[14px] font-bold text-slate-900">{ticket.customer?.name}</p>
-                  {ticket.customer?.email && (
-                    <span className="text-[10px] font-bold text-slate-400 lowercase block mt-0.5">
+                  <p className="text-[14px] font-bold text-slate-900">{ticket.customer.name}</p>
+                  {ticket.customer.phone && (
+                    <span className="text-[11px] font-bold text-slate-400 block mt-0.5">
+                      +91 {ticket.customer.phone}
+                    </span>
+                  )}
+                  {ticket.customer.email && (
+                    <span className="text-[11px] font-bold text-slate-400 lowercase block mt-0.5">
                       {ticket.customer.email}
                     </span>
                   )}
+                  
                 </div>
 
                 {/* Opened On */}
