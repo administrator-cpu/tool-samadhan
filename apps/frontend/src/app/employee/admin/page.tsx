@@ -9,7 +9,8 @@ import { Ticket, AlertTriangle, CheckCircle2, Users, Activity, ArrowRight, Shiel
 import Link from "next/link";
 
 interface AgentStat {
-  employee_id: number;
+  id: string;
+  employee_id: number | string;
   name: string;
   role: string;
   total_assigned: number;
@@ -185,11 +186,11 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {stats.agents?.map((agent) => {
+                    {stats.agents?.map((agent, i) => {
                       const active = agent.active_assigned;
 
                       return (
-                        <tr key={agent.employee_id} className="group hover:bg-slate-50/50 transition-colors">
+                        <tr key={agent.id || `agent-${i}`} className="group hover:bg-slate-50/50 transition-colors">
                           <td className="py-4">
                             <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
                               {agent.name}
@@ -232,7 +233,7 @@ export default function AdminDashboard() {
                   const totalActive = Number(summary.active_tickets) || 1;
                   const percentage = (Number(cat.count) / totalActive) * 100;
                   return (
-                    <div key={cat.name} className="group">
+                    <div key={cat.name || `cat-${i}`} className="group">
                       <div className="mb-2 flex items-center justify-between">
                         <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{cat.name}</span>
                         <span className="text-xs font-black text-slate-400">{cat.count} Tickets</span>

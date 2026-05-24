@@ -9,10 +9,11 @@ import { ErrorCodes } from '../errors/error-codes.js';
 import { CreateEmployeeDto, CreateCustomerDto, UpdateProfileDto, ChangePasswordDto, UserRole, PaginatedResponse } from '../types/dto.js';
 import { sendStaffWelcomeEmail, sendCustomerWelcomeEmail } from './email.service.js';
 import { disconnectUser } from './socket.service.js';
+import { logger } from '../lib/logger.js';
 
 export class UserService {
   static async createEmployee(dto: CreateEmployeeDto) {
-    return withTransaction(async (client) => {
+    const result = await withTransaction(async (client) => {
       const existingUser = await UserRepository.findByEmail(client, dto.email);
       if (existingUser) {
         throw new AppError(400, 'User with this email already exists', ErrorCodes.EMAIL_EXISTS);
@@ -35,19 +36,21 @@ export class UserService {
         await EmployeeRepository.replaceCategoriesByName(client, employee.id, dto.issueCategories || []);
       }
 
-      await sendStaffWelcomeEmail({
-        name: user.name,
-        email: user.email,
-        password: generatedPassword,
-        role: user.role,
-      });
-
-      return { user, employee };
+      return { user, employee, generatedPassword };
     });
+
+    sendStaffWelcomeEmail({
+      name: result.user.name,
+      email: result.user.email,
+      password: result.generatedPassword,
+      role: result.user.role,
+    }).catch(err => logger.error('[EMAIL] Failed to send staff welcome email', err));
+
+    return { user: result.user, employee: result.employee };
   }
 
   static async createCustomer(dto: CreateCustomerDto) {
-    return withTransaction(async (client) => {
+    const result = await withTransaction(async (client) => {
       const existingUser = await UserRepository.findByEmail(client, dto.email);
       if (existingUser) {
         throw new AppError(400, 'User with this email already exists', ErrorCodes.EMAIL_EXISTS);
@@ -66,14 +69,16 @@ export class UserService {
 
       const customer = await CustomerRepository.create(client, user.id);
 
-      await sendCustomerWelcomeEmail({
-        name: user.name,
-        email: user.email,
-        password: generatedPassword,
-      });
-
-      return { user, customer };
+      return { user, customer, generatedPassword };
     });
+
+    sendCustomerWelcomeEmail({
+      name: result.user.name,
+      email: result.user.email,
+      password: result.generatedPassword,
+    }).catch(err => logger.error('[EMAIL] Failed to send customer welcome email', err));
+
+    return { user: result.user, customer: result.customer };
   }
 
   static async listAllEmployees(page: number, limit: number): Promise<PaginatedResponse<any>> {
