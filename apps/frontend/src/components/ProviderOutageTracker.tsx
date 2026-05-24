@@ -8,6 +8,7 @@ interface ProviderOutageTrackerProps {
   ticketId: number;
   problemSide: string | null;
   externalTicketNo: string | null;
+  readOnly?: boolean;
   onUpdate: (problemSide: string | null, externalTicketNo: string | null) => void;
 }
 
@@ -15,6 +16,7 @@ export default function ProviderOutageTracker({
   ticketId,
   problemSide,
   externalTicketNo,
+  readOnly = false,
   onUpdate,
 }: ProviderOutageTrackerProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -58,7 +60,7 @@ export default function ProviderOutageTracker({
         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
           Provider Outage
         </h4>
-        {!isEditing && (
+        {!readOnly && !isEditing && (
           <button
             onClick={() => setIsEditing(true)}
             className="text-emerald-600 hover:text-emerald-700 font-bold uppercase tracking-wider text-[9px] cursor-pointer"

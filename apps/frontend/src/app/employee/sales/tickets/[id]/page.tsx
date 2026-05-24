@@ -8,6 +8,9 @@ import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { ArrowLeft, User as UserIcon, Calendar, Info } from "lucide-react";
+import Image from "next/image";
+import AgentImage from "@/assets/agent.png";
+import ProviderOutageTracker from "@/components/ProviderOutageTracker";
 
 interface TicketEvent {
   id: number;
@@ -49,23 +52,27 @@ const getStatusBadgeConfig = (status: string) => {
     case "OPEN":
       return {
         dotClass: "bg-red-500",
+        pingClass: "bg-red-400",
         textClass: "text-red-600 bg-red-50 border-red-100",
       };
     case "IN_PROGRESS":
     case "ESCALATED":
       return {
         dotClass: "bg-amber-500",
+        pingClass: "bg-amber-400",
         textClass: "text-amber-600 bg-amber-50 border-amber-100",
       };
     case "RESOLVED":
       return {
         dotClass: "bg-emerald-500",
+        pingClass: "bg-emerald-400",
         textClass: "text-emerald-600 bg-emerald-50 border-emerald-100",
       };
     case "CLOSED":
     default:
       return {
         dotClass: "bg-slate-400",
+        pingClass: "bg-slate-300",
         textClass: "text-slate-500 bg-slate-50 border-slate-100",
       };
   }
@@ -110,7 +117,7 @@ export default function SalesTicketDetailPage() {
   const statusConfig = getStatusBadgeConfig(ticket.status);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col antialiased">
+    <div className="h-screen bg-[#F8FAFC] flex flex-col antialiased overflow-hidden">
       {/* Header */}
       <header className="border-b border-slate-100 bg-white px-8 py-5 flex items-center justify-between shadow-xs z-10">
         <div className="flex items-center gap-4">
@@ -143,101 +150,104 @@ export default function SalesTicketDetailPage() {
           </div>
         </main>
 
-        {/* Sidebar Info Panel */}
-        <aside className="w-80 overflow-y-auto bg-white p-6 hidden lg:block shadow-xs border-l border-slate-100 space-y-6">
-          
-          {/* Assigned Agent */}
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Owner Assignment</h4>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                <UserIcon size={18} />
-              </div>
-              <div>
-                <p className="text-sm font-black text-slate-900">
-                  {ticket.assigned_employee?.name || "Unassigned"}
-                </p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Assigned Expert</p>
-              </div>
-            </div>
-          </div>
+        {/* Sidebar */}
+        <aside className="w-[260px] bg-white overflow-y-auto p-6 flex flex-col gap-6 shrink-0 hidden lg:flex">
+          <section className="space-y-6">
+            <div>
+              <h3 className="text-sm font-black text-slate-900 tracking-widest flex items-center gap-2 mb-4">
+                Ticket Details
+              </h3>
 
-          {/* Ticket Metadata */}
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Case Metadata</h4>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-slate-400" />
+              <div className="space-y-5">
+                {/* Status */}
                 <div>
-                  <p className="text-xs font-bold text-slate-400">Created</p>
-                  <p className="text-sm font-medium text-slate-900">
-                    {format(new Date(ticket.created_at), "MMM d, yyyy HH:mm")}
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Status</p>
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      {ticket.status !== "CLOSED" && (
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${statusConfig.pingClass}`}></span>
+                      )}
+                      <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${statusConfig.dotClass}`}></span>
+                    </span>
+                    <span className={`text-sm font-bold uppercase ${statusConfig.textClass.split(" ")[0]}`}>{ticket.status.replace(/_/g, " ")}</span>
+                  </div>
+                </div>
+
+                {/* Customer */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Customer</p>
+                  <p className="text-[14px] font-bold text-slate-900">{ticket.customer?.name}</p>
+                  {ticket.customer?.email && (
+                    <span className="text-[10px] font-bold text-slate-400 lowercase block mt-0.5">
+                      {ticket.customer.email}
+                    </span>
+                  )}
+                </div>
+
+                {/* Opened On */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Opened On</p>
+                  <p className="text-[14px] font-bold text-slate-900">
+                    {format(new Date(ticket.created_at), "MMM d, yyyy, h:mm a")}
                   </p>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Customer Profile */}
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Customer Profile</h4>
-            <div className="space-y-3 text-slate-700">
-              <div>
-                <p className="text-xs font-bold text-slate-400">Full Name</p>
-                <p className="text-sm font-black text-slate-900">{ticket.customer?.name}</p>
-              </div>
-              {ticket.customer?.email && (
+                {/* Last Updated */}
                 <div>
-                  <p className="text-xs font-bold text-slate-400">Email Address</p>
-                  <p className="text-sm font-medium text-slate-600 break-all">{ticket.customer.email}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Last Updated</p>
+                  <p className="text-[14px] font-bold text-slate-900">
+                    {format(new Date(ticket.updated_at), "MMM d, yyyy, h:mm a")}
+                  </p>
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Circuit Details */}
-          {ticket.circuit_description && (
-            <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Info size={16} className="text-indigo-600" />
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Circuit Description</h4>
-              </div>
-              <p className="text-xs font-medium text-slate-600 leading-relaxed bg-white border border-slate-100 rounded-xl p-3">
-                {ticket.circuit_description}
-              </p>
-            </div>
-          )}
-
-          {/* Outage Information */}
-          {(ticket.problem_side || ticket.external_ticket_no) && (
-            <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Outage Information</h4>
-              <div className="space-y-2 text-slate-700">
-                {ticket.problem_side && (
+                {/* Circuit ID */}
+                {ticket.circuit_description && (
                   <div>
-                    <span className="text-[10px] font-bold text-slate-400 block">Problem Side</span>
-                    <span className="text-sm font-medium text-slate-800">{ticket.problem_side}</span>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Circuit ID</p>
+                    <p className="text-[14px] font-bold text-slate-900">{ticket.circuit_description}</p>
                   </div>
                 )}
-                {ticket.external_ticket_no && (
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 block">External Ticket No</span>
-                    <span className="text-sm font-medium text-slate-800">{ticket.external_ticket_no}</span>
-                  </div>
-                )}
+
+                {/* Outage Details */}
+                <ProviderOutageTracker
+                  ticketId={ticket.id}
+                  problemSide={ticket.problem_side}
+                  externalTicketNo={ticket.external_ticket_no}
+                  readOnly={true}
+                  onUpdate={() => {
+                    fetchTicket();
+                  }}
+                />
               </div>
             </div>
-          )}
 
-          {/* RCA Report */}
-          {ticket.rca && (
-            <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Root Cause Analysis (RCA)</h4>
-              <p className="text-xs font-medium text-slate-600 leading-relaxed bg-white border border-slate-100 rounded-xl p-3">
-                {ticket.rca}
-              </p>
+            <hr className="border-slate-100" />
+
+            {/* RCA Report */}
+            {ticket.rca && (
+              <>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Root Cause Analysis</p>
+                  <p className="text-[13px] font-medium text-slate-700 leading-relaxed">
+                    {ticket.rca}
+                  </p>
+                </div>
+                <hr className="border-slate-100" />
+              </>
+            )}
+
+            {/* Assigned Agent */}
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Assigned Agent</p>
+              <div className="flex items-center gap-3">
+                <Image src={AgentImage} alt="" width={36} height={36} className="rounded-full shadow-xs ring-2 ring-slate-100" />
+                <div>
+                  <p className="text-sm font-bold text-slate-900">{ticket.assigned_employee?.name || "Not Assigned"}</p>
+                  <p className="text-[10px] font-medium text-slate-500">Support Specialist</p>
+                </div>
+              </div>
             </div>
-          )}
+          </section>
         </aside>
       </div>
     </div>
