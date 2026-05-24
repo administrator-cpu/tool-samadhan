@@ -233,11 +233,11 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
     let message = data.message || "An unexpected error occurred";
     if (response.status >= 500) {
       message = "Something went wrong on our end. Please try again later.";
-    } else if (data.code === "VALIDATION_ERROR" && Array.isArray(data.details) && data.details.length > 0) {
+    } else if (data.data?.code === "VALIDATION_ERROR" && Array.isArray(data.data.details) && data.data.details.length > 0) {
       // Extract the first validation detail to show exactly what went wrong
-      message = data.details[0].message;
+      message = data.data.details[0].message;
     }
-    throw new ApiError(message, response.status, data.code, data.details);
+    throw new ApiError(message, response.status, data.data?.code || data.code, data.data?.details || data.details);
   }
 
   return data;
