@@ -6,6 +6,8 @@ import { useUICacheStore } from "@/store/useUICacheStore";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { User, Mail, Loader2, LogOut, Phone, Camera, X } from "lucide-react";
+import Cropper from "react-easy-crop";
+import getCroppedImg from "@/lib/cropImage";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -18,6 +20,13 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState("");
   const [updatingProfile, setUpdatingProfile] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Cropper states
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [isCropping, setIsCropping] = useState(false);
 
   useEffect(() => {
     if (profileData?.user) {
@@ -74,7 +83,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -83,8 +92,34 @@ export default function ProfilePage() {
       return;
     }
 
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImage(imageUrl);
+    setIsCropping(true);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+
+    if (e.target) e.target.value = '';
+  };
+
+  const onCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const handleCropCancel = () => {
+    setIsCropping(false);
+    if (selectedImage) URL.revokeObjectURL(selectedImage);
+    setSelectedImage(null);
+  };
+
+  const handleCropSave = async () => {
+    if (!selectedImage || !croppedAreaPixels) return;
+
     setUploadingImage(true);
     try {
+      const croppedImageBlob = await getCroppedImg(selectedImage, croppedAreaPixels);
+      if (!croppedImageBlob) throw new Error("Failed to crop image");
+
+      const file = new File([croppedImageBlob], "profile.jpeg", { type: "image/jpeg" });
       const formData = new FormData();
       formData.append("images", file);
 
@@ -105,11 +140,13 @@ export default function ProfilePage() {
       }
 
       toast.success("Profile image updated");
+      setIsCropping(false);
+      setSelectedImage(null);
+      URL.revokeObjectURL(selectedImage);
     } catch (err: any) {
-      toast.error(err.message || "Failed to upload image");
+      toast.error(err.message || "Failed to upload cropped image");
     } finally {
       setUploadingImage(false);
-      if (e.target) e.target.value = '';
     }
   };
 
@@ -181,9 +218,9 @@ export default function ProfilePage() {
                   <span className="mt-1 text-xs font-medium">Change</span>
                   <input 
                     type="file" 
-                    accept="image/jpeg, image/png, image/webp" 
+                    accept="image/jpeg, image/png, image/webp, image/heic" 
                     className="hidden" 
-                    onChange={handleImageUpload}
+                    onChange={handleImageSelect}
                     disabled={uploadingImage}
                   />
                 </label>
@@ -356,6 +393,69 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+      {/* Cropper Modal */}
+      {isCropping && selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 sm:p-6">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-lg font-black text-slate-900 tracking-tight">Crop Profile Photo</h3>
+              <button onClick={handleCropCancel} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="relative w-full h-80 bg-slate-900">
+              <Cropper
+                image={selectedImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+              />
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-6">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex justify-between">
+                  <span>Zoom</span>
+                  <span>{Math.round(zoom * 100)}%</span>
+                </label>
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.01}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#4b8264]"
+                />
+              </div>
+              
+              <div className="flex gap-4">
+                <button 
+                  onClick={handleCropCancel}
+                  disabled={uploadingImage}
+                  className="flex-1 h-12 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-[0.98] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleCropSave}
+                  disabled={uploadingImage}
+                  className="flex-1 h-12 rounded-xl bg-[#4b8264] text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  {uploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Photo"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
