@@ -193,12 +193,7 @@ export default function Timeline({ events }: TimelineProps) {
                                     : "bg-white text-slate-900 border-gray-200 rounded-tl-sm self-start"
                                   }`}
                               >
-                                {!isUser &&
-                                  [
-                                    "AGENT_REPLY",
-                                    "MANAGER_REPLY",
-                                    "ADMIN_REPLY",
-                                  ].includes(event.event_type) ? (
+                                {!isUser && [ "AGENT_REPLY", "MANAGER_REPLY", "ADMIN_REPLY" ].includes(event.event_type) ? (
                                   <div className="flex items-center gap-2 justify-end mb-2 align-middle">
                                     <span className="text-xs font-body text-muted font-semibold ml-1">
                                       {format(
