@@ -35,6 +35,7 @@ interface Ticket {
   assigned_employee: {
     id: number;
     name: string;
+    profile_image?: string | null;
   } | null;
 }
 
@@ -583,7 +584,11 @@ export default function TicketDetailPage() {
             <div>
               <p className="text-muted text-xs font-bold tracking-wide uppercase mb-1">Agent Assigned</p>
               <div className="flex items-center gap-3 mt-1.5">
-                <Image src={AgentImage} alt="" width={30} height={30} className="rounded-full" />
+                {ticket.assigned_employee?.profile_image ? (
+                  <Image src={ticket.assigned_employee.profile_image} alt="Agent Profile Image" width={30} height={30} className="rounded-full object-cover ring-1 ring-slate-100" />
+                ) : (
+                  <Image src={AgentImage} alt="Agent Profile Image" width={30} height={30} className="rounded-full" />
+                )}
                 <p className="text-text-main text-[15px] font-medium">
                   {ticket.assigned_employee?.name || "Assigning..."}
                 </p>
