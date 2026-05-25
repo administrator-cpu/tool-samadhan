@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import FAB5Logo from "@/assets/FAB5-logo.webp";
-
+import { useUICacheStore } from "@/store/useUICacheStore";
 interface SidebarContentProps {
   collapsed: boolean;
   mobile: boolean;
@@ -20,15 +20,7 @@ interface SidebarContentProps {
   handleLogout: () => void;
 }
 
-const SidebarContent = ({
-  collapsed,
-  mobile,
-  navItems,
-  pathname,
-  setIsMobileOpen,
-  user,
-  handleLogout,
-}: SidebarContentProps) => (
+const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen, user, handleLogout }: SidebarContentProps) => (
   <div className={`flex h-full flex-col ${mobile ? "p-6" : "p-4 md:p-6 lg:p-3"}`}>
     {/* Logo */}
     <div className="flex flex-col items-center gap-0 overflow-hidden ">
@@ -135,6 +127,7 @@ const SidebarContent = ({
 );
 
 const SidebarNavbar = () => {
+  const { profileData } = useUICacheStore();
   const pathname = usePathname();
   const router = useRouter();
   const { user, clearAuth } = useAuthStore();
@@ -201,8 +194,7 @@ const SidebarNavbar = () => {
     SALES: salesItems,
   };
 
-  const navItems =
-    user?.role && roleNavMap[user.role] ? roleNavMap[user.role] : customerItems;
+  const navItems = user?.role && roleNavMap[user.role] ? roleNavMap[user.role] : customerItems;
 
   return (
     <>

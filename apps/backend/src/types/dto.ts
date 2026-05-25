@@ -23,6 +23,7 @@ export interface AuthResult {
     email: string;
     role: UserRole;
     must_change_password?: boolean;
+    profile_image?: string | null;
   };
   accessToken: string;
   refreshToken: string;
