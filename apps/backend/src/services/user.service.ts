@@ -98,8 +98,8 @@ export class UserService {
     return EmployeeRepository.findAllAgents(postgresPool);
   }
 
-  static async listAllCustomers(page: number, limit: number): Promise<PaginatedResponse<any>> {
-    const { customers, total } = await CustomerRepository.findAll(postgresPool, page, limit);
+  static async listAllCustomers(page: number, limit: number, search?: string): Promise<PaginatedResponse<any>> {
+    const { customers, total } = await CustomerRepository.findAll(postgresPool, page, limit, search);
     return {
       customers,
       pagination: {
