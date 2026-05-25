@@ -114,7 +114,8 @@ export class UserController {
     try {
       const page = parseInt(req.query.page as unknown as string) || 1;
       const limit = parseInt(req.query.limit as unknown as string) || 10;
-      const data = await UserService.listAllCustomers(page, limit);
+      const search = (req.query.search as string) || undefined;
+      const data = await UserService.listAllCustomers(page, limit, search);
       return sendResponse({ res, data });
     } catch (error) {
       next(error);

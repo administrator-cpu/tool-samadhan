@@ -27,6 +27,9 @@ export default function CustomersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
   
   // Custom Delete Modal State
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -36,7 +39,7 @@ export default function CustomersPage() {
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/users/customers?page=${page}&limit=10`);
+      const res = await api.get(`/users/customers?page=${page}&limit=10${appliedSearchTerm ? `&search=${encodeURIComponent(appliedSearchTerm)}` : ''}`);
       setCustomers(res.data.customers);
       setTotalPages(res.data.pagination.pages);
       setTotalCount(res.data.pagination.total);
@@ -45,7 +48,7 @@ export default function CustomersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, appliedSearchTerm]);
 
   const openDeleteModal = (id: number) => {
     setCustomerToDelete(id);
@@ -116,17 +119,49 @@ export default function CustomersPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 font-heading">Customers</h1>
           <p className="text-slate-500 font-medium font-body">Manage registered customers and their accounts.</p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex h-12 items-center justify-center rounded-lg bg-emerald-700 px-8 text-sm font-bold tracking-wide text-white shadow-lg shadow-emerald-700/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800"
-        >
-          Add Customer
-        </button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              search
+            </span>
+            <input
+              type="text"
+              placeholder="Search by name, email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setPage(1);
+                  setAppliedSearchTerm(searchTerm);
+                }
+              }}
+              className="h-12 w-full sm:w-64 rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-900 focus:border-emerald-500 focus:outline-hidden focus:ring-4 focus:ring-emerald-500/10 transition-all"
+            />
+            {appliedSearchTerm && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setAppliedSearchTerm("");
+                  setPage(1);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex h-12 items-center justify-center rounded-lg bg-emerald-700 px-8 text-sm font-bold tracking-wide text-white shadow-lg shadow-emerald-700/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 shrink-0"
+          >
+            Add Customer
+          </button>
+        </div>
       </div>
 
       <div className="relative overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
