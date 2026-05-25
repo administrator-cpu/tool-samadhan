@@ -278,8 +278,9 @@ export class TicketService {
         }
 
         const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
+        const shouldSendEmail = dto.send_email !== false; // Default to true if undefined
         
-        if (info && actor && visibleToCustomer) {
+        if (info && actor && visibleToCustomer && shouldSendEmail) {
           // Fire-and-forget the email so it doesn't bottleneck the HTTP response
           sendTicketUpdateEmail({
              name: info.name,
