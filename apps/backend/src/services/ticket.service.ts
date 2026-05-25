@@ -263,6 +263,19 @@ export class TicketService {
       const isStaffReply = eventType === 'AGENT_REPLY' || eventType === 'ADMIN_REPLY';
       
       if (isStaffReply) {
+        if (ticket.status === 'OPEN') {
+          await TicketRepository.updateStatus(client, ticketId, 'IN_PROGRESS');
+          
+          // await TicketEventRepository.insertEvent(client, {
+          //   ticket_id: ticketId,
+          //   actor_user_id: actorUserId,
+          //   event_type: 'STATUS_CHANGE',
+          //   message: 'Ticket status changed to IN_PROGRESS',
+          //   metadata: { old_status: 'OPEN', new_status: 'IN_PROGRESS' },
+          //   visible_to_customer: true
+          // });
+        }
+
         const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
         
         if (info && actor && visibleToCustomer) {
