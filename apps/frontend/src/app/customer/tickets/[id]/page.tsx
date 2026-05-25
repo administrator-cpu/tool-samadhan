@@ -398,10 +398,11 @@ export default function TicketDetailPage() {
                   {selectedFiles.map((file, idx) => (
                     <div key={idx} className="relative group">
                       <div className="w-16 h-16 rounded-lg border border-slate-200 overflow-hidden bg-slate-50">
-                        <img 
+                        <Image 
                           src={URL.createObjectURL(file)} 
                           alt="preview" 
-                          className={`w-full h-full object-cover ${sending ? "opacity-50" : ""}`}
+                          width={64} height={64}
+                          className={`object-cover ${sending ? "opacity-50" : ""}`}
                           onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
                         />
                       </div>
