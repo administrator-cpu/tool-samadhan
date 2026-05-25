@@ -20,6 +20,7 @@ export const updateProfileSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().max(15).nullable().optional(),
   issueCategories: z.array(z.string()).optional(),
+  profile_image: z.string().url().nullable().optional(),
 });
 
 export const changePasswordSchema = z.object({

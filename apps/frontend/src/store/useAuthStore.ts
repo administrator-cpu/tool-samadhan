@@ -9,6 +9,7 @@ interface User {
   role: string;
   must_change_password?: boolean;
   specialties?: string[];
+  profile_image?: string | null;
 }
 
 interface AuthState {

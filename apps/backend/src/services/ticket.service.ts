@@ -209,7 +209,8 @@ export class TicketService {
           phone: ticketInfo.customer_phone
         },
         assigned_employee: ticketInfo.current_assigned_employee_id ? {
-          name: ticketInfo.assigned_employee_name
+          name: ticketInfo.assigned_employee_name,
+          profile_image: ticketInfo.assigned_employee_profile_image
         } : null
       };
 
