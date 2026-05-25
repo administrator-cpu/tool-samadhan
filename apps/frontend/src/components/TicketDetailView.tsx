@@ -449,7 +449,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                     key={idx}
                     onClick={() => setReplyMessage(msg)}
                     disabled={sending}
-                    className="text-left p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-200 transition-all group disabled:opacity-50"
+                    className="text-left p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-200 transition-all group disabled:opacity-50"
                   >
                     <p className="text-xs font-medium text-slate-600 line-clamp-3 group-hover:text-emerald-700">{msg}</p>
                   </button>
