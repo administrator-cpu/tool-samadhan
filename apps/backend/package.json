@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "argon2": "^0.44.0",
-    "bullmq": "^5.77.1",
+    "bullmq": "^5.77.3",
     "busboy": "^1.6.0",
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
