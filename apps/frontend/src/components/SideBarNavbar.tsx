@@ -98,8 +98,12 @@ const SidebarContent = ({
         href="/profile"
         className="group flex w-full items-center gap-3 rounded-lg px-1 py-3 transition-colors hover:bg-slate-50"
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-          <span className="material-symbols-outlined">person</span>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 overflow-hidden">
+          {user?.profile_image ? (
+            <img src={user.profile_image} alt="Profile" className="h-full w-full object-cover" />
+          ) : (
+            <span className="material-symbols-outlined">person</span>
+          )}
         </div>
         <div
           className={`${

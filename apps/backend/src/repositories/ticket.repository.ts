@@ -171,6 +171,7 @@ export class TicketRepository {
         cu.phone AS customer_phone,
         t.current_assigned_employee_id,
         eu.name AS assigned_employee_name,
+        eu.profile_image AS assigned_employee_profile_image,
         t.circuit_description,
         t.rca,
         t.problem_side,

@@ -180,6 +180,31 @@ export class UserController {
     }
   }
 
+  static async uploadProfileImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      // The profile-upload.middleware attaches the URL to req.body.profile_image
+      const profileImageUrl = req.body.profile_image;
+      if (!profileImageUrl) {
+        return sendResponse({ res, statusCode: 400, message: 'Upload failed' });
+      }
+      
+      const user = await UserService.updateUserProfile(req.user!.userId, { profile_image: profileImageUrl });
+      return sendResponse({ res, message: 'Profile image uploaded successfully', data: { user } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async removeProfileImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      // Set profile_image to null in DB
+      const user = await UserService.updateUserProfile(req.user!.userId, { profile_image: null });
+      return sendResponse({ res, message: 'Profile image removed successfully', data: { user } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getCurrentUser(req: Request, res: Response, next: NextFunction) {
     try {
       const user = await UserService.getCurrentUserDetails(req.user!.userId);

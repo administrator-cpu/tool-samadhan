@@ -41,6 +41,7 @@ interface TicketData {
     };
     assigned_employee: {
       name: string;
+      profile_image?: string | null;
     } | null;
     circuit_description: string | null;
     rca: string | null;
@@ -683,7 +684,15 @@ export default function TicketDetailPage() {
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Assigned Agent</p>
               <div className="flex items-center gap-3">
-                <Image src={AgentImage} alt="" width={36} height={36} className="rounded-full shadow-xs ring-2 ring-slate-100" />
+                {ticket.assigned_employee?.profile_image ? (
+                  <img 
+                    src={ticket.assigned_employee.profile_image} 
+                    alt="Agent" 
+                    className="w-9 h-9 object-cover rounded-full shadow-xs ring-2 ring-slate-100" 
+                  />
+                ) : (
+                  <Image src={AgentImage} alt="" width={36} height={36} className="rounded-full shadow-xs ring-2 ring-slate-100" />
+                )}
                 <div>
                   <p className="text-sm font-bold text-slate-900">{ticket.assigned_employee?.name || "Not Assigned"}</p>
                   <p className="text-[10px] font-medium text-slate-500">Support Specialist</p>

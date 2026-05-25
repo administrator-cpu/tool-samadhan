@@ -18,7 +18,7 @@ export class UserRepository {
   static async findById(client: PoolClient, userId: string): Promise<User | null> {
     const result = await client.query(
       `SELECT 
-        u.id, u.name, u.email, u.role, u.phone,
+        u.id, u.name, u.email, u.role, u.phone, u.profile_image,
         u.must_change_password, u.created_at, u.updated_at
        FROM users u
        WHERE u.id = $1
@@ -40,16 +40,17 @@ export class UserRepository {
   }
 
   static async update(client: PoolClient, userId: string, data: Partial<User>): Promise<User | null> {
-    const { name, email, phone } = data;
+    const { name, email, phone, profile_image } = data;
     const result = await client.query(
       `UPDATE users
        SET name = COALESCE($1, name),
            email = COALESCE($2, email),
            phone = $3,
+           profile_image = COALESCE($4, profile_image),
            updated_at = NOW()
-       WHERE id = $4
-       RETURNING id, name, email, role, phone`,
-      [name, email?.toLowerCase(), phone, userId]
+       WHERE id = $5
+       RETURNING id, name, email, role, phone, profile_image`,
+      [name, email?.toLowerCase(), phone, profile_image, userId]
     );
     return result.rowCount && result.rowCount > 0 ? (result.rows[0] as User) : null;
   }

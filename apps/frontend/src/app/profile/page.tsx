@@ -5,7 +5,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useUICacheStore } from "@/store/useUICacheStore";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { User, Mail, Loader2, LogOut, Phone } from "lucide-react";
+import { User, Mail, Loader2, LogOut, Phone, Camera, X } from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [updatingProfile, setUpdatingProfile] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (profileData?.user) {
@@ -73,6 +74,70 @@ export default function ProfilePage() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be smaller than 5MB");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("images", file);
+
+      const res = await api.post("/users/profile/image", formData);
+      
+      const newProfileImage = res.data.user.profile_image;
+      
+      // Update cache state
+      setProfileData({
+        ...profileData!,
+        user: { ...profileData!.user, profile_image: newProfileImage }
+      });
+
+      // Update auth store user details
+      const { setUser } = useAuthStore.getState();
+      if (profileData!.user) {
+        setUser({ ...profileData!.user, profile_image: newProfileImage });
+      }
+
+      toast.success("Profile image updated");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload image");
+    } finally {
+      setUploadingImage(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    setUploadingImage(true);
+    try {
+      await api.delete("/users/profile/image");
+      
+      // Update cache state
+      setProfileData({
+        ...profileData!,
+        user: { ...profileData!.user, profile_image: null }
+      });
+
+      // Update auth store user details
+      const { setUser } = useAuthStore.getState();
+      if (profileData!.user) {
+        setUser({ ...profileData!.user, profile_image: undefined });
+      }
+
+      toast.success("Profile image removed");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove image");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
@@ -100,11 +165,42 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center px-8 py-12 text-center">
             
             {/* Avatar */}
-            <div className="relative mb-6">
-              <div className="flex h-32 w-32 items-center justify-center rounded-full bg-slate-50 text-indigo-600 ring-8 ring-white shadow-xl">
-                <User size={56} strokeWidth={1.5} />
+            <div className="relative mb-6 group">
+              <div className="relative flex h-32 w-32 items-center justify-center rounded-full bg-slate-50 text-indigo-600 ring-8 ring-white shadow-xl overflow-hidden">
+                {uploadingImage ? (
+                  <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                ) : user.profile_image ? (
+                  <img src={user.profile_image} alt="Profile" className="h-full w-full object-cover" />
+                ) : (
+                  <User size={56} strokeWidth={1.5} />
+                )}
+
+                {/* Hover Overlay */}
+                <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
+                  <Camera size={24} />
+                  <span className="mt-1 text-xs font-medium">Change</span>
+                  <input 
+                    type="file" 
+                    accept="image/jpeg, image/png, image/webp" 
+                    className="hidden" 
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                  />
+                </label>
               </div>
-              <div className="absolute bottom-2 right-2 h-7 w-7 rounded-full border-4 border-white bg-emerald-500 shadow-sm" />
+
+              {/* Remove Image Button */}
+              {user.profile_image && !uploadingImage && (
+                <button
+                  onClick={handleRemoveImage}
+                  className="absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-white shadow-lg transition-transform hover:scale-110 hover:bg-red-500"
+                  title="Remove photo"
+                >
+                  <X size={14} strokeWidth={3} />
+                </button>
+              )}
+
+              <div className="absolute bottom-2 right-2 h-7 w-7 rounded-full border-4 border-white bg-emerald-500 shadow-sm pointer-events-none" />
             </div>
 
             {/* Name & Role */}
