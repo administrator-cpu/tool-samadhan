@@ -25,7 +25,7 @@ export const parseTicketEventUpload = async (req: Request, res: Response, next: 
   const attachments: string[] = [];
   
   // Pre-fetch ticket details to safely generate unique public_ids
-  let ticketNo = 'TKT';
+  let ticketNo = 'TCK';
   let sanitizedCustomerName = 'customer';
   
   try {
