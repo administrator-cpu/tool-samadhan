@@ -92,7 +92,7 @@ const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 overflow-hidden">
           {user?.profile_image ? (
-            <img src={user.profile_image} alt="Profile" className="h-full w-full object-cover" />
+            <Image src={user.profile_image} alt="Profile" width={50} height={50} className="object-cover" />
           ) : (
             <span className="material-symbols-outlined">person</span>
           )}
