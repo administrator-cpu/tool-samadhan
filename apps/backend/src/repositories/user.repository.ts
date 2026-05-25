@@ -6,7 +6,7 @@ export class UserRepository {
     const result = await client.query(
       `SELECT 
         u.id, u.name, u.email, u.password, u.role, u.phone,
-        u.must_change_password
+        u.must_change_password, u.profile_image
        FROM users u
        WHERE u.email = $1
        LIMIT 1`,

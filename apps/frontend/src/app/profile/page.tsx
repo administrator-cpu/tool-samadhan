@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { User, Mail, Loader2, LogOut, Phone, Camera, X } from "lucide-react";
 import Cropper from "react-easy-crop";
 import getCroppedImg from "@/lib/cropImage";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -188,32 +189,32 @@ export default function ProfilePage() {
   const { user, customer, employee } = profileData;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-20 antialiased">
+    <div className="min-h-screen bg-white pb-20 antialiased flex justify-center flex-col items-center">
       {/* Premium Header Banner */}
       <div className="h-64 w-full bg-slate-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-300/30 to-transparent" />
         <div className="absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
       </div>
 
       <div className="mx-auto -mt-32 max-w-2xl px-4 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-2xl shadow-slate-200/50">
+        <div className="overflow-hidden">
           
           {/* Main Profile Section */}
           <div className="flex flex-col items-center px-8 py-12 text-center">
             
             {/* Avatar */}
             <div className="relative mb-6 group">
-              <div className="relative flex h-32 w-32 items-center justify-center rounded-full bg-slate-50 text-indigo-600 ring-8 ring-white shadow-xl overflow-hidden">
+              <div className="relative flex h-42 w-42 items-center justify-center rounded-full bg-slate-50 text-indigo-600 ring-8 ring-white shadow-2xl overflow-hidden">
                 {uploadingImage ? (
                   <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
                 ) : user.profile_image ? (
-                  <img src={user.profile_image} alt="Profile" className="h-full w-full object-cover" />
+                  <Image src={user.profile_image} alt="Profile Image" fill className="object-cover" />
                 ) : (
                   <User size={56} strokeWidth={1.5} />
                 )}
 
                 {/* Hover Overlay */}
-                <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
+                {isEditing && ( <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
                   <Camera size={24} />
                   <span className="mt-1 text-xs font-medium">Change</span>
                   <input 
@@ -223,11 +224,11 @@ export default function ProfilePage() {
                     onChange={handleImageSelect}
                     disabled={uploadingImage}
                   />
-                </label>
+                </label>)}
               </div>
 
               {/* Remove Image Button */}
-              {user.profile_image && !uploadingImage && (
+              {user.profile_image && !uploadingImage && isEditing && (
                 <button
                   onClick={handleRemoveImage}
                   className="absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-white shadow-lg transition-transform hover:scale-110 hover:bg-red-500"
@@ -237,14 +238,13 @@ export default function ProfilePage() {
                 </button>
               )}
 
-              <div className="absolute bottom-2 right-2 h-7 w-7 rounded-full border-4 border-white bg-emerald-500 shadow-sm pointer-events-none" />
             </div>
 
             {/* Name & Role */}
             <div className="mb-10">
               <h2 className="text-3xl font-black tracking-tight text-slate-900">{user.name}</h2>
               <div className="mt-2 flex items-center justify-center gap-2">
-                <span className="rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 border border-indigo-100">
+                <span className="rounded-full bg-emerald-50 px-3 mt-2 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600 border border-emerald-200">
                   {user.role === 'USER' ? 'Customer' : user.role.replace('_', ' ')}
                 </span>
               </div>
@@ -296,7 +296,7 @@ export default function ProfilePage() {
                     setUpdatingProfile(false);
                   }
                 }}
-                className="w-full space-y-6 text-left border-t border-slate-50 pt-10"
+                className="min-w-[500px] space-y-6 text-left border-t border-slate-50 pt-10"
               >
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Full Name</label>
@@ -304,7 +304,7 @@ export default function ProfilePage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 outline-hidden transition-all"
+                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-hidden transition-all"
                     required
                   />
                 </div>
@@ -320,7 +320,7 @@ export default function ProfilePage() {
                       }
                     }}
                     placeholder="e.g. 1234567890"
-                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 outline-hidden transition-all"
+                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-hidden transition-all"
                   />
                 </div>
                 <div className="flex gap-4 pt-4">
@@ -377,7 +377,7 @@ export default function ProfilePage() {
               )}
               <button 
                 onClick={handleLogout}
-                className="group flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-red-100 text-sm font-bold text-red-600 transition-all hover:bg-red-200 active:scale-[0.98]"
+                className="group border border-red-200/50 flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-red-100 text-sm font-bold text-red-600 transition-all hover:bg-red-200 active:scale-[0.98]"
               >
                 <LogOut size={20} className="transition-transform group-hover:translate-x-1" />
                 Log Out
@@ -386,11 +386,11 @@ export default function ProfilePage() {
           </div>
 
           {/* Bottom Banner */}
-          <div className="bg-slate-50/50 px-8 py-4 text-center border-t border-slate-50">
+          {/* <div className="bg-slate-50/50 px-8 py-4 text-center border-t border-slate-50">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Samadhan Support System &copy; {new Date().getFullYear()}
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
       {/* Cropper Modal */}
@@ -462,8 +462,8 @@ export default function ProfilePage() {
 
 function ProfileDetail({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
   return (
-    <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
+    <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm ">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-100 ">
         {icon}
       </div>
       <div className="flex flex-col">
