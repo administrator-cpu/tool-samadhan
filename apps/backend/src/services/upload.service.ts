@@ -17,7 +17,7 @@ export class UploadService {
       const options: UploadApiOptions = {
         public_id: publicId,
         resource_type: 'image',
-        folder: 'samadhan_tickets', // Keep things organized
+        folder: 'samadhan_tickets',
       };
 
       const uploadStream = cloudinary.uploader.upload_stream(
