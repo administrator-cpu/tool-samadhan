@@ -9,6 +9,10 @@ const emeraldLayout = (title, content) => `
   </div>
 `;
 
+
+
+// ---Employee Templates---
+
 export const welcomeStaffTemplate = ( { name, email, password, role }: any) => ( {
   subject: "Welcome to Fab5 Support Team",
   html: emeraldLayout(
@@ -35,53 +39,6 @@ export const welcomeStaffTemplate = ( { name, email, password, role }: any) => (
       </div>
 
       <p style="font-size: 13px; color: #6b7280; margin-top: 20px;">Please change your password after your first login for security purposes.</p>
-      
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
-      </div>
-    `
-  )
-});
-
-export const welcomeCustomerTemplate = ( { name, email, password }: any) => ( {
-  subject: "Welcome to Fab5 Support Portal",
-  html: emeraldLayout(
-    "Account Created",
-    `
-      <p>Dear Customer,</p>
-      <p>An account has been created for you on the Fab5 Support Portal. You can now log in to raise support tickets and track their status in real-time.</p>
-      
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-          <tr>
-            <td style="color: #4b5563; padding-bottom: 6px;">Email Address: </td>
-            <td style="color: #1f2937; font-weight: 600; word-break: break-word; overflow-wrap: break-word; ">${email}</td>
-          </tr>
-          <tr>
-            <td style="color: #4b5563; padding-bottom: 6px;">Generated Password: </td>
-            <td style="color: #1f2937; font-weight: 600; font-family: monospace; word-break: break-all; overflow-wrap: anywhere;">${password}</td>
-          </tr>
-        </table>
-      </div>
-
-      <p style="font-size: 13px; color: #6b7280;">For security purposes, you will be required to change your password during your first login.</p>
-      
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
-      </div>
-    `
-  )
-});
-
-export const ticketCreatedTemplate = ( { ticketNo }: any) => ( {
-  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-  html: emeraldLayout(
-    "Complaint Registered",
-    `
-      <p>Dear Customer,</p>
-      <p>This is to acknowledge that your complaint has been successfully registered in our system. Your Ticket ID is <strong>${ticketNo}</strong>. Please refer to this ID for any future communication regarding your concern.</p>
-            
-      <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
@@ -118,23 +75,6 @@ export const ticketCreatedHelpdeskTemplate = ( { customerName, ticketNo, categor
           </tr>
         </table>
       </div>
-      
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
-      </div>
-    `
-  )
-});
-
-export const ticketAssignedCustomer2MinTemplate = ( { ticketNo }: any) => ( {
-  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-  html: emeraldLayout(
-    "Complaint Under Process",
-    `
-      <p>Dear Customer,</p>
-      <p>We would like to inform you that your complaint has been assigned to the concerned department for further investigation and necessary action.</p>
-            
-      <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
@@ -183,6 +123,74 @@ export const ticketAssignedToAgentTemplate = ( { ticketNo, customerName, agentNa
   )
 });
 
+
+
+// ---Customer Templates---
+
+export const welcomeCustomerTemplate = ( { name, email, password }: any) => ( {
+  subject: "Welcome to Fab5 Support Portal",
+  html: emeraldLayout(
+    "Account Created",
+    `
+      <p>Dear Customer,</p>
+      <p>An account has been created for you on the Fab5 Support Portal. You can now log in to raise support tickets and track their status in real-time.</p>
+      
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="color: #4b5563; padding-bottom: 6px;">Email Address: </td>
+            <td style="color: #1f2937; font-weight: 600; word-break: break-word; overflow-wrap: break-word; ">${email}</td>
+          </tr>
+          <tr>
+            <td style="color: #4b5563; padding-bottom: 6px;">Generated Password: </td>
+            <td style="color: #1f2937; font-weight: 600; font-family: monospace; word-break: break-all; overflow-wrap: anywhere;">${password}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="font-size: 13px; color: #6b7280;">For security purposes, you will be required to change your password during your first login.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+      </div>
+    `
+  )
+});
+
+export const ticketCreatedTemplate = ( { ticketNo }: any) => ( {
+  subject: `Fab5: Complaint Registered Successfully | Ticket ID: ${ticketNo}`,
+  html: emeraldLayout(
+    "Complaint Registered",
+    `
+      <p>Dear Customer,</p>
+      <p>This is to acknowledge that your complaint has been successfully registered in our system. Your Ticket ID is <strong>${ticketNo}</strong>. Please refer to this ID for any future communication regarding your concern.</p>
+            
+      <p>Thank you for your patience and cooperation.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+      </div>
+    `
+  )
+});
+
+export const ticketAssignedCustomer2MinTemplate = ( { ticketNo }: any) => ( {
+  subject: `Fab5: Complaint Assigned for Investigation | Ticket ID: ${ticketNo}`,
+  html: emeraldLayout(
+    "Complaint Under Process",
+    `
+      <p>Dear Customer,</p>
+      <p>We would like to inform you that your complaint has been assigned to the concerned department for further investigation and necessary action.</p>
+            
+      <p>Thank you for your patience and cooperation.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+      </div>
+    `
+  )
+});
+
 export const ticketTroubleshootingCustomer15MinTemplate = ( { ticketNo }: any) => ( {
   subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
   html: emeraldLayout(
@@ -199,6 +207,81 @@ export const ticketTroubleshootingCustomer15MinTemplate = ( { ticketNo }: any) =
     `
   )
 });
+
+export const mediaOutage45MinTemplate = ( { ticketNo }: any) => ( {
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+  html: emeraldLayout(
+    "Media Outage",
+    `
+      <p>Dear Customer,</p>
+      <p>We regret to inform you that the link is currently affected due to an outage in Bharti media. Our team is actively coordinating with the concerned team to expedite the restoration of services. The Estimated Restoration Time is 4hrs.</p>
+            
+      <p>Thank you for your patience and cooperation.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+      </div>
+    `
+  )
+});
+
+export const ticketUpdateByStaffTemplate = ( { ticketNo, agentName, message }: any) => ( {
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+  html: emeraldLayout(
+    "New Message Received",
+    `
+      <p>Dear Customer,</p>
+      <p>Our support specialist, <strong>${agentName}</strong>, has provided an update on your ticket:</p>
+      
+      <div style="background-color: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 20px 0; border-radius: 4px; font-style: italic;">
+        "${message}"
+      </div>
+            
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+      </div>
+    `
+  )
+});
+
+export const ticketStatusUpdateTemplate = ( { ticketNo, status, updateType }: any) => {
+  if (updateType === "CLOSED" || status === "RESOLVED" || status === "CLOSED") {
+    return ticketResolvedTemplate( { ticketNo });
+  }
+
+  const config = {
+    REOPENED: {
+      title: "Complaint Reopened",
+      subject: `Fab5: Your Complaint Has Been Reopened | Ticket ID: ${ticketNo}`,
+      message: `Your ticket has been reopened. Our support team has been notified and will prioritize your request for further assistance.`
+    },
+    ESCALATED: {
+      title: "Complaint Escalated",
+      subject: `Fab5: Your Complaint Has Been Escalated | Ticket ID: ${ticketNo}`,
+      message: `Your ticket has been escalated to our senior support management. We are dedicating extra resources to ensure a swift resolution.`
+    }
+  }[updateType as any] || {
+    title: "Complaint Updated",
+    subject: `Fab5: Status Update for Your Ticket | Ticket ID: ${ticketNo}`,
+    message: `Your ticket status has been updated to ${status.replace('_', ' ')}.`
+  };
+
+  return {
+    subject: config.subject,
+    html: emeraldLayout(
+      config.title,
+      `
+        <p>Dear Customer,</p>
+        <p>${config.message}</p>
+                
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        </div>
+      `
+    )
+  };
+};
+
 
 export const ticketResolvedTemplate = ( { ticketNo }: any) => ( {
   subject: `Fab5: Ticket ID – ${ticketNo} – Resolved`,
@@ -237,24 +320,8 @@ export const ticketRcaTemplate = ( { ticketNo, rca }: any) => ( {
   )
 });
 
-export const ticketUpdateByStaffTemplate = ( { ticketNo, agentName, message }: any) => ( {
-  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-  html: emeraldLayout(
-    "New Message Received",
-    `
-      <p>Dear Customer,</p>
-      <p>Our support specialist, <strong>${agentName}</strong>, has provided an update on your ticket:</p>
-      
-      <div style="background-color: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 20px 0; border-radius: 4px; font-style: italic;">
-        "${message}"
-      </div>
-            
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
-      </div>
-    `
-  )
-});
+
+
 
 export const passwordResetOtpTemplate = ( { name, otpCode }: any) => ( {
   subject: "Fab5 - Password Reset Verification",
@@ -278,74 +345,3 @@ export const passwordResetOtpTemplate = ( { name, otpCode }: any) => ( {
   )
 });
 
-export const ticketStatusUpdateTemplate = ( { ticketNo, status, updateType }: any) => {
-  if (updateType === "CLOSED" || status === "RESOLVED" || status === "CLOSED") {
-    return ticketResolvedTemplate( { ticketNo });
-  }
-
-  const config = {
-    REOPENED: {
-      title: "Complaint Reopened",
-      subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-      message: `Your ticket has been reopened. Our support team has been notified and will prioritize your request for further assistance.`
-    },
-    ESCALATED: {
-      title: "Complaint Escalated",
-      subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-      message: `Your ticket has been escalated to our senior support management. We are dedicating extra resources to ensure a swift resolution.`
-    }
-  }[updateType as any] || {
-    title: "Complaint Updated",
-    subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-    message: `Your ticket status has been updated to ${status.replace('_', ' ')}.`
-  };
-
-  return {
-    subject: config.subject,
-    html: emeraldLayout(
-      config.title,
-      `
-        <p>Dear Customer,</p>
-        <p>${config.message}</p>
-                
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-          <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
-        </div>
-      `
-    )
-  };
-};
-
-export const troubleshootingUpdateTemplate = ( { ticketNo }: any) => ( {
-  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-  html: emeraldLayout(
-    "Troubleshooting in Progress",
-    `
-      <p>Dear Customer,</p>
-      <p>To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.</p>
-            
-      <p>Thank you for your patience and cooperation.</p>
-      
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
-      </div>
-    `
-  )
-});
-
-export const longDelayUpdateTemplate = ( { ticketNo }: any) => ( {
-  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
-  html: emeraldLayout(
-    "Media Outage",
-    `
-      <p>Dear Customer,</p>
-      <p>We regret to inform you that the link is currently affected due to an outage in Bharti media. Our team is actively coordinating with the concerned team to expedite the restoration of services. The Estimated Restoration Time is 4hrs.</p>
-            
-      <p>Thank you for your patience and cooperation.</p>
-      
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
-      </div>
-    `
-  )
-});

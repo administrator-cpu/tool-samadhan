@@ -2,37 +2,27 @@ import { env } from '../config/environment.js';
 import { logger } from '../lib/logger.js';
 import {
   welcomeStaffTemplate,
+  ticketAssignedToAgentTemplate,
+  ticketCreatedHelpdeskTemplate,
+
   welcomeCustomerTemplate,
   ticketCreatedTemplate,
-  ticketCreatedHelpdeskTemplate,
   ticketAssignedCustomer2MinTemplate,
-  ticketAssignedToAgentTemplate,
-  ticketRcaTemplate,
+  ticketTroubleshootingCustomer15MinTemplate,
+  mediaOutage45MinTemplate,
   ticketUpdateByStaffTemplate,
-  passwordResetOtpTemplate,
   ticketStatusUpdateTemplate,
-  troubleshootingUpdateTemplate,
-  longDelayUpdateTemplate,
+  ticketRcaTemplate,
+  
+  passwordResetOtpTemplate,
 } from './email-templates.js';
 
-const sendEmail = async ({
-  toEmail,
-  toName,
-  subject,
-  htmlContent,
-  ccEmail,
-}: {
-  toEmail: string;
-  toName: string;
-  subject: string;
-  htmlContent: string;
-  ccEmail?: string;
-}) => {
+const sendEmail = async ({ toEmail, toName, subject, htmlContent, ccEmail }: { toEmail: string; toName: string; subject: string; htmlContent: string; ccEmail?: string; }) => {
   const { serviceId, templateId, publicKey, privateKey } = env.emailjs;
 
   if (!serviceId || !templateId || !publicKey || !privateKey) {
-    logger.warn('[EMAIL-SERVICE] Missing EmailJS credentials. Both Public and Private keys are required.');
-    logger.debug(`Email would have been sent to ${toEmail}${ccEmail ? ` (CC: ${ccEmail})` : ''} with subject: ${subject}`);
+    logger.warn('[EMAIL-SERVICE] Missing EmailJS credentials.');
+    logger.debug(`Email delivery skipped. Intended recipient: ${toEmail}${ccEmail ? ` (CC: ${ccEmail})` : ''}, subject: "${subject}".`);
     return;
   }
 
@@ -69,18 +59,9 @@ const sendEmail = async ({
   }
 };
 
+// --- Employee Email ---
 export const sendStaffWelcomeEmail = async ({ name, email, password, role }: any) => {
   const { subject, html } = welcomeStaffTemplate({ name, email, password, role });
-  await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
-};
-
-export const sendCustomerWelcomeEmail = async ({ name, email, password }: any) => {
-  const { subject, html } = welcomeCustomerTemplate({ name, email, password });
-  await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
-};
-
-export const sendTicketConfirmationEmail = async ({ name, email, ticketNo }: any) => {
-  const { subject, html } = ticketCreatedTemplate({ ticketNo });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
 };
 
@@ -94,19 +75,7 @@ export const sendTicketCreatedHelpdeskEmail = async ({ customerName, ticketNo, c
   });
 };
 
-export const sendCustomerAssignment2MinEmail = async ({ name, email, ticketNo }: any) => {
-  const { subject, html } = ticketAssignedCustomer2MinTemplate({ ticketNo });
-  await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
-};
-
-export const sendImmediateAgentAssignmentEmails = async ({
-  customerName,
-  agentName,
-  agentEmail,
-  ticketNo,
-  category,
-  circuitId,
-}: any) => {
+export const sendImmediateAgentAssignmentEmails = async ({ customerName, agentName, agentEmail, ticketNo, category, circuitId }: any) => {
   const { subject, html } = ticketAssignedToAgentTemplate({
     ticketNo,
     customerName,
@@ -123,23 +92,31 @@ export const sendImmediateAgentAssignmentEmails = async ({
   });
 };
 
-export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, status, updateType }: any) => {
-  const { subject, html } = ticketStatusUpdateTemplate({ ticketNo, customerName: name, status, updateType });
+
+
+// --- Customer Email ---
+export const sendCustomerWelcomeEmail = async ({ name, email, password }: any) => {
+  const { subject, html } = welcomeCustomerTemplate({ name, email, password });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
 };
 
-export const sendPasswordResetEmail = async ({ name, email, otpCode }: any) => {
-  const { subject, html } = passwordResetOtpTemplate({ name, otpCode });
+export const sendTicketConfirmationEmail = async ({ name, email, ticketNo }: any) => {
+  const { subject, html } = ticketCreatedTemplate({ ticketNo });
+  await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+};
+
+export const sendCustomerAssignment2MinEmail = async ({ name, email, ticketNo }: any) => {
+  const { subject, html } = ticketAssignedCustomer2MinTemplate({ ticketNo });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
 };
 
 export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo }: any) => {
-  const { subject, html } = troubleshootingUpdateTemplate({ ticketNo });
+  const { subject, html } = ticketTroubleshootingCustomer15MinTemplate({ ticketNo });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
 };
 
 export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo }: any) => {
-  const { subject, html } = longDelayUpdateTemplate({ ticketNo });
+  const { subject, html } = mediaOutage45MinTemplate({ ticketNo });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
 };
 
@@ -148,7 +125,20 @@ export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, 
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
 };
 
+export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, status, updateType }: any) => {
+  const { subject, html } = ticketStatusUpdateTemplate({ ticketNo, customerName: name, status, updateType });
+  await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+};
+
 export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca }: any) => {
   const { subject, html } = ticketRcaTemplate({ ticketNo, rca });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
 };
+
+
+
+export const sendPasswordResetEmail = async ({ name, email, otpCode }: any) => {
+  const { subject, html } = passwordResetOtpTemplate({ name, otpCode });
+  await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+};
+
