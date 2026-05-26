@@ -73,7 +73,7 @@ export const createTicketTable = async () => {
         circuit_description TEXT NULL,
  
         problem_side VARCHAR(100) NULL,
-        external_ticket_no VARCHAR(100) NULL,
+        telco_sr_number VARCHAR(100) NULL,
         alternate_email VARCHAR(255) NULL,
  
         rca TEXT NULL,

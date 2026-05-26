@@ -50,7 +50,7 @@ export interface Ticket {
   closed_at: Date | null;
   circuit_description: string | null;
   problem_side: string | null;
-  external_ticket_no: string | null;
+  telco_sr_number: string | null;
   rca: string | null;
   rating: number | null;
   rating_feedback: string | null;

@@ -157,8 +157,8 @@ export const welcomeCustomerTemplate = ( { name, email, password }: any) => ( {
   )
 });
 
-export const ticketCreatedTemplate = ( { ticketNo }: any) => ( {
-  subject: `Fab5: Complaint Registered Successfully | Ticket ID: ${ticketNo}`,
+export const ticketCreatedTemplate = ( { ticketNo, circuitId }: any) => ( {
+  subject: `Fab5: Complaint Registered Successfully | Ticket ID: ${ticketNo}${circuitId ? ` | Circuit ID: ${circuitId}` : ''}`,
   html: emeraldLayout(
     "Complaint Registered",
     `
@@ -174,8 +174,8 @@ export const ticketCreatedTemplate = ( { ticketNo }: any) => ( {
   )
 });
 
-export const ticketAssignedCustomer2MinTemplate = ( { ticketNo }: any) => ( {
-  subject: `Fab5: Complaint Assigned for Investigation | Ticket ID: ${ticketNo}`,
+export const ticketAssignedCustomer2MinTemplate = ( { ticketNo, circuitId }: any) => ( {
+  subject: `Fab5: Complaint Assigned for Investigation | Ticket ID: ${ticketNo}${circuitId ? ` | Circuit ID: ${circuitId}` : ''}`,
   html: emeraldLayout(
     "Complaint Under Process",
     `
@@ -191,8 +191,8 @@ export const ticketAssignedCustomer2MinTemplate = ( { ticketNo }: any) => ( {
   )
 });
 
-export const ticketTroubleshootingCustomer15MinTemplate = ( { ticketNo }: any) => ( {
-  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+export const ticketTroubleshootingCustomer15MinTemplate = ( { ticketNo, circuitId }: any) => ( {
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}${circuitId ? ` | Circuit ID: ${circuitId}` : ''}`,
   html: emeraldLayout(
     "Troubleshooting in Progress",
     `
@@ -208,8 +208,8 @@ export const ticketTroubleshootingCustomer15MinTemplate = ( { ticketNo }: any) =
   )
 });
 
-export const mediaOutage45MinTemplate = ( { ticketNo }: any) => ( {
-  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+export const mediaOutage45MinTemplate = ( { ticketNo, circuitId }: any) => ( {
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}${circuitId ? ` | Circuit ID: ${circuitId}` : ''}`,
   html: emeraldLayout(
     "Media Outage",
     `
@@ -225,8 +225,8 @@ export const mediaOutage45MinTemplate = ( { ticketNo }: any) => ( {
   )
 });
 
-export const ticketUpdateByStaffTemplate = ( { ticketNo, agentName, message }: any) => ( {
-  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}`,
+export const ticketUpdateByStaffTemplate = ( { ticketNo, agentName, message, circuitId }: any) => ( {
+  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}${circuitId ? ` | Circuit ID: ${circuitId}` : ''}`,
   html: emeraldLayout(
     "New Message Received",
     `
@@ -244,25 +244,25 @@ export const ticketUpdateByStaffTemplate = ( { ticketNo, agentName, message }: a
   )
 });
 
-export const ticketStatusUpdateTemplate = ( { ticketNo, status, updateType }: any) => {
+export const ticketStatusUpdateTemplate = ( { ticketNo, status, updateType, circuitId }: any) => {
   if (updateType === "CLOSED" || status === "RESOLVED" || status === "CLOSED") {
-    return ticketResolvedTemplate( { ticketNo });
+    return ticketResolvedTemplate( { ticketNo, circuitId });
   }
 
   const config = {
     REOPENED: {
       title: "Complaint Reopened",
-      subject: `Fab5: Your Complaint Has Been Reopened | Ticket ID: ${ticketNo}`,
+      subject: `Fab5: Your Complaint Has Been Reopened | Ticket ID: ${ticketNo}${circuitId ? ` | Circuit ID: ${circuitId}` : ''}`,
       message: `Your ticket has been reopened. Our support team has been notified and will prioritize your request for further assistance.`
     },
     ESCALATED: {
       title: "Complaint Escalated",
-      subject: `Fab5: Your Complaint Has Been Escalated | Ticket ID: ${ticketNo}`,
+      subject: `Fab5: Your Complaint Has Been Escalated | Ticket ID: ${ticketNo}${circuitId ? ` | Circuit ID: ${circuitId}` : ''}`,
       message: `Your ticket has been escalated to our senior support management. We are dedicating extra resources to ensure a swift resolution.`
     }
   }[updateType as any] || {
     title: "Complaint Updated",
-    subject: `Fab5: Status Update for Your Ticket | Ticket ID: ${ticketNo}`,
+    subject: `Fab5: Status Update for Your Ticket | Ticket ID: ${ticketNo}${circuitId ? ` | Circuit ID: ${circuitId}` : ''}`,
     message: `Your ticket status has been updated to ${status.replace('_', ' ')}.`
   };
 
@@ -283,8 +283,8 @@ export const ticketStatusUpdateTemplate = ( { ticketNo, status, updateType }: an
 };
 
 
-export const ticketResolvedTemplate = ( { ticketNo }: any) => ( {
-  subject: `Fab5: Ticket ID – ${ticketNo} – Resolved`,
+export const ticketResolvedTemplate = ( { ticketNo, circuitId }: any) => ( {
+  subject: `Fab5: Ticket ID – ${ticketNo} – Resolved${circuitId ? ` | Circuit ID: ${circuitId}` : ''}`,
   html: emeraldLayout(
     "Complaint Resolved",
     `
@@ -299,8 +299,8 @@ export const ticketResolvedTemplate = ( { ticketNo }: any) => ( {
   )
 });
 
-export const ticketRcaTemplate = ( { ticketNo, rca }: any) => ( {
-  subject: `Fab5: Root Cause Analysis - Ticket ID ${ticketNo}`,
+export const ticketRcaTemplate = ( { ticketNo, rca, circuitId }: any) => ( {
+  subject: `Fab5: Root Cause Analysis - Ticket ID ${ticketNo}${circuitId ? ` | Circuit ID: ${circuitId}` : ''}`,
   html: emeraldLayout(
     "Root Cause Analysis Update",
     `

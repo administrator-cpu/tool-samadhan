@@ -48,6 +48,7 @@ export const ticketAutomationWorker = new Worker(
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              circuitId: ticketInfo.circuit_description
             });
             await AutomatedEmailLogRepository.logEmailSent(postgresPool, ticketId, jobName);
           }
@@ -59,6 +60,7 @@ export const ticketAutomationWorker = new Worker(
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              circuitId: ticketInfo.circuit_description
             });
             await AutomatedEmailLogRepository.logEmailSent(postgresPool, ticketId, jobName);
           }
@@ -75,6 +77,7 @@ export const ticketAutomationWorker = new Worker(
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              circuitId: ticketInfo.circuit_description
             });
             await AutomatedEmailLogRepository.logEmailSent(postgresPool, ticketId, jobName);
           }

@@ -46,7 +46,7 @@ interface TicketData {
     rca: string | null;
     rca_images?: string[];
     problem_side: string | null;
-    external_ticket_no: string | null;
+    telco_sr_number: string | null;
     rating: number | null;
     rating_feedback: string | null;
     allow_customer_reply: boolean;
@@ -806,7 +806,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                 <ProviderOutageTracker
                   ticketId={ticket.id}
                   problemSide={ticket.problem_side}
-                  externalTicketNo={ticket.external_ticket_no}
+                  externalTicketNo={ticket.telco_sr_number}
                   onUpdate={() => {
                     fetchTicket();
                   }}
