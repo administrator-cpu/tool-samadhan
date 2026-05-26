@@ -1,8 +1,9 @@
 import { format } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import FAB5Logo from "@/assets/FAB5-logo.webp";
 import Image from "next/image";
+import Lightbox from "@/components/Lightbox";
 
 interface TicketEvent {
   id: number;
@@ -22,20 +23,7 @@ export default function Timeline({ events }: TimelineProps) {
   const isEmployee = !!user && user.role !== "USER";
   const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!lightboxData) return;
-      if (e.key === "ArrowRight") {
-        setLightboxData(prev => prev ? { ...prev, currentIndex: (prev.currentIndex + 1) % prev.images.length } : null);
-      } else if (e.key === "ArrowLeft") {
-        setLightboxData(prev => prev ? { ...prev, currentIndex: (prev.currentIndex - 1 + prev.images.length) % prev.images.length } : null);
-      } else if (e.key === "Escape") {
-        setLightboxData(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxData]);
+
 
   const visibleEvents = events.filter(e => e.event_type !== "TICKET_RCA_UPDATED");
 
@@ -252,59 +240,11 @@ export default function Timeline({ events }: TimelineProps) {
       </div>
 
       {lightboxData && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
-          onClick={() => setLightboxData(null)}
-        >
-          <div className="relative max-w-7xl w-full h-full flex items-center justify-center animate-in zoom-in-95 duration-200">
-            <button 
-              className="absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10"
-              onClick={(e) => { e.stopPropagation(); setLightboxData(null); }}
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-            
-            {lightboxData.images.length > 1 && (
-              <button 
-                className="absolute left-4 md:left-8 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10"
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  setLightboxData(prev => prev ? { ...prev, currentIndex: (prev.currentIndex - 1 + prev.images.length) % prev.images.length } : null); 
-                }}
-              >
-                <span className="material-symbols-outlined">chevron_left</span>
-              </button>
-            )}
-
-            <div className="relative w-[90vw] h-[85vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-              <Image 
-                src={lightboxData.images[lightboxData.currentIndex]} 
-                alt={`Enlarged attachment ${lightboxData.currentIndex + 1}`} 
-                fill
-                className="object-contain" 
-                sizes="100vw"
-              />
-            </div>
-
-            {lightboxData.images.length > 1 && (
-              <button 
-                className="absolute right-4 md:right-8 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10"
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  setLightboxData(prev => prev ? { ...prev, currentIndex: (prev.currentIndex + 1) % prev.images.length } : null); 
-                }}
-              >
-                <span className="material-symbols-outlined">chevron_right</span>
-              </button>
-            )}
-
-            {lightboxData.images.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium z-10">
-                {lightboxData.currentIndex + 1} / {lightboxData.images.length}
-              </div>
-            )}
-          </div>
-        </div>
+        <Lightbox
+          images={lightboxData.images}
+          initialIndex={lightboxData.currentIndex}
+          onClose={() => setLightboxData(null)}
+        />
       )}
     </section>
   );
