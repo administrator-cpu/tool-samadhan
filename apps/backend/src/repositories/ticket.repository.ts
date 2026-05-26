@@ -11,6 +11,7 @@ export class TicketRepository {
       assignedEmployeeId: string | null;
       issueCategoryId: string;
       circuitDescription: string;
+      alternateEmail?: string;
     }
   ): Promise<Ticket> {
     const result = await client.query(
@@ -20,16 +21,18 @@ export class TicketRepository {
         current_assigned_employee_id,
         primary_issue_category_id,
         status,
-        circuit_description
+        circuit_description,
+        alternate_email
       )
-      VALUES ($1, $2, $3, $4, 'OPEN', $5)
-      RETURNING id, ticket_no, customer_id, created_by_user_id, current_assigned_employee_id, primary_issue_category_id, status, circuit_description, created_at, updated_at, resolved_at, closed_at`,
+      VALUES ($1, $2, $3, $4, 'OPEN', $5, $6)
+      RETURNING id, ticket_no, customer_id, created_by_user_id, current_assigned_employee_id, primary_issue_category_id, status, circuit_description, alternate_email, created_at, updated_at, resolved_at, closed_at`,
       [
         data.customerId,
         data.createdByUserId,
         data.assignedEmployeeId,
         data.issueCategoryId,
         data.circuitDescription,
+        data.alternateEmail || null,
       ]
     );
     return result.rows[0] as Ticket;
@@ -37,7 +40,7 @@ export class TicketRepository {
 
   static async findByIdForUpdate(client: PoolClient, ticketId: string): Promise<Ticket | null> {
     const result = await client.query(
-      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, problem_side, external_ticket_no
+      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, problem_side, external_ticket_no, alternate_email
        FROM tickets
        WHERE id = $1
        FOR UPDATE`,
@@ -48,7 +51,7 @@ export class TicketRepository {
 
   static async findById(poolOrClient: Pool | PoolClient, ticketId: string): Promise<Ticket | null> {
     const result = await poolOrClient.query(
-      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, problem_side, external_ticket_no, circuit_description
+      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, problem_side, external_ticket_no, circuit_description, alternate_email
        FROM tickets
        WHERE id = $1`,
       [ticketId]
@@ -58,7 +61,7 @@ export class TicketRepository {
 
   static async getCustomerContactInfo(poolOrClient: Pool | PoolClient, ticketId: string) {
     const result = await poolOrClient.query(
-      `SELECT u.name, u.email, t.ticket_no, c.customer_id, ic.name as category, te.message, t.circuit_description
+      `SELECT u.name, u.email, t.ticket_no, c.customer_id, ic.name as category, te.message, t.circuit_description, t.alternate_email
        FROM tickets t
        JOIN customers c ON c.id = t.customer_id
        JOIN users u ON u.id = c.user_id
@@ -178,6 +181,7 @@ export class TicketRepository {
         t.external_ticket_no,
         t.rating,
         t.rating_feedback,
+        t.alternate_email,
         t.allow_customer_reply
       FROM tickets t
       JOIN customers c ON c.id = t.customer_id

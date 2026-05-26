@@ -7,6 +7,7 @@ export const createTicketSchema = z.object({
   issueCategoryId: z.string(),
   circuitDescription: z.string(),
   message: z.string().optional(),
+  alternateEmail: z.string().email().optional(),
 });
 
 const statusEnum = z.enum(['OPEN', 'IN_PROGRESS', 'ESCALATED', 'RESOLVED', 'CLOSED', 'REOPENED']);

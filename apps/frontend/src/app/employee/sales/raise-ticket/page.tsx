@@ -16,6 +16,7 @@ export default function SalesCreateTicketPage() {
     categoryId: "",
     description: "",
     circuitDescription: "",
+    alternateEmail: "",
   });
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export default function SalesCreateTicketPage() {
         message: formData.description,
         circuitDescription: formData.circuitDescription,
         issueCategoryId: selectedCategory.id,
+        alternateEmail: formData.alternateEmail.trim() || undefined,
       });
       
       toast.success("Ticket raised successfully for customer!");
@@ -104,6 +106,22 @@ export default function SalesCreateTicketPage() {
                 onChange={handleChange}
                 placeholder="customer@example.com"
                 required
+                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+              />
+            </div>
+
+            {/* Alternate Email */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="alternateEmail" className="text-sm font-bold text-slate-700">
+                Alternate Email <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="email"
+                id="alternateEmail"
+                name="alternateEmail"
+                value={formData.alternateEmail}
+                onChange={handleChange}
+                placeholder="secondary@example.com"
                 className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
               />
             </div>
