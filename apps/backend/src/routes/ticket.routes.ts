@@ -37,6 +37,7 @@ router.patch(
 router.patch(
   '/:id/rca',
   requireRole([UserRole.SUPPORT_AGENT, UserRole.ADMIN]),
+  parseTicketEventUpload,
   validateUpdateRca,
   TicketController.updateTicketRca
 );

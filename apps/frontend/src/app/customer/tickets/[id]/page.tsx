@@ -20,6 +20,7 @@ interface Ticket {
   subject: string;
   circuit_description: string | null;
   rca: string | null;
+  rca_images?: string[];
   created_at: string;
   updated_at: string;
   closed_at: string | null;
@@ -88,6 +89,7 @@ export default function TicketDetailPage() {
   const [replyMessage, setReplyMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const statusConfig = ticket ? getStatusBadgeConfig(ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
@@ -147,7 +149,7 @@ export default function TicketDetailPage() {
       } else if (data.type === "TICKET_RCA_UPDATED") {
         setTicket((prev) => {
           if (!prev) return null;
-          return { ...prev, rca: data.rca };
+          return { ...prev, rca: data.rca, rca_images: data.rca_images };
         });
         toast.success("Root Cause Analysis (RCA) report has been updated!");
       } else if (data.type === "TICKET_RATING_UPDATED") {
@@ -457,7 +459,7 @@ export default function TicketDetailPage() {
             </div>
           )}
 
-          {ticket.rca && (
+          {["RESOLVED", "CLOSED"].includes(ticket.status) && ticket.rca && (
             <div className="mt-0 mb-6 rounded-lg border border-emerald-100 bg-emerald-50/30 p-6 shadow-xs backdrop-blur-xs shrink-0">
               <div className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-2xl font-bold text-emerald-500">verified</span>
@@ -475,6 +477,20 @@ export default function TicketDetailPage() {
                     <p className="whitespace-pre-line text-sm font-medium text-slate-800 leading-relaxed">
                       {ticket.rca}
                     </p>
+                    {ticket.rca_images && ticket.rca_images.length > 0 && (
+                      <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-2">
+                        {ticket.rca_images.map((img, idx) => (
+                          <button 
+                            key={idx} 
+                            onClick={() => setLightboxData({ images: ticket.rca_images!, currentIndex: idx })} 
+                            type="button" 
+                            className="relative aspect-square rounded-lg border border-slate-200 overflow-hidden shadow-xs hover:opacity-90 hover:scale-[1.02] transition-all bg-slate-100 cursor-zoom-in"
+                          >
+                            <Image src={img} alt={`RCA Image ${idx + 1}`} fill className="object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     {ticket.resolved_at && (
                       <span className="flex justify-end text-[11px] font-bold text-emerald-700/80">
                         Resolved on {format(new Date(ticket.resolved_at), "MMM d, yyyy, h:mm a")}
@@ -497,6 +513,62 @@ export default function TicketDetailPage() {
             />
           )}
         </section>
+
+        {lightboxData && (
+          <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setLightboxData(null)}
+          >
+            <div className="relative max-w-7xl w-full h-full flex items-center justify-center animate-in zoom-in-95 duration-200">
+              <button 
+                className="absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10"
+                onClick={(e) => { e.stopPropagation(); setLightboxData(null); }}
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+              
+              {lightboxData.images.length > 1 && (
+                <button 
+                  className="absolute left-4 md:left-8 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10"
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    setLightboxData(prev => prev ? { ...prev, currentIndex: (prev.currentIndex - 1 + prev.images.length) % prev.images.length } : null); 
+                  }}
+                >
+                  <span className="material-symbols-outlined">chevron_left</span>
+                </button>
+              )}
+
+              <div className="relative w-[90vw] h-[85vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                <Image 
+                  src={lightboxData.images[lightboxData.currentIndex]} 
+                  alt={`Enlarged attachment ${lightboxData.currentIndex + 1}`} 
+                  fill
+                  className="object-contain" 
+                  sizes="100vw"
+                />
+              </div>
+
+              {lightboxData.images.length > 1 && (
+                <button 
+                  className="absolute right-4 md:right-8 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10"
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    setLightboxData(prev => prev ? { ...prev, currentIndex: (prev.currentIndex + 1) % prev.images.length } : null); 
+                  }}
+                >
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </button>
+              )}
+
+              {lightboxData.images.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium z-10">
+                  {lightboxData.currentIndex + 1} / {lightboxData.images.length}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="hidden lg:block w-[300px] xl:w-[340px] shrink-0 p-6 bg-surface border-l border-gray-100 overflow-y-auto">
           {/* Status Stepper */}

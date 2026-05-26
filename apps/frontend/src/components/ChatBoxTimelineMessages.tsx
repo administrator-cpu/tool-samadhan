@@ -37,7 +37,7 @@ export default function Timeline({ events }: TimelineProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [lightboxData]);
 
-  const visibleEvents = events;
+  const visibleEvents = events.filter(e => e.event_type !== "TICKET_RCA_UPDATED");
 
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -215,6 +215,12 @@ export default function Timeline({ events }: TimelineProps) {
                                 <p className="text-[15px] leading-relaxed font-body font-medium whitespace-pre-wrap">
                                   {event.message}
                                 </p>
+                                {event.event_type === "TICKET_RCA_UPDATED" && event.metadata?.rca && (
+                                  <div className="mt-2 p-3 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700 whitespace-pre-wrap font-medium">
+                                    <div className="font-bold text-xs uppercase text-slate-400 tracking-wider mb-1">RCA Details</div>
+                                    {event.metadata.rca}
+                                  </div>
+                                )}
                               </div>
                             )}
 

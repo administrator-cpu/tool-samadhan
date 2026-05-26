@@ -364,7 +364,7 @@ export class TicketService {
     return result.updatedTicket;
   }
 
-  static async updateTicketRca(ticketId: string, rca: string, actorUserId: string) {
+  static async updateTicketRca(ticketId: string, rca: string, existingImages: string[], newImages: string[], actorUserId: string) {
     const result = await withTransaction(async (client) => {
       const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
@@ -373,8 +373,13 @@ export class TicketService {
         throw new AppError(403, 'Cannot update RCA for a closed ticket', ErrorCodes.TICKET_CLOSED);
       }
 
+      const combinedImages = [...(existingImages || []), ...(newImages || [])];
+      if (combinedImages.length > 10) {
+        throw new AppError(400, 'Cannot attach more than 10 images to RCA', ErrorCodes.VALIDATION_ERROR);
+      }
+
       let autoClosed = false;
-      const fieldsToUpdate: any = { rca };
+      const fieldsToUpdate: any = { rca, rca_images: JSON.stringify(combinedImages) };
 
       if (ticket.status === 'RESOLVED' && ticket.resolved_at) {
         const resolvedTime = new Date(ticket.resolved_at).getTime();
@@ -396,7 +401,7 @@ export class TicketService {
         actor_user_id: actorUserId,
         event_type: 'TICKET_RCA_UPDATED',
         message: 'Root Cause Analysis (RCA) was updated.',
-        metadata: { rca },
+        metadata: { rca, rca_images: combinedImages, attachments: combinedImages }, // Add attachments so Timeline handles it
         visible_to_customer: true
       });
 
@@ -416,7 +421,7 @@ export class TicketService {
       
       ticketEventEmitter.emit('ticket_updated', {
         ticketId,
-        data: { type: 'TICKET_RCA_UPDATED', rca, event: rcaEvent }
+        data: { type: 'TICKET_RCA_UPDATED', rca, rca_images: combinedImages, event: rcaEvent }
       });
 
       if (autoClosed) {
