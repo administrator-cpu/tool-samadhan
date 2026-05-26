@@ -107,7 +107,7 @@ export class TicketService {
     if (result.info) {
       // ALWAYS send confirmation to customer and helpdesk upon registration FIRST
       Promise.allSettled([
-        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no, alternateEmail: result.info.alternate_email }),
+        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no, alternateEmail: result.info.alternate_email, circuitId: result.info.circuit_description }),
         sendTicketCreatedHelpdeskEmail({
           customerName: result.info.name,
           ticketNo: result.info.ticket_no,
@@ -280,7 +280,8 @@ export class TicketService {
              ticketNo: info.ticket_no,
              agentName: actor.name,
              message: dto.message,
-             alternateEmail: info.alternate_email
+             alternateEmail: info.alternate_email,
+             circuitId: info.circuit_description
           }).catch(err => {
              // We can just log it, no need to fail the entire ticket reply
              logger.error('[EMAIL] Failed to send ticket update email', err);
@@ -357,7 +358,8 @@ export class TicketService {
         ticketNo: result.info.ticket_no,
         status: result.updatedStatus,
         updateType: result.newStatus,
-        alternateEmail: result.info.alternate_email
+        alternateEmail: result.info.alternate_email,
+        circuitId: result.info.circuit_description
       }).catch(err => logger.error('[EMAIL] Failed to send status update email', err));
     }
 
@@ -396,14 +398,7 @@ export class TicketService {
 
       const updatedTicket = await TicketRepository.updateFields(client, ticketId, fieldsToUpdate);
 
-      const rcaEvent = await TicketEventRepository.insertEvent(client, {
-        ticket_id: ticketId,
-        actor_user_id: actorUserId,
-        event_type: 'TICKET_RCA_UPDATED',
-        message: 'Root Cause Analysis (RCA) was updated.',
-        metadata: { rca, rca_images: combinedImages, attachments: combinedImages }, // Add attachments so Timeline handles it
-        visible_to_customer: true
-      });
+      // RCA event creation removed
 
       let statusEvent = null;
       if (autoClosed) {
@@ -421,7 +416,7 @@ export class TicketService {
       
       ticketEventEmitter.emit('ticket_updated', {
         ticketId,
-        data: { type: 'TICKET_RCA_UPDATED', rca, rca_images: combinedImages, event: rcaEvent }
+        data: { type: 'TICKET_RCA_UPDATED', rca, rca_images: combinedImages }
       });
 
       if (autoClosed) {
@@ -440,7 +435,8 @@ export class TicketService {
         email: result.info.email,
         ticketNo: result.info.ticket_no,
         rca,
-        alternateEmail: result.info.alternate_email
+        alternateEmail: result.info.alternate_email,
+        circuitId: result.info.circuit_description
       }).catch(err => logger.error('[EMAIL] Failed to send ticket RCA email', err));
     }
 
@@ -454,21 +450,14 @@ export class TicketService {
 
       const updatedTicket = await TicketRepository.updateFields(client, ticketId, {
         problem_side: dto.problemSide,
-        external_ticket_no: dto.externalTicketNo
+        telco_sr_number: dto.externalTicketNo
       });
 
-      const event = await TicketEventRepository.insertEvent(client, {
-        ticket_id: ticketId,
-        actor_user_id: actorUserId,
-        event_type: 'OUTAGE_DETAILS_CHANGED',
-        message: 'Outage details updated.',
-        metadata: { problemSide: dto.problemSide, externalTicketNo: dto.externalTicketNo },
-        visible_to_customer: true
-      });
+      // Outage event creation removed
 
       ticketEventEmitter.emit('ticket_updated', {
         ticketId,
-        data: { type: 'OUTAGE_DETAILS_UPDATED', ticket: updatedTicket, event }
+        data: { type: 'OUTAGE_DETAILS_UPDATED', ticket: updatedTicket }
       });
 
       return updatedTicket;
@@ -520,18 +509,11 @@ export class TicketService {
         allow_customer_reply: allow
       });
 
-      const event = await TicketEventRepository.insertEvent(client, {
-        ticket_id: ticketId,
-        actor_user_id: actorUserId,
-        event_type: 'REPLY_TOGGLED',
-        message: `Customer replies are now ${allow ? 'enabled' : 'disabled'}.`,
-        metadata: { allow_customer_reply: allow },
-        visible_to_customer: false
-      });
+      // Reply toggle event creation removed
 
       ticketEventEmitter.emit('ticket_updated', {
          ticketId,
-         data: { type: 'REPLY_TOGGLED', allow_customer_reply: allow, event }
+         data: { type: 'REPLY_TOGGLED', allow_customer_reply: allow }
       });
 
       return updatedTicket;

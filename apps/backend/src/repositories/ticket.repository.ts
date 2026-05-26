@@ -40,7 +40,7 @@ export class TicketRepository {
 
   static async findByIdForUpdate(client: PoolClient, ticketId: string): Promise<Ticket | null> {
     const result = await client.query(
-      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, rca_images, problem_side, external_ticket_no, alternate_email
+      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, rca_images, problem_side, telco_sr_number, alternate_email
        FROM tickets
        WHERE id = $1
        FOR UPDATE`,
@@ -51,7 +51,7 @@ export class TicketRepository {
 
   static async findById(poolOrClient: Pool | PoolClient, ticketId: string): Promise<Ticket | null> {
     const result = await poolOrClient.query(
-      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, rca_images, problem_side, external_ticket_no, circuit_description, alternate_email
+      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, rca_images, problem_side, telco_sr_number, circuit_description, alternate_email
        FROM tickets
        WHERE id = $1`,
       [ticketId]
@@ -179,7 +179,7 @@ export class TicketRepository {
         t.rca,
         t.rca_images,
         t.problem_side,
-        t.external_ticket_no,
+        t.telco_sr_number,
         t.rating,
         t.rating_feedback,
         t.alternate_email,
