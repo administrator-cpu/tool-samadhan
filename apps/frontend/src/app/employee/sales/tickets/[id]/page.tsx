@@ -45,6 +45,7 @@ interface TicketData {
     external_ticket_no: string | null;
     rating: number | null;
     rating_feedback: string | null;
+    alternate_email?: string | null;
   };
   events: TicketEvent[];
 }
@@ -189,7 +190,11 @@ export default function SalesTicketDetailPage() {
                       {ticket.customer.email}
                     </span>
                   )}
-                  
+                  {ticket.alternate_email && (
+                    <span className="text-[11px] font-bold text-slate-400 lowercase block mt-0.5" title="Alternate Email">
+                      alt: {ticket.alternate_email}
+                    </span>
+                  )}
                 </div>
 
                 {/* Opened On */}
