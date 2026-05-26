@@ -40,7 +40,7 @@ export class TicketRepository {
 
   static async findByIdForUpdate(client: PoolClient, ticketId: string): Promise<Ticket | null> {
     const result = await client.query(
-      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, problem_side, external_ticket_no, alternate_email
+      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, rca_images, problem_side, external_ticket_no, alternate_email
        FROM tickets
        WHERE id = $1
        FOR UPDATE`,
@@ -51,7 +51,7 @@ export class TicketRepository {
 
   static async findById(poolOrClient: Pool | PoolClient, ticketId: string): Promise<Ticket | null> {
     const result = await poolOrClient.query(
-      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, problem_side, external_ticket_no, circuit_description, alternate_email
+      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, rca_images, problem_side, external_ticket_no, circuit_description, alternate_email
        FROM tickets
        WHERE id = $1`,
       [ticketId]
@@ -96,7 +96,7 @@ export class TicketRepository {
       query += `, ${field}`;
     }
 
-    query += `, updated_at = NOW() WHERE id = $${paramIdx} RETURNING id, status, resolved_at, closed_at, updated_at, allow_customer_reply, rca, ticket_no, customer_id, circuit_description`;
+    query += `, updated_at = NOW() WHERE id = $${paramIdx} RETURNING id, status, resolved_at, closed_at, updated_at, allow_customer_reply, rca, rca_images, ticket_no, customer_id, circuit_description`;
     params.push(ticketId);
 
     const result = await client.query(query, params);
@@ -177,6 +177,7 @@ export class TicketRepository {
         eu.profile_image AS assigned_employee_profile_image,
         t.circuit_description,
         t.rca,
+        t.rca_images,
         t.problem_side,
         t.external_ticket_no,
         t.rating,
@@ -323,6 +324,7 @@ export class TicketRepository {
         ic.name AS category_name,
         t.status,
         t.rca,
+        t.rca_images,
         t.created_at,
         t.updated_at,
         t.resolved_at,

@@ -26,6 +26,8 @@ export const addEventSchema = z.object({
 
 export const updateRcaSchema = z.object({
   rca: z.string(),
+  existingImages: z.any().optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export const updateOutageSchema = z.object({

@@ -79,7 +79,9 @@ export class TicketController {
 
   static async updateTicketRca(req: Request, res: Response, next: NextFunction) {
     try {
-      const ticket = await TicketService.updateTicketRca((req.params.id as string), req.body.rca, req.user!.userId);
+      const existingImages = req.body.existingImages ? JSON.parse(req.body.existingImages) : [];
+      const newImages = req.body.metadata?.attachments || [];
+      const ticket = await TicketService.updateTicketRca((req.params.id as string), req.body.rca, existingImages, newImages, req.user!.userId);
       return sendResponse({ res, message: 'Ticket RCA updated successfully', data: { ticket } });
     } catch (error) {
       next(error);
