@@ -100,39 +100,46 @@ export const sendCustomerWelcomeEmail = async ({ name, email, password }: any) =
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
 };
 
-export const sendTicketConfirmationEmail = async ({ name, email, ticketNo }: any) => {
+export const sendTicketConfirmationEmail = async ({ name, email, ticketNo, alternateEmail }: any) => {
   const { subject, html } = ticketCreatedTemplate({ ticketNo });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
 
-export const sendCustomerAssignment2MinEmail = async ({ name, email, ticketNo }: any) => {
+export const sendCustomerAssignment2MinEmail = async ({ name, email, ticketNo, alternateEmail }: any) => {
   const { subject, html } = ticketAssignedCustomer2MinTemplate({ ticketNo });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
 
-export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo }: any) => {
+export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo, alternateEmail }: any) => {
   const { subject, html } = ticketTroubleshootingCustomer15MinTemplate({ ticketNo });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
 
-export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo }: any) => {
+export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo, alternateEmail }: any) => {
   const { subject, html } = mediaOutage45MinTemplate({ ticketNo });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
 
-export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, message }: any) => {
+export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, message, alternateEmail }: any) => {
   const { subject, html } = ticketUpdateByStaffTemplate({ ticketNo, agentName, message });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
 
-export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, status, updateType }: any) => {
+export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, status, updateType, alternateEmail }: any) => {
   const { subject, html } = ticketStatusUpdateTemplate({ ticketNo, customerName: name, status, updateType });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
 
-export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca }: any) => {
+export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca, alternateEmail }: any) => {
   const { subject, html } = ticketRcaTemplate({ ticketNo, rca });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
 
 

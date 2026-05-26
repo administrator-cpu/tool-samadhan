@@ -43,6 +43,7 @@ export class TicketService {
         assignedEmployeeId: null,
         issueCategoryId: dto.issueCategoryId,
         circuitDescription: dto.circuitDescription ? String(dto.circuitDescription) : '',
+        alternateEmail: dto.alternateEmail ? String(dto.alternateEmail).trim() : undefined,
       });
 
       const initialMessage = dto.message && dto.message.trim() !== '' ? dto.message.trim() : null;
@@ -106,7 +107,7 @@ export class TicketService {
     if (result.info) {
       // ALWAYS send confirmation to customer and helpdesk upon registration FIRST
       Promise.allSettled([
-        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no }),
+        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no, alternateEmail: result.info.alternate_email }),
         sendTicketCreatedHelpdeskEmail({
           customerName: result.info.name,
           ticketNo: result.info.ticket_no,
@@ -156,7 +157,7 @@ export class TicketService {
         queryFilters.salesUserId = userId;
       }
 
-      if (['ADMIN', 'MANAGER'].includes(role)) {
+      if (['ADMIN'].includes(role)) {
         if (filters.ownership) queryFilters.ownership = filters.ownership;
         if (filters.agentId) queryFilters.employeeId = filters.agentId;
       }
@@ -278,7 +279,8 @@ export class TicketService {
              email: info.email,
              ticketNo: info.ticket_no,
              agentName: actor.name,
-             message: dto.message
+             message: dto.message,
+             alternateEmail: info.alternate_email
           }).catch(err => {
              // We can just log it, no need to fail the entire ticket reply
              logger.error('[EMAIL] Failed to send ticket update email', err);
@@ -354,7 +356,8 @@ export class TicketService {
         email: result.info.email,
         ticketNo: result.info.ticket_no,
         status: result.updatedStatus,
-        updateType: result.newStatus
+        updateType: result.newStatus,
+        alternateEmail: result.info.alternate_email
       }).catch(err => logger.error('[EMAIL] Failed to send status update email', err));
     }
 
@@ -431,7 +434,8 @@ export class TicketService {
         name: result.info.name,
         email: result.info.email,
         ticketNo: result.info.ticket_no,
-        rca
+        rca,
+        alternateEmail: result.info.alternate_email
       }).catch(err => logger.error('[EMAIL] Failed to send ticket RCA email', err));
     }
 

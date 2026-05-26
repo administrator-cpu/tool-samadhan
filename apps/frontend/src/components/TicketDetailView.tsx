@@ -50,6 +50,7 @@ interface TicketData {
     rating_feedback: string | null;
     allow_customer_reply: boolean;
     resolved_at?: string | null;
+    alternate_email?: string | null;
   };
   events: TicketEvent[];
 }
@@ -665,6 +666,11 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                   {ticket.customer.email && (
                     <span className="text-[11px] font-bold text-slate-400 lowercase block mt-0.5">
                       {ticket.customer.email}
+                    </span>
+                  )}
+                  {ticket.alternate_email && (
+                    <span className="text-[11px] font-bold text-slate-400 lowercase block mt-0.5" title="Alternate Email">
+                      alt: {ticket.alternate_email}
                     </span>
                   )}
                 </div>

@@ -74,6 +74,7 @@ export const createTicketTable = async () => {
  
         problem_side VARCHAR(100) NULL,
         external_ticket_no VARCHAR(100) NULL,
+        alternate_email VARCHAR(255) NULL,
  
         rca TEXT NULL,
         rating INTEGER NULL,
@@ -106,6 +107,7 @@ export const createTicketTable = async () => {
     CREATE INDEX IF NOT EXISTS idx_tickets_created_by ON tickets(created_by_user_id);
     CREATE INDEX IF NOT EXISTS idx_tickets_assigned_status ON tickets(current_assigned_employee_id, status);
     CREATE INDEX IF NOT EXISTS idx_tickets_status_dates ON tickets(status, updated_at, created_at);
+    ALTER TABLE tickets ADD COLUMN IF NOT EXISTS alternate_email VARCHAR(255) NULL;
   `;
   await postgresPool.query(query);
 };

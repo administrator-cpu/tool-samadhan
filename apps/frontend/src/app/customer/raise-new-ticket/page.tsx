@@ -15,6 +15,7 @@ export default function CreateTicketPage() {
     categoryId: "",
     description: "",
     circuitDescription: "",
+    alternateEmail: "",
   });
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function CreateTicketPage() {
         message: formData.description,
         circuitDescription: formData.circuitDescription,
         issueCategoryId: selectedCategory.id,
+        alternateEmail: formData.alternateEmail.trim() || undefined,
       });
       
       toast.success("Ticket raised successfully!");
@@ -73,7 +75,7 @@ export default function CreateTicketPage() {
     <div className="min-h-screen flex flex-col bg-[#f6f6f8] text-slate-900 antialiased font-sans">
       
       {/* Header */}
-      <header className="w-full px-6 py-6 sm:px-8">
+      {/* <header className="w-full px-6 py-6 sm:px-8">
         <Link
           href="/customer"
           className="group inline-flex items-center gap-2 text-slate-500 transition-colors hover:text-slate-800"
@@ -83,11 +85,11 @@ export default function CreateTicketPage() {
           </span>
           <span className="text-sm font-medium">Back to Dashboard</span>
         </Link>
-      </header>
+      </header> */}
 
       {/* Main */}
-      <main className="flex flex-1 items-center justify-center w-full p-4 sm:p-6 md:p-12">
-        <div className="w-full max-w-[600px] rounded-xl bg-white p-6 sm:p-10 md:p-12 sm:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)]">
+      <main className="flex flex-1 items-center justify-center w-full p-4 sm:p-6 md:p-6">
+        <div className="w-full max-w-[600px] rounded-xl bg-white p-6 sm:p-10 md:px-12 md:py-8 sm:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)]">
           
           {/* Heading */}
           <div className="mb-8">
@@ -152,6 +154,23 @@ export default function CreateTicketPage() {
             </div>
 
 
+            {/* Alternate Email */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="alternateEmail" className="text-sm font-medium text-slate-700">
+                Alternate Email <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="email"
+                id="alternateEmail"
+                name="alternateEmail"
+                value={formData.alternateEmail}
+                onChange={handleChange}
+                placeholder="secondary@example.com"
+                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
+              />
+            </div>
+
+
             {/* Description */}
             <div className="flex flex-col gap-2">
               <label htmlFor="description" className="text-sm font-medium text-slate-700">
@@ -173,14 +192,14 @@ export default function CreateTicketPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-medium shadow-sm transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-medium shadow-sm transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer"
               >
                 {loading ? (
                   <span>Submitting...</span>
                 ) : (
                   <>
                     <span>Submit Request</span>
-                    <span className="material-symbols-outlined text-[18px]">
+                    <span className="material-symbols-outlined text-[18px] hover:translate-x-1 transition-transform duration-200">
                       arrow_forward
                     </span>
                   </>
