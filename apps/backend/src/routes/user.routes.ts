@@ -3,6 +3,8 @@ import { UserController } from '../controllers/user.controller.js';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { UserRole } from '../types/dto.js';
 import { validateRegister, validateUpdateProfile } from '../middleware/validators/user.validator.js';
+import { parseProfileImageUpload } from '../middleware/profile-upload.middleware.js';
+
 const router = Router();
 
 // Protected Routes
@@ -10,6 +12,8 @@ router.use(requireAuth);
 
 router.get('/me', UserController.getCurrentUser);
 router.put('/profile', validateUpdateProfile, UserController.updateProfile);
+router.post('/profile/image', parseProfileImageUpload(), UserController.uploadProfileImage);
+router.delete('/profile/image', UserController.removeProfileImage);
 
 router.post(
   '/employees',

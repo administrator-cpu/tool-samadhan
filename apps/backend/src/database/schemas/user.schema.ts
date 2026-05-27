@@ -18,6 +18,7 @@ export const createUserTable = async () => {
         password TEXT NOT NULL,
         role user_role NOT NULL DEFAULT 'USER',
         must_change_password BOOLEAN NOT NULL DEFAULT TRUE,
+        profile_image TEXT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     );

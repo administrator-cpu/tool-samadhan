@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import FAB5Logo from "@/assets/FAB5-logo.webp";
-
+import { useUICacheStore } from "@/store/useUICacheStore";
 interface SidebarContentProps {
   collapsed: boolean;
   mobile: boolean;
@@ -20,15 +20,7 @@ interface SidebarContentProps {
   handleLogout: () => void;
 }
 
-const SidebarContent = ({
-  collapsed,
-  mobile,
-  navItems,
-  pathname,
-  setIsMobileOpen,
-  user,
-  handleLogout,
-}: SidebarContentProps) => (
+const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen, user, handleLogout }: SidebarContentProps) => (
   <div className={`flex h-full flex-col ${mobile ? "p-6" : "p-4 md:p-6 lg:p-3"}`}>
     {/* Logo */}
     <div className="flex flex-col items-center gap-0 overflow-hidden ">
@@ -98,8 +90,12 @@ const SidebarContent = ({
         href="/profile"
         className="group flex w-full items-center gap-3 rounded-lg px-1 py-3 transition-colors hover:bg-slate-50"
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-          <span className="material-symbols-outlined">person</span>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 overflow-hidden">
+          {user?.profile_image ? (
+            <Image src={user.profile_image} alt="Profile" width={50} height={50} className="object-cover" />
+          ) : (
+            <span className="material-symbols-outlined">person</span>
+          )}
         </div>
         <div
           className={`${
@@ -131,6 +127,7 @@ const SidebarContent = ({
 );
 
 const SidebarNavbar = () => {
+  const { profileData } = useUICacheStore();
   const pathname = usePathname();
   const router = useRouter();
   const { user, clearAuth } = useAuthStore();
@@ -197,8 +194,7 @@ const SidebarNavbar = () => {
     SALES: salesItems,
   };
 
-  const navItems =
-    user?.role && roleNavMap[user.role] ? roleNavMap[user.role] : customerItems;
+  const navItems = user?.role && roleNavMap[user.role] ? roleNavMap[user.role] : customerItems;
 
   return (
     <>

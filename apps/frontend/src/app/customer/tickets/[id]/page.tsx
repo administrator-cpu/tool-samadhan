@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
 import Timeline from "@/components/ChatBoxTimelineMessages";
+import Lightbox from "@/components/Lightbox";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
@@ -11,6 +12,7 @@ import { format } from "date-fns";
 import { useSocket } from "@/hooks/useSocket";
 import { useSocketStore } from "@/store/useSocketStore";
 import { toast } from "sonner";
+import { useRef } from "react";
 
 interface Ticket {
   id: number;
@@ -19,6 +21,7 @@ interface Ticket {
   subject: string;
   circuit_description: string | null;
   rca: string | null;
+  rca_images?: string[];
   created_at: string;
   updated_at: string;
   closed_at: string | null;
@@ -34,6 +37,7 @@ interface Ticket {
   assigned_employee: {
     id: number;
     name: string;
+    profile_image?: string | null;
   } | null;
 }
 
@@ -85,6 +89,9 @@ export default function TicketDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const statusConfig = ticket ? getStatusBadgeConfig(ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
@@ -126,7 +133,7 @@ export default function TicketDetailPage() {
       }
 
       if (data.type === "NEW_EVENT") {
-        // No toast needed, the message is automatically appended to the timeline above
+        toast.info("New message received");
       } else if (data.type === "REPLY_TOGGLED") {
         setTicket((prev) => {
           if (!prev) return null;
@@ -143,7 +150,7 @@ export default function TicketDetailPage() {
       } else if (data.type === "TICKET_RCA_UPDATED") {
         setTicket((prev) => {
           if (!prev) return null;
-          return { ...prev, rca: data.rca };
+          return { ...prev, rca: data.rca, rca_images: data.rca_images };
         });
         toast.success("Root Cause Analysis (RCA) report has been updated!");
       } else if (data.type === "TICKET_RATING_UPDATED") {
@@ -211,15 +218,60 @@ export default function TicketDetailPage() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    
+    const newFiles = Array.from(e.target.files);
+    if (selectedFiles.length + newFiles.length > 10) {
+      toast.error("Maximum of 10 images allowed.");
+      return;
+    }
+
+    const validFiles: File[] = [];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+
+    for (const file of newFiles) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`Invalid file type: ${file.name}. Only JPEG, PNG, WEBP, HEIC, HEIF allowed.`);
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`File too large: ${file.name}. Maximum size is 5MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    setSelectedFiles(prev => [...prev, ...validFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeFile = (indexToRemove: number) => {
+    setSelectedFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
   const handleSendReply = async () => {
-    if (!replyMessage.trim()) return;
+    if (!replyMessage.trim() && selectedFiles.length === 0) return;
     setSending(true);
     try {
-      await api.post(`/tickets/${id}/events`, {
-        event_type: "USER_REPLY",
-        message: replyMessage.trim()
-      });
+      if (selectedFiles.length > 0) {
+        const formData = new FormData();
+        formData.append("event_type", "USER_REPLY");
+        if (replyMessage.trim()) formData.append("message", replyMessage.trim());
+        selectedFiles.forEach(f => formData.append("images", f));
+        
+        await api.post(`/tickets/${id}/events`, formData);
+      } else {
+        await api.post(`/tickets/${id}/events`, {
+          event_type: "USER_REPLY",
+          message: replyMessage.trim()
+        });
+      }
+
       setReplyMessage("");
+      setSelectedFiles([]);
       toast.success("Reply sent successfully");
       
       const response = await api.get(`/tickets/${id}`);
@@ -318,40 +370,97 @@ export default function TicketDetailPage() {
           <Timeline events={events} />
           
           {ticket.allow_customer_reply && !["RESOLVED", "CLOSED"].includes(ticket.status) && (
-            <div className="mt-4 mb-6 rounded-lg border border-slate-200 bg-white p-2 shadow-xl focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all shrink-0">
-              <div className="px-4 pt-3 flex items-center gap-2 mb-1">
-                <span className="material-symbols-outlined text-emerald-600 text-[18px]">chat</span>
-                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Send a Reply</h3>
+            <div className={`mt-4 mb-6 rounded-lg border bg-white p-2 shadow-xl transition-all shrink-0 ${sending ? "border-slate-200 opacity-80" : "border-slate-200 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5"}`}>
+              <div className="px-4 pt-3 flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-600 text-[18px]">chat</span>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Send a Reply</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending || selectedFiles.length >= 10}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
+                  title="Attach images (Max 10)"
+                >
+                  <span className="material-symbols-outlined text-[18px]">attach_file</span>
+                  Attach Image
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  multiple 
+                  accept="image/jpeg, image/png, image/webp, image/heic, image/heif" 
+                  className="hidden" 
+                />
               </div>
+
+              {selectedFiles.length > 0 && (
+                <div className="px-4 py-2 flex flex-wrap gap-3">
+                  {selectedFiles.map((file, idx) => (
+                    <div key={idx} className="relative group">
+                      <div className="w-16 h-16 rounded-lg border border-slate-200 overflow-hidden bg-slate-50">
+                        <Image 
+                          src={URL.createObjectURL(file)} 
+                          alt="preview" 
+                          width={64} height={64}
+                          className={`object-cover ${sending ? "opacity-50" : ""}`}
+                          onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
+                        />
+                      </div>
+                      {!sending && (
+                        <button 
+                          onClick={() => removeFile(idx)}
+                          className="absolute -top-2 -right-2 bg-slate-800 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <textarea
                 value={replyMessage}
                 onChange={(e) => setReplyMessage(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    if (replyMessage.trim() && !sending) {
+                    if ((replyMessage.trim() || selectedFiles.length > 0) && !sending) {
                       handleSendReply();
                     }
                   }
                 }}
-                placeholder="Agent requested more information. Type your message here..."
-                className="w-full min-h-[100px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
+                disabled={sending}
+                placeholder={selectedFiles.length > 0 ? "Add an optional message..." : "Agent requested more information. Type your message here..."}
+                className="w-full min-h-[100px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden disabled:bg-transparent"
               />
               <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
                 <p className="text-[10px] font-bold text-slate-400">Agent will be notified immediately.</p>
                 <button
                   onClick={handleSendReply}
-                  disabled={sending || !replyMessage.trim()}
+                  disabled={sending || (!replyMessage.trim() && selectedFiles.length === 0)}
                   className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50"
                 >
-                  {sending ? "Sending..." : "Send Reply"}
-                  <span className="material-symbols-outlined text-[16px]">send</span>
+                  {sending ? (
+                    <>
+                      <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
+                      {selectedFiles.length > 0 ? `Uploading secure files...` : "Sending..."}
+                    </>
+                  ) : (
+                    <>
+                      Send Reply
+                      <span className="material-symbols-outlined text-[16px]">send</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
           )}
 
-          {ticket.rca && (
+          {["RESOLVED", "CLOSED"].includes(ticket.status) && ticket.rca && (
             <div className="mt-0 mb-6 rounded-lg border border-emerald-100 bg-emerald-50/30 p-6 shadow-xs backdrop-blur-xs shrink-0">
               <div className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-2xl font-bold text-emerald-500">verified</span>
@@ -369,6 +478,20 @@ export default function TicketDetailPage() {
                     <p className="whitespace-pre-line text-sm font-medium text-slate-800 leading-relaxed">
                       {ticket.rca}
                     </p>
+                    {ticket.rca_images && ticket.rca_images.length > 0 && (
+                      <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-2">
+                        {ticket.rca_images.map((img, idx) => (
+                          <button 
+                            key={idx} 
+                            onClick={() => setLightboxData({ images: ticket.rca_images!, currentIndex: idx })} 
+                            type="button" 
+                            className="relative aspect-square rounded-lg border border-slate-200 overflow-hidden shadow-xs hover:opacity-90 hover:scale-[1.02] transition-all bg-slate-100 cursor-zoom-in"
+                          >
+                            <Image src={img} alt={`RCA Image ${idx + 1}`} fill className="object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     {ticket.resolved_at && (
                       <span className="flex justify-end text-[11px] font-bold text-emerald-700/80">
                         Resolved on {format(new Date(ticket.resolved_at), "MMM d, yyyy, h:mm a")}
@@ -391,6 +514,14 @@ export default function TicketDetailPage() {
             />
           )}
         </section>
+
+        {lightboxData && (
+          <Lightbox
+            images={lightboxData.images}
+            initialIndex={lightboxData.currentIndex}
+            onClose={() => setLightboxData(null)}
+          />
+        )}
 
         <div className="hidden lg:block w-[300px] xl:w-[340px] shrink-0 p-6 bg-surface border-l border-gray-100 overflow-y-auto">
           {/* Status Stepper */}
@@ -479,7 +610,11 @@ export default function TicketDetailPage() {
             <div>
               <p className="text-muted text-xs font-bold tracking-wide uppercase mb-1">Agent Assigned</p>
               <div className="flex items-center gap-3 mt-1.5">
-                <Image src={AgentImage} alt="" width={30} height={30} className="rounded-full" />
+                {ticket.assigned_employee?.profile_image ? (
+                  <Image src={ticket.assigned_employee.profile_image} alt="Agent Profile Image" width={30} height={30} className="rounded-full object-cover ring-1 ring-slate-100" />
+                ) : (
+                  <Image src={AgentImage} alt="Agent Profile Image" width={30} height={30} className="rounded-full" />
+                )}
                 <p className="text-text-main text-[15px] font-medium">
                   {ticket.assigned_employee?.name || "Assigning..."}
                 </p>

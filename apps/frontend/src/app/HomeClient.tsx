@@ -190,7 +190,8 @@ export default function HomeClient() {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-100 bg-white py-12 text-center text-sm text-slate-500">
-        <p>© 2026 Samadhan App. All rights reserved.</p>
+        <p>© Development Innovation Vector Private Limited. All Rights Reserved {"</>"}
+        </p>
       </footer>
     </div>
   );

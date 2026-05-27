@@ -48,17 +48,24 @@ export const ticketAutomationWorker = new Worker(
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              circuitId: ticketInfo.circuit_description
             });
             await AutomatedEmailLogRepository.logEmailSent(postgresPool, ticketId, jobName);
           }
           break;
 
         case 'TROUBLESHOOTING_UPDATE':
-          if (!(await TicketEventRepository.hasAgentReplied(postgresPool, ticketId))) {
+          const createdAt = new Date(ticket.created_at);
+          const now = new Date();
+          const diffMs = now.getTime() - createdAt.getTime();
+          const fifteenMinutesMs = 15 * 60 * 1000 - 5000;
+
+          if (diffMs >= fifteenMinutesMs && !(await TicketEventRepository.hasAgentReplied(postgresPool, ticketId))) {
             await sendTroubleshootingUpdateEmail({
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              circuitId: ticketInfo.circuit_description
             });
             await AutomatedEmailLogRepository.logEmailSent(postgresPool, ticketId, jobName);
           }
@@ -75,6 +82,7 @@ export const ticketAutomationWorker = new Worker(
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              circuitId: ticketInfo.circuit_description
             });
             await AutomatedEmailLogRepository.logEmailSent(postgresPool, ticketId, jobName);
           }
