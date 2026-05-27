@@ -31,7 +31,6 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     console.log("[SOCKET-STORE] Initializing global singleton connection...");
     const s = io(SOCKET_URL, {
       auth: { token },
-      transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: Infinity, // Never give up
       reconnectionDelay: 1000,

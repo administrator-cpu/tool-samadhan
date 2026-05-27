@@ -31,40 +31,13 @@ export default function Lightbox({ images, initialIndex, onClose }: LightboxProp
     const currentImageUrl = images[currentIndex];
     let shareUrl = currentImageUrl;
 
-    // Convert Cloudinary URL to proxied frontend URL if it matches Cloudinary domains
-    // e.g. https://res.cloudinary.com/dpmvyp1vc/image/upload/v1779811665/samadhan_tickets/vijaysingh-10046-1779811664476.png
-    // into http://frontend_url/image/samadhan_tickets/vijaysingh-10046-1779811664476.png
-    if (currentImageUrl.includes("res.cloudinary.com")) {
-      try {
-        const urlObj = new URL(currentImageUrl);
-        const pathSegments = urlObj.pathname.split("/");
-        
-        // Find the index of "upload"
-        const uploadIndex = pathSegments.indexOf("upload");
-        if (uploadIndex !== -1) {
-          let imagePathSegments = pathSegments.slice(uploadIndex + 1);
-          // Skip the version number segment (e.g., v1779811665) if present
-          if (imagePathSegments[0] && /^v\d+$/.test(imagePathSegments[0])) {
-            imagePathSegments = imagePathSegments.slice(1);
-          }
-          const imagePath = imagePathSegments.join("/");
-          if (typeof window !== "undefined") {
-            shareUrl = `${window.location.origin}/image/${imagePath}`;
-          }
-        }
-      } catch (e) {
-        console.error("Failed to parse Cloudinary URL", e);
-      }
-    } else {
-      // Resolve relative URL to absolute URL for other images
-      if (typeof window !== "undefined") {
-        if (
-          !currentImageUrl.startsWith("http://") &&
-          !currentImageUrl.startsWith("https://") &&
-          !currentImageUrl.startsWith("data:")
-        ) {
-          shareUrl = `${window.location.origin}${currentImageUrl}`;
-        }
+    if (typeof window !== "undefined") {
+      if (
+        !currentImageUrl.startsWith("http://") &&
+        !currentImageUrl.startsWith("https://") &&
+        !currentImageUrl.startsWith("data:")
+      ) {
+        shareUrl = `${window.location.origin}${currentImageUrl.startsWith("/") ? "" : "/"}${currentImageUrl}`;
       }
     }
 
