@@ -4,6 +4,7 @@ import { TicketStatsService } from '../services/ticket-stats.service.js';
 import { IssueCategoryRepository } from '../repositories/issue-category.repository.js';
 import { postgresPool } from '../config/database.js';
 import { sendResponse } from '../utils/response.js';
+import { UserRole } from '../types/dto.js';
 
 export class TicketController {
 
@@ -126,7 +127,12 @@ export class TicketController {
 
   static async getAdminStats(req: Request, res: Response, next: NextFunction) {
     try {
-      const stats = await TicketStatsService.getAdminStats(req.user!.userId, req.user!.role);
+      let stats;
+      if (req.user!.role === UserRole.SALES) {
+        stats = await TicketStatsService.getSalesStats(req.user!.userId);
+      } else {
+        stats = await TicketStatsService.getAdminStats(req.user!.userId, req.user!.role);
+      }
       return sendResponse({ res, data: { stats } });
     } catch (error) {
       next(error);

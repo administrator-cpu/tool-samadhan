@@ -42,7 +42,7 @@ export default function SalesDashboard() {
         ]);
         setTickets(ticketsRes.data.tickets || []);
         
-        const summary = statsRes.data.summary || {};
+        const summary = statsRes.data?.stats?.summary || statsRes.data?.summary || {};
         setStats({
           total_tickets: Number(summary.total_tickets || 0),
           active_tickets: Number(summary.active_tickets || 0),
