@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { AlertCircle, Image as ImageIcon, ArrowLeft } from "lucide-react";
+import { AlertCircle, Image as ImageIcon } from "lucide-react";
 
 interface ShareImagePageProps {
   params: Promise<{
@@ -25,12 +24,15 @@ export default async function ShareImagePage({ params }: ShareImagePageProps) {
   const fullUrl = `${baseUrl}/${cleanImageUrl}`;
 
   // Check if image actually exists on Cloudinary
+  let isOk = false;
   try {
     const res = await fetch(fullUrl, { method: "HEAD", cache: "no-store" });
-    if (!res.ok) {
-      return <ImageNotFoundUI />;
-    }
+    isOk = res.ok;
   } catch (error) {
+    isOk = false;
+  }
+
+  if (!isOk) {
     return <ImageNotFoundUI />;
   }
 
