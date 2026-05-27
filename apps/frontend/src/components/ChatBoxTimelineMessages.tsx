@@ -69,8 +69,12 @@ export default function Timeline({ events }: TimelineProps) {
         const isReassign = event.metadata?.is_reassign || (event.message && /reassigned/i.test(event.message));
         return isReassign ? "Expert Tech Support" : "Agent Assigned";
       }
-      case "STATUS_CHANGED":
-        return `Status: "${event.metadata?.status || "Updated"}"`;
+      case "STATUS_CHANGED": {
+        const rawStatus = event.metadata?.newStatus || event.metadata?.new_status || event.metadata?.status;
+        if (!rawStatus) return 'Status: "Updated"';
+        const formattedStatus = rawStatus.replace(/_/g, ' ').replace(/\w\S*/g, (txt: string) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
+        return `Status: "${formattedStatus}"`;
+      }
       case "TICKET_RESOLVED":
         return "Ticket Resolved";
       case "AGENT_REPLY":
