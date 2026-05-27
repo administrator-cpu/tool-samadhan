@@ -78,12 +78,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   // If authenticated, we show the Sidebar Layout for ALL pages (except if we are currently redirecting)
-  // Actually, the user said: "If user is loggedout then show the navbar which in inbuilt in the home page and if user is loggedIn then show them sidebarNavbar"
-  
   if (isAuthenticated && isMounted) {
     // Force password change if required
     if (user?.must_change_password) {
       return <ForcePasswordChange />;
+    }
+
+    // Hide sidebar for standalone share routes
+    if (pathname.startsWith("/share/image")) {
+      return <>{children}</>;
     }
 
     return (
@@ -97,8 +100,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   // Default layout for unauthenticated users
-  // If we are on a dashboard route but not authenticated, return null while redirecting
-  const publicRoutes = ["/", "/auth/login", "/auth/signup", "/auth/logout"];
   const isDashboardRoute = pathname.startsWith("/customer") || pathname.startsWith("/employee") || pathname.startsWith("/profile");
 
   if (!isAuthenticated && isDashboardRoute && isMounted) {

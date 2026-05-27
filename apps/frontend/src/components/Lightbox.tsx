@@ -32,12 +32,26 @@ export default function Lightbox({ images, initialIndex, onClose }: LightboxProp
     let shareUrl = currentImageUrl;
 
     if (typeof window !== "undefined") {
-      if (
-        !currentImageUrl.startsWith("http://") &&
-        !currentImageUrl.startsWith("https://") &&
-        !currentImageUrl.startsWith("data:")
-      ) {
-        shareUrl = `${window.location.origin}${currentImageUrl.startsWith("/") ? "" : "/"}${currentImageUrl}`;
+      try {
+        const urlObj = new URL(currentImageUrl);
+        // If it's a Cloudinary URL, extract just the filename
+        if (urlObj.hostname.includes("cloudinary.com")) {
+          const pathParts = urlObj.pathname.split("/");
+          const filename = pathParts[pathParts.length - 1];
+          shareUrl = `${window.location.origin}/share/image/${filename}`;
+        } else {
+          // Fallback for non-cloudinary external URLs
+          shareUrl = currentImageUrl;
+        }
+      } catch (e) {
+        // Fallback for relative or malformed URLs
+        if (
+          !currentImageUrl.startsWith("http://") &&
+          !currentImageUrl.startsWith("https://") &&
+          !currentImageUrl.startsWith("data:")
+        ) {
+          shareUrl = `${window.location.origin}${currentImageUrl.startsWith("/") ? "" : "/"}${currentImageUrl}`;
+        }
       }
     }
 
