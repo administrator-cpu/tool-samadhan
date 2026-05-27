@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Timeline from "@/components/ChatBoxTimelineMessages";
 import Lightbox from "@/components/Lightbox";
@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { ArrowLeft, User as UserIcon, Calendar, Info } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
 import ProviderOutageTracker from "@/components/ProviderOutageTracker";
@@ -105,7 +105,7 @@ export default function SalesTicketDetailPage() {
     }
   };
 
-  const fetchTicket = useCallback(async () => {
+  const fetchTicket = async () => {
     try {
       const res = await api.get(`/tickets/${id}`);
       setData(res.data);
@@ -114,13 +114,13 @@ export default function SalesTicketDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  };
 
   useEffect(() => {
     if (id) {
       fetchTicket();
     }
-  }, [id, fetchTicket]);
+  }, [id]);
 
   if (loading) {
     return (
