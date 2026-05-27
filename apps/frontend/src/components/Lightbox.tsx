@@ -75,31 +75,31 @@ export default function Lightbox({ images, initialIndex, onClose }: LightboxProp
         {/* Control buttons grouped inside a flex layout in top right */}
         <div className="absolute top-4 right-4 md:top-8 md:right-8 flex items-center gap-3 z-10">
           <button
-            className="w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer border-none"
+            className="w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all cursor-pointer border-none shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
             onClick={handleShare}
             title="Share Image Publicly"
             type="button"
           >
-            <span className="material-symbols-outlined">share</span>
+            <span className="material-symbols-outlined drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">share</span>
           </button>
           <button
-            className="w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer border-none"
+            className="w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all cursor-pointer border-none shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
             onClick={onClose}
             title="Close"
             type="button"
           >
-            <span className="material-symbols-outlined">close</span>
+            <span className="material-symbols-outlined drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">close</span>
           </button>
         </div>
 
         {/* Left navigation arrow */}
         {images.length > 1 && (
           <button
-            className="absolute left-4 md:left-8 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10 cursor-pointer border-none"
+            className="absolute left-4 md:left-8 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all z-10 cursor-pointer border-none shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
             onClick={() => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)}
             type="button"
           >
-            <span className="material-symbols-outlined">chevron_left</span>
+            <span className="material-symbols-outlined drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">chevron_left</span>
           </button>
         )}
 
@@ -119,11 +119,11 @@ export default function Lightbox({ images, initialIndex, onClose }: LightboxProp
         {/* Right navigation arrow */}
         {images.length > 1 && (
           <button
-            className="absolute right-4 md:right-8 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10 cursor-pointer border-none"
+            className="absolute right-4 md:right-8 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all z-10 cursor-pointer border-none shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
             onClick={() => setCurrentIndex((prev) => (prev + 1) % images.length)}
             type="button"
           >
-            <span className="material-symbols-outlined">chevron_right</span>
+            <span className="material-symbols-outlined drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">chevron_right</span>
           </button>
         )}
 
