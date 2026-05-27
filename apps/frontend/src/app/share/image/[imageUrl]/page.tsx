@@ -53,8 +53,8 @@ export default async function ShareImagePage({ params }: ShareImagePageProps) {
 
 function ImageNotFoundUI() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 w-full p-4">
-      <div className="relative overflow-hidden max-w-md w-full bg-white rounded-3xl p-10 text-center shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col items-center">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-white w-full p-4 overflow-hidden">
+      <div className="relative z-10 overflow-hidden max-w-md w-full bg-white/80 backdrop-blur-xl rounded-3xl p-10 text-center shadow-2xl shadow-slate-200/50 border border-slate-100/70 flex flex-col items-center">
         <ImageIcon className="absolute -right-8 -bottom-8 text-slate-50 -rotate-12 z-0" size={240} strokeWidth={1} />
         
         <div className="relative z-10 flex flex-col items-center">
