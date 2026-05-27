@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
 import Timeline from "@/components/ChatBoxTimelineMessages";
-import Lightbox from "@/components/Lightbox";
 import { api } from "@/lib/api";
 import { quickReplies } from "@/lib/quickReplies";
 import { useParams } from "next/navigation";
@@ -15,6 +14,8 @@ import { ChevronDown, CheckCircle2, XCircle, TrendingUp, User as UserIcon, Calen
 import ProviderOutageTracker from "@/components/ProviderOutageTracker";
 import { useSocket } from "@/hooks/useSocket";
 import { useSocketStore } from "@/store/useSocketStore";
+import TicketReplyForm from "./ticket/TicketReplyForm";
+import TicketRcaEditor from "./ticket/TicketRcaEditor";
 
 interface TicketEvent {
   id: number;
@@ -99,17 +100,9 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
   const [data, setData] = useState<TicketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [replyMessage, setReplyMessage] = useState("");
   const [sending, setSending] = useState(false);
-  const [rcaText, setRcaText] = useState("");
   const [savingRca, setSavingRca] = useState(false);
-  const [isEditingRca, setIsEditingRca] = useState(false);
-  const [rcaImages, setRcaImages] = useState<string[]>([]);
-  const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
-  const [rcaFiles, setRcaFiles] = useState<File[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [togglingReply, setTogglingReply] = useState(false);
-  const [sendEmail, setSendEmail] = useState(true);
 
   const statusConfig = data?.ticket ? getStatusBadgeConfig(data.ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
@@ -248,14 +241,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
   }, [data?.events?.length, id, markEventSeen]);
 
 
-  useEffect(() => {
-    if (data?.ticket?.rca) {
-      setRcaText(data.ticket.rca);
-    }
-    if (data?.ticket?.rca_images) {
-      setRcaImages(data.ticket.rca_images);
-    }
-  }, [data]);
+
 
   const handleUpdate = async (updates: { status?: string }) => {
     setUpdating(true);
@@ -270,41 +256,11 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
       setUpdating(false);
     }
   };
-  const handleUpdateRca = async () => {
-    if (!rcaText.trim()) {
-      toast.error("Please enter RCA details");
-      return;
-    }
-
-    if (rcaImages.length + rcaFiles.length > 10) {
-      toast.error("Maximum of 10 images allowed for RCA.");
-      return;
-    }
-
-    const totalSize = rcaFiles.reduce((acc, file) => acc + file.size, 0);
-    // Even though server limits per file, good to check total or per file
-    const maxFileSize = 5 * 1024 * 1024;
-    for (const file of rcaFiles) {
-       if (file.size > maxFileSize) {
-          toast.error(`File ${file.name} exceeds 5MB limit`);
-          return;
-       }
-    }
-
+  const handleUpdateRca = async (formData: FormData) => {
     try {
       setSavingRca(true);
-      const formData = new FormData();
-      formData.append("rca", rcaText);
-      formData.append("existingImages", JSON.stringify(rcaImages));
-      
-      rcaFiles.forEach((file) => {
-        formData.append("files", file);
-      });
-
       await api.patch(`/tickets/${id}/rca`, formData);
       toast.success("Root Cause Analysis updated successfully");
-      setIsEditingRca(false);
-      setRcaFiles([]);
       await fetchTicket();
     } catch (err: any) {
       toast.error(err.message || "Failed to update RCA");
@@ -313,7 +269,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
     }
   };
 
-  const handleSendReply = async (message: string) => {
+  const handleSendReply = async (message: string, sendEmail: boolean) => {
     if (!message.trim()) return;
     setSending(true);
     try {
@@ -322,7 +278,6 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
         message: message.trim(),
         send_email: sendEmail
       });
-      setReplyMessage("");
       toast.success("Reply sent");
       await fetchTicket();
     } catch (err: any) {
@@ -470,231 +425,9 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
 
           {/* Dynamic Action Section: Reply or RCA */}
           {!["RESOLVED", "CLOSED"].includes(ticket.status) ? (
-            <div className="max-w-4xl mx-auto w-full mt-10 pt-10 border-t border-slate-100 pb-10">
-              <div className="mb-6 flex items-center gap-2">
-                <Zap size={18} className="text-amber-500" />
-                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Intelligent Quick Replies</h3>
-              </div>
-
-              {/* Quick Reply Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                {quickReplies.map((msg, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setReplyMessage(msg)}
-                    disabled={sending}
-                    className="text-left p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-200 transition-all group disabled:opacity-50"
-                  >
-                    <p className="text-xs font-medium text-slate-600 line-clamp-3 group-hover:text-emerald-700">{msg}</p>
-                  </button>
-                ))}
-              </div>
-
-              {/* Custom Message */}
-              <div className="relative">
-                <div className="mb-3 flex items-center gap-2">
-                  <MessageSquare size={18} className="text-emerald-600" />
-                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Custom Response</h3>
-                </div>
-                <div className="relative rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/50 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all">
-                  <textarea
-                    value={replyMessage}
-                    onChange={(e) => setReplyMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        if (replyMessage.trim() && !sending) {
-                          handleSendReply(replyMessage);
-                        }
-                      }
-                    }}
-                    placeholder="Compose your custom tactical update..."
-                    className="w-full min-h-[120px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
-                  />
-                  <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            className="sr-only peer" 
-                            checked={sendEmail} 
-                            onChange={(e) => setSendEmail(e.target.checked)} 
-                            disabled={sending}
-                          />
-                          <div className="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
-                        </label>
-                        <span className={`text-[10px] font-black uppercase tracking-wider ${sendEmail ? 'text-emerald-600' : 'text-slate-400'}`}>
-                          {sendEmail ? 'Email ON' : 'Email OFF'}
-                        </span>
-                      </div>
-                      <p className="text-[10px] font-bold text-slate-400 hidden sm:block">
-                        {sendEmail ? "Pressing Send will email the customer immediately." : "Pressing Send will only update the ticket timeline."}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleSendReply(replyMessage)}
-                      disabled={sending || !replyMessage.trim()}
-                      className="flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50 shadow-lg shadow-black-"
-                    >
-                      {sending ? "Transmitting..." : "Send Reply"}
-                      <Send size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <TicketReplyForm onSendReply={handleSendReply} sending={sending} />
           ) : (
-            /* RCA Section - Only for RESOLVED/CLOSED */
-            <div className="max-w-4xl mx-auto w-full mt-10 pt-10 border-t border-slate-100 pb-10">
-              <div className="mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
-                    <Info size={18} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Root Cause Analysis</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">Internal Investigation Report</p>
-                  </div>
-                </div>
-                {ticket.rca ? (
-                  <button
-                      onClick={() => {
-                        setRcaText(ticket.rca || "");
-                        setIsEditingRca(true);
-                      }}
-                      className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs transition-all active:scale-95"
-                    >
-                      <span className="material-symbols-outlined text-xs">edit</span>
-                      Edit RCA
-                    </button>
-                ) : (
-                  <span className="text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-1 rounded-md border border-amber-100">
-                    PENDING AGENT SUBMISSION
-                  </span>
-                )}
-              </div>
-
-              {ticket.rca && !isEditingRca ? (
-                /* Premium Read-Only View with Edit Button */
-                <div className="relative rounded-lg border border-slate-100 bg-slate-50/50 p-6 shadow-sm">
-                  <div className="whitespace-pre-line text-sm font-medium text-slate-800 leading-relaxed">
-                    {ticket.rca}
-                  </div>
-                  {ticket.rca_images && ticket.rca_images.length > 0 && (
-                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                      {ticket.rca_images.map((img, idx) => (
-                        <div 
-                          key={idx} 
-                          className="relative aspect-square rounded-lg border border-slate-200 overflow-hidden shadow-xs cursor-pointer hover:opacity-90 transition-opacity group"
-                          onClick={() => setLightboxData({ images: ticket.rca_images!, currentIndex: idx })}
-                        >
-                          <Image src={img} alt={`RCA Image ${idx + 1}`} fill className="object-cover transition-transform group-hover:scale-105" />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Interactive RCA Editor */
-                <div className="relative rounded-xl border border-emerald-100 bg-white p-2 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all">
-                  <textarea
-                    value={rcaText}
-                    onChange={(e) => setRcaText(e.target.value)}
-                    placeholder="Document the technical root cause and resolution steps here for internal audit..."
-                    className="w-full min-h-[160px] resize-none border-none bg-transparent p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-hidden"
-                  />
-                  
-                  {/* Image Previews */}
-                  {(rcaImages.length > 0 || rcaFiles.length > 0) && (
-                    <div className="flex flex-wrap gap-2 px-4 pb-4">
-                      {rcaImages.map((img, idx) => (
-                         <div key={`exist-${idx}`} className="relative h-16 w-16 rounded-md border border-slate-200 overflow-hidden group">
-                            <Image src={img} alt="Existing RCA" fill className="object-cover" />
-                            <button 
-                               onClick={() => setRcaImages(prev => prev.filter((_, i) => i !== idx))}
-                               className="absolute top-1 right-1 bg-black/60 text-white rounded-full h-4 w-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                               <XCircle size={10} />
-                            </button>
-                         </div>
-                      ))}
-                      {rcaFiles.map((file, idx) => (
-                         <div key={`new-${idx}`} className="relative h-16 w-16 rounded-md border border-slate-200 overflow-hidden group">
-                            <Image src={URL.createObjectURL(file)} alt="New RCA" fill className="object-cover" />
-                            <button 
-                               onClick={() => setRcaFiles(prev => prev.filter((_, i) => i !== idx))}
-                               className="absolute top-1 right-1 bg-black/60 text-white rounded-full h-4 w-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                               <XCircle size={10} />
-                            </button>
-                         </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
-                    <div className="flex items-center gap-4">
-                      <p className="text-[10px] font-bold text-slate-400 italic">This information is only visible to the Samadhan Support Team.</p>
-                      <button 
-                         type="button"
-                         onClick={() => fileInputRef.current?.click()}
-                         disabled={rcaImages.length + rcaFiles.length >= 10 || savingRca}
-                         className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-emerald-600 disabled:opacity-50"
-                      >
-                         <span className="material-symbols-outlined text-[16px]">image</span>
-                         Attach Image
-                      </button>
-                      <input 
-                         type="file" 
-                         multiple 
-                         accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-                         className="hidden" 
-                         ref={fileInputRef}
-                         onChange={(e) => {
-                           if (e.target.files) {
-                              const newFiles = Array.from(e.target.files);
-                              const totalAllowed = 10 - rcaImages.length - rcaFiles.length;
-                              if (newFiles.length > totalAllowed) {
-                                toast.error(`You can only attach ${totalAllowed} more image(s).`);
-                                setRcaFiles(prev => [...prev, ...newFiles.slice(0, totalAllowed)]);
-                              } else {
-                                setRcaFiles(prev => [...prev, ...newFiles]);
-                              }
-                           }
-                         }}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {ticket.rca && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                             setIsEditingRca(false);
-                             setRcaFiles([]);
-                             setRcaImages(ticket.rca_images || []);
-                             setRcaText(ticket.rca || "");
-                          }}
-                          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-95"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                      <button
-                        onClick={async () => {
-                          await handleUpdateRca();
-                        }}
-                        disabled={savingRca || !rcaText.trim()}
-                        className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50"
-                      >
-                        {savingRca ? "Saving Report..." : ticket.rca ? "Save Changes" : "Submit RCA"}
-                        <CheckCircle2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <TicketRcaEditor rca={ticket.rca} rcaImages={ticket.rca_images} onUpdateRca={handleUpdateRca} savingRca={savingRca} />
           )}
 
           {ticket.rating && (
@@ -845,13 +578,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
         </aside>
       </div>
 
-      {lightboxData && (
-        <Lightbox
-          images={lightboxData.images}
-          initialIndex={lightboxData.currentIndex}
-          onClose={() => setLightboxData(null)}
-        />
-      )}
+
     </div>
   );
 }

@@ -133,7 +133,7 @@ export default function TicketDetailPage() {
       }
 
       if (data.type === "NEW_EVENT") {
-        // No toast needed, the message is automatically appended to the timeline above
+        toast.info("New message received");
       } else if (data.type === "REPLY_TOGGLED") {
         setTicket((prev) => {
           if (!prev) return null;
