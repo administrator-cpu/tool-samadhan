@@ -18,7 +18,7 @@ export class AssignmentService {
       return ticket.current_assigned_employee_id;
     }
 
-    // 2. Find best agent (least active tickets in OPEN/IN_PROGRESS/ON_HOLD/ESCALATED) for this category
+    // 2. Find best agent (least active tickets in OPEN/IN_PROGRESS/ESCALATED) for this category
     const bestAgent = await EmployeeRepository.findBestAgentForCategory(client, categoryId);
 
     if (bestAgent) {

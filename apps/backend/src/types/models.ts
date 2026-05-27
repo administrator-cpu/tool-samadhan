@@ -7,6 +7,7 @@ export interface User {
   phone: string | null;
   password?: string;
   role: UserRole;
+  profile_image?: string | null;
   must_change_password?: boolean;
   created_at?: Date;
   updated_at?: Date;
@@ -49,7 +50,7 @@ export interface Ticket {
   closed_at: Date | null;
   circuit_description: string | null;
   problem_side: string | null;
-  external_ticket_no: string | null;
+  telco_sr_number: string | null;
   rca: string | null;
   rating: number | null;
   rating_feedback: string | null;

@@ -4,6 +4,8 @@ import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { UserRole } from '../types/dto.js';
 import { validateCreateTicket, validateUpdateStatus, validateAddEvent, validateUpdateRca, validateUpdateOutage, validateReassign, validateToggleReply, validateRateTicket } from '../middleware/validators/ticket.validator.js';
 
+import { parseTicketEventUpload } from '../middleware/multipart.middleware.js';
+
 const router = Router();
 
 router.use(requireAuth);
@@ -23,11 +25,11 @@ router.get('/resolved', requireRole([UserRole.ADMIN]), TicketController.getResol
 router.get('/:id', TicketController.getTicketTimeline);
 
 // Ticket Actions
-router.post('/:id/events', validateAddEvent, TicketController.addTicketEvent);
+router.post('/:id/events', parseTicketEventUpload, validateAddEvent, TicketController.addTicketEvent);
 
 router.patch(
   '/:id/status',
-  requireRole([UserRole.SUPPORT_AGENT, UserRole.ADMIN, UserRole.USER]),
+  requireRole([UserRole.SUPPORT_AGENT, UserRole.ADMIN, UserRole.USER, UserRole.SALES]),
   validateUpdateStatus,
   TicketController.updateTicketStatus
 );
@@ -35,6 +37,7 @@ router.patch(
 router.patch(
   '/:id/rca',
   requireRole([UserRole.SUPPORT_AGENT, UserRole.ADMIN]),
+  parseTicketEventUpload,
   validateUpdateRca,
   TicketController.updateTicketRca
 );

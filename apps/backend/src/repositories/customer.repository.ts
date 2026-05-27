@@ -31,12 +31,34 @@ export class CustomerRepository {
     return result.rowCount && result.rowCount > 0 ? result.rows[0] : null;
   }
 
-  static async findAll(pool: Pool, page: number = 1, limit: number = 10): Promise<{ customers: any[]; total: number }> {
+  static async findAll(pool: Pool, page: number = 1, limit: number = 10, search?: string): Promise<{ customers: any[]; total: number }> {
     const offset = (page - 1) * limit;
 
-    const countResult = await pool.query(`SELECT COUNT(*) FROM customers`);
+    let whereClause = '';
+    const queryParams: any[] = [];
+    
+    if (search) {
+      const normalizedSearch = search.trim().replace(/\s+/g, ' ');
+      if (normalizedSearch) {
+        whereClause = `
+          WHERE u.name ILIKE $1 
+             OR u.email ILIKE $1 
+             OR u.phone ILIKE $1 
+             OR c.customer_id ILIKE $1
+        `;
+        queryParams.push(`%${normalizedSearch}%`);
+      }
+    }
+
+    const countQuery = `
+      SELECT COUNT(*) FROM customers c
+      JOIN users u ON c.user_id = u.id
+      ${whereClause}
+    `;
+    const countResult = await pool.query(countQuery, queryParams);
     const total = parseInt(countResult.rows[0].count, 10);
 
+    const dataQueryParams = [...queryParams, limit, offset];
     const result = await pool.query(
       `SELECT 
         c.id as customer_row_id,
@@ -49,9 +71,10 @@ export class CustomerRepository {
         u.role
        FROM customers c
        JOIN users u ON c.user_id = u.id
+       ${whereClause}
        ORDER BY c.joined_at DESC
-       LIMIT $1 OFFSET $2`,
-      [limit, offset]
+       LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
+      dataQueryParams
     );
 
     return { customers: result.rows, total };

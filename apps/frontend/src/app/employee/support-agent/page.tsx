@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
-import { CheckCircle2, Clock, Activity, ArrowRight, Target, Zap} from "lucide-react";
+import { CheckCircle2, Clock, Activity, ArrowRight, Target, Zap, Inbox } from "lucide-react";
 import Link from "next/link";
 
 interface AgentStats {
@@ -92,6 +92,14 @@ export default function AgentDashboard() {
 
         {/* Metric Grid */}
         <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard 
+            icon={<Inbox size={24} />} 
+            label="Total Assigned" 
+            value={summary.total_assigned} 
+            sublabel="All-time assignments"
+            color="text-blue-600"
+            bg="bg-blue-50"
+          />
           <StatCard 
             icon={<Activity size={24} />} 
             label="Active Load" 

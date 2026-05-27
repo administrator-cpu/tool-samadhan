@@ -1,13 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Timeline from "@/components/ChatBoxTimelineMessages";
+import Lightbox from "@/components/Lightbox";
 import { api } from "@/lib/api";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { ArrowLeft, User as UserIcon, Calendar, Info } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
 import ProviderOutageTracker from "@/components/ProviderOutageTracker";
@@ -37,13 +38,18 @@ interface TicketData {
     };
     assigned_employee: {
       name: string;
+      profile_image?: string | null;
     } | null;
     circuit_description: string | null;
     rca: string | null;
+    rca_images?: string[];
     problem_side: string | null;
-    external_ticket_no: string | null;
+    telco_sr_number: string | null;
     rating: number | null;
     rating_feedback: string | null;
+    alternate_email?: string | null;
+    resolved_at?: string | null;
+    closed_at?: string | null;
   };
   events: TicketEvent[];
 }
@@ -83,8 +89,23 @@ export default function SalesTicketDetailPage() {
   const { id } = useParams();
   const [data, setData] = useState<TicketData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
+  const [updating, setUpdating] = useState(false);
 
-  const fetchTicket = useCallback(async () => {
+  const handleUpdate = async (updates: { status?: string }) => {
+    setUpdating(true);
+    try {
+      await api.patch(`/tickets/${id}/status`, updates);
+      toast.success("Ticket updated successfully");
+      await fetchTicket();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update ticket");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const fetchTicket = async () => {
     try {
       const res = await api.get(`/tickets/${id}`);
       setData(res.data);
@@ -93,13 +114,13 @@ export default function SalesTicketDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  };
 
   useEffect(() => {
     if (id) {
       fetchTicket();
     }
-  }, [id, fetchTicket]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -141,6 +162,27 @@ export default function SalesTicketDetailPage() {
             <p className="text-xs font-bold text-slate-400 mt-0.5 uppercase tracking-wider">{ticket.subject}</p>
           </div>
         </div>
+
+        {/* Reopen Button */}
+        {ticket.status === "RESOLVED" && ticket.resolved_at && (() => {
+          const resolvedAt = new Date(ticket.resolved_at);
+          const now = new Date();
+          const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
+
+          if (diffHours <= 24) {
+            return (
+              <button
+                onClick={() => handleUpdate({ status: "REOPENED" })}
+                disabled={updating}
+                className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[18px]">restart_alt</span>
+                Reopen Ticket
+              </button>
+            );
+          }
+          return null;
+        })()}
       </header>
 
       {/* Main Content */}
@@ -148,6 +190,41 @@ export default function SalesTicketDetailPage() {
         <main className="flex-1 overflow-y-auto px-5 py-8 border-r border-slate-100 flex flex-col">
           <div className="max-w-4xl mx-auto w-full flex-1">
             <Timeline events={events} />
+
+            {/* RCA Report in Main Chat Box */}
+            {["RESOLVED", "CLOSED"].includes(ticket.status) && ticket.rca && (
+              <div className="mt-10 pt-10 border-t border-slate-100 pb-10">
+                <div className="mb-6 flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+                    <Info size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Root Cause Analysis</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Internal Investigation Report</p>
+                  </div>
+                </div>
+
+                <div className="relative rounded-lg border border-slate-100 bg-slate-50/50 p-6 shadow-sm">
+                  <div className="whitespace-pre-line text-sm font-medium text-slate-800 leading-relaxed">
+                    {ticket.rca}
+                  </div>
+                  {ticket.rca_images && ticket.rca_images.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                      {ticket.rca_images.map((img, idx) => (
+                        <button 
+                          key={idx} 
+                          onClick={() => setLightboxData({ images: ticket.rca_images!, currentIndex: idx })} 
+                          type="button" 
+                          className="relative aspect-square rounded-lg border border-slate-200 overflow-hidden shadow-xs hover:opacity-90 hover:scale-[1.02] transition-all bg-slate-100 cursor-zoom-in"
+                        >
+                          <Image src={img} alt={`RCA Image ${idx + 1}`} fill className="object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </main>
 
@@ -188,7 +265,11 @@ export default function SalesTicketDetailPage() {
                       {ticket.customer.email}
                     </span>
                   )}
-                  
+                  {ticket.alternate_email && (
+                    <span className="text-[11px] font-bold text-slate-400 lowercase block mt-0.5" title="Alternate Email">
+                      alt: {ticket.alternate_email}
+                    </span>
+                  )}
                 </div>
 
                 {/* Opened On */}
@@ -219,7 +300,7 @@ export default function SalesTicketDetailPage() {
                 <ProviderOutageTracker
                   ticketId={ticket.id}
                   problemSide={ticket.problem_side}
-                  externalTicketNo={ticket.external_ticket_no}
+                  externalTicketNo={ticket.telco_sr_number}
                   readOnly={true}
                   onUpdate={() => {
                     fetchTicket();
@@ -230,24 +311,20 @@ export default function SalesTicketDetailPage() {
 
             <hr className="border-slate-100" />
 
-            {/* RCA Report */}
-            {ticket.rca && (
-              <>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Root Cause Analysis</p>
-                  <p className="text-[13px] font-medium text-slate-700 leading-relaxed">
-                    {ticket.rca}
-                  </p>
-                </div>
-                <hr className="border-slate-100" />
-              </>
-            )}
-
             {/* Assigned Agent */}
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Assigned Agent</p>
               <div className="flex items-center gap-3">
-                <Image src={AgentImage} alt="" width={36} height={36} className="rounded-full shadow-xs ring-2 ring-slate-100" />
+                {ticket.assigned_employee?.profile_image ? (
+                  <Image
+                    src={ticket.assigned_employee.profile_image} 
+                    alt="Agent" 
+                    width={36} height={36}
+                    className="object-cover rounded-full shadow-xs ring-2 ring-slate-100" 
+                  />
+                ) : (
+                  <Image src={AgentImage} alt="" width={36} height={36} className="rounded-full shadow-xs ring-2 ring-slate-100" />
+                )}
                 <div>
                   <p className="text-sm font-bold text-slate-900">{ticket.assigned_employee?.name || "Not Assigned"}</p>
                   <p className="text-[10px] font-medium text-slate-500">Support Specialist</p>
@@ -257,6 +334,14 @@ export default function SalesTicketDetailPage() {
           </section>
         </aside>
       </div>
+
+      {lightboxData && (
+        <Lightbox
+          images={lightboxData.images}
+          initialIndex={lightboxData.currentIndex}
+          onClose={() => setLightboxData(null)}
+        />
+      )}
     </div>
   );
 }

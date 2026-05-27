@@ -1,7 +1,9 @@
 import { format } from "date-fns";
+import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import FAB5Logo from "@/assets/FAB5-logo.webp";
 import Image from "next/image";
+import Lightbox from "@/components/Lightbox";
 
 interface TicketEvent {
   id: number;
@@ -19,8 +21,11 @@ interface TimelineProps {
 export default function Timeline({ events }: TimelineProps) {
   const { user } = useAuthStore();
   const isEmployee = !!user && user.role !== "USER";
+  const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
 
-  const visibleEvents = events;
+
+
+  const visibleEvents = events.filter(e => e.event_type !== "TICKET_RCA_UPDATED");
 
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -64,8 +69,12 @@ export default function Timeline({ events }: TimelineProps) {
         const isReassign = event.metadata?.is_reassign || (event.message && /reassigned/i.test(event.message));
         return isReassign ? "Expert Tech Support" : "Agent Assigned";
       }
-      case "STATUS_CHANGED":
-        return `Status: "${event.metadata?.status || "Updated"}"`;
+      case "STATUS_CHANGED": {
+        const rawStatus = event.metadata?.newStatus || event.metadata?.new_status || event.metadata?.status;
+        if (!rawStatus) return 'Status: "Updated"';
+        const formattedStatus = rawStatus.replace(/_/g, ' ').replace(/\w\S*/g, (txt: string) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
+        return `Status: "${formattedStatus}"`;
+      }
       case "TICKET_RESOLVED":
         return "Ticket Resolved";
       case "AGENT_REPLY":
@@ -124,7 +133,7 @@ export default function Timeline({ events }: TimelineProps) {
 
               {/* Message Card */}
 
-              {event.message && event.message.trim() !== "" && !(event.event_type === "STATUS_CHANGED" && !isEmployee) && (
+              {((event.message && event.message.trim() !== "") || (event.metadata?.attachments && event.metadata.attachments.length > 0)) && !(event.event_type === "STATUS_CHANGED" && !isEmployee) && (
                   <div
                     className={`flex w-full ${isUser ? "justify-end" : "justify-start"} items-start`}
                   >
@@ -168,39 +177,59 @@ export default function Timeline({ events }: TimelineProps) {
                             ""
                           )}
 
-                          <div
-                            className={`pt-2 pb-3 px-3  rounded-2xl shadow-xs border overflow-hidden w-full ${isUser
-                                ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm"
-                                : "bg-white text-slate-900 border-gray-200 rounded-tl-sm"
-                              }`}
-                          >
-                            {!isUser &&
-                              [
-                                "AGENT_REPLY",
-                                "MANAGER_REPLY",
-                                "ADMIN_REPLY",
-                              ].includes(event.event_type) ? (
-                              <div className="flex items-center gap-2 justify-end mb-2 align-middle">
-                                <span className="text-xs font-body text-muted font-semibold ml-1">
-                                  {format(
-                                    new Date(event.created_at),
-                                    "MMM d, yyyy, h:mm a",
-                                  )}
-                                </span>
-                                <Image
-                                  src={FAB5Logo.src}
-                                  alt="FAB5 Logo"
-                                  width={30}
-                                  height={30}
-                                  className="bg-transparent"
-                                />
+                          <div className="flex flex-col gap-2 w-full">
+                            {event.message && event.message.trim() !== "" && (
+                              <div
+                                className={`pt-2 pb-3 px-3 rounded-2xl shadow-xs border overflow-hidden max-w-fit ${isUser
+                                    ? "bg-emerald-700 text-white border-emerald-800 rounded-tr-sm self-end"
+                                    : "bg-white text-slate-900 border-gray-200 rounded-tl-sm self-start"
+                                  }`}
+                              >
+                                {!isUser && [ "AGENT_REPLY", "MANAGER_REPLY", "ADMIN_REPLY" ].includes(event.event_type) ? (
+                                  <div className="flex items-center gap-2 justify-end mb-2 align-middle">
+                                    <span className="text-xs font-body text-muted font-semibold ml-1">
+                                      {format(
+                                        new Date(event.created_at),
+                                        "MMM d, yyyy, h:mm a",
+                                      )}
+                                    </span>
+                                    <Image
+                                      src={FAB5Logo.src}
+                                      alt="FAB5 Logo"
+                                      width={30}
+                                      height={30}
+                                      className="bg-transparent"
+                                    />
+                                  </div>
+                                ) : (
+                                  ""
+                                )}
+                                <p className="text-[15px] leading-relaxed font-body font-medium whitespace-pre-wrap">
+                                  {event.message}
+                                </p>
+                                {event.event_type === "TICKET_RCA_UPDATED" && event.metadata?.rca && (
+                                  <div className="mt-2 p-3 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700 whitespace-pre-wrap font-medium">
+                                    <div className="font-bold text-xs uppercase text-slate-400 tracking-wider mb-1">RCA Details</div>
+                                    {event.metadata.rca}
+                                  </div>
+                                )}
                               </div>
-                            ) : (
-                              ""
                             )}
-                            <p className="text-[15px] leading-relaxed font-body font-medium  whitespace-pre-wrap">
-                              {event.message}
-                            </p>
+
+                            {event.metadata?.attachments && Array.isArray(event.metadata.attachments) && event.metadata.attachments.length > 0 && (
+                              <div className={`grid gap-2 mt-2 ${isUser ? "self-end" : "self-start"} ${event.metadata.attachments.length === 1 ? 'grid-cols-1' : event.metadata.attachments.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                                {event.metadata.attachments.map((url: string, imgIdx: number) => (
+                                  <button 
+                                    key={imgIdx} 
+                                    onClick={() => setLightboxData({ images: event.metadata.attachments, currentIndex: imgIdx })} 
+                                    type="button" 
+                                    className="block relative aspect-square rounded-xl overflow-hidden border border-black/10 shadow-sm hover:opacity-90 hover:scale-[1.02] transition-all bg-slate-100 cursor-zoom-in w-[150px] h-[150px]"
+                                  >
+                                    <Image src={url} alt={`Attachment ${imgIdx + 1}`} className="object-cover" fill/>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -213,6 +242,14 @@ export default function Timeline({ events }: TimelineProps) {
           );
         })}
       </div>
+
+      {lightboxData && (
+        <Lightbox
+          images={lightboxData.images}
+          initialIndex={lightboxData.currentIndex}
+          onClose={() => setLightboxData(null)}
+        />
+      )}
     </section>
   );
 }

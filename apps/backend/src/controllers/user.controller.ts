@@ -114,7 +114,8 @@ export class UserController {
     try {
       const page = parseInt(req.query.page as unknown as string) || 1;
       const limit = parseInt(req.query.limit as unknown as string) || 10;
-      const data = await UserService.listAllCustomers(page, limit);
+      const search = (req.query.search as string) || undefined;
+      const data = await UserService.listAllCustomers(page, limit, search);
       return sendResponse({ res, data });
     } catch (error) {
       next(error);
@@ -175,6 +176,31 @@ export class UserController {
     try {
       const user = await UserService.updateUserProfile(req.user!.userId, req.body);
       return sendResponse({ res, message: 'Profile updated successfully', data: { user } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async uploadProfileImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      // The profile-upload.middleware attaches the URL to req.body.profile_image
+      const profileImageUrl = req.body.profile_image;
+      if (!profileImageUrl) {
+        return sendResponse({ res, statusCode: 400, message: 'Upload failed' });
+      }
+      
+      const user = await UserService.updateUserProfile(req.user!.userId, { profile_image: profileImageUrl });
+      return sendResponse({ res, message: 'Profile image uploaded successfully', data: { user } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async removeProfileImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      // Set profile_image to null in DB
+      const user = await UserService.updateUserProfile(req.user!.userId, { profile_image: null });
+      return sendResponse({ res, message: 'Profile image removed successfully', data: { user } });
     } catch (error) {
       next(error);
     }

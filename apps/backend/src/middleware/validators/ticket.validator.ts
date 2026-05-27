@@ -7,6 +7,7 @@ export const createTicketSchema = z.object({
   issueCategoryId: z.string(),
   circuitDescription: z.string(),
   message: z.string().optional(),
+  alternateEmail: z.string().email().optional(),
 });
 
 const statusEnum = z.enum(['OPEN', 'IN_PROGRESS', 'ESCALATED', 'RESOLVED', 'CLOSED', 'REOPENED']);
@@ -17,13 +18,16 @@ export const updateStatusSchema = z.object({
 });
 
 export const addEventSchema = z.object({
-  message: z.string(),
+  message: z.string().optional().default(""),
   metadata: z.record(z.string(), z.any()).optional(),
   visibleToCustomer: z.boolean().optional(),
+  send_email: z.boolean().optional(),
 });
 
 export const updateRcaSchema = z.object({
   rca: z.string(),
+  existingImages: z.any().optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export const updateOutageSchema = z.object({

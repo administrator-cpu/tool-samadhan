@@ -43,6 +43,7 @@ export class TicketService {
         assignedEmployeeId: null,
         issueCategoryId: dto.issueCategoryId,
         circuitDescription: dto.circuitDescription ? String(dto.circuitDescription) : '',
+        alternateEmail: dto.alternateEmail ? String(dto.alternateEmail).trim() : undefined,
       });
 
       const initialMessage = dto.message && dto.message.trim() !== '' ? dto.message.trim() : null;
@@ -106,7 +107,7 @@ export class TicketService {
     if (result.info) {
       // ALWAYS send confirmation to customer and helpdesk upon registration FIRST
       Promise.allSettled([
-        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no }),
+        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no, alternateEmail: result.info.alternate_email, circuitId: result.info.circuit_description }),
         sendTicketCreatedHelpdeskEmail({
           customerName: result.info.name,
           ticketNo: result.info.ticket_no,
@@ -156,7 +157,7 @@ export class TicketService {
         queryFilters.salesUserId = userId;
       }
 
-      if (['ADMIN', 'MANAGER'].includes(role)) {
+      if (['ADMIN'].includes(role)) {
         if (filters.ownership) queryFilters.ownership = filters.ownership;
         if (filters.agentId) queryFilters.employeeId = filters.agentId;
       }
@@ -209,7 +210,8 @@ export class TicketService {
           phone: ticketInfo.customer_phone
         },
         assigned_employee: ticketInfo.current_assigned_employee_id ? {
-          name: ticketInfo.assigned_employee_name
+          name: ticketInfo.assigned_employee_name,
+          profile_image: ticketInfo.assigned_employee_profile_image
         } : null
       };
 
@@ -263,16 +265,23 @@ export class TicketService {
       const isStaffReply = eventType === 'AGENT_REPLY' || eventType === 'ADMIN_REPLY';
       
       if (isStaffReply) {
+        if (ticket.status === 'OPEN') {
+          await TicketRepository.updateStatus(client, ticketId, 'IN_PROGRESS');
+        }
+
         const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
+        const shouldSendEmail = dto.send_email !== false; // Default to true if undefined
         
-        if (info && actor && visibleToCustomer) {
+        if (info && actor && visibleToCustomer && shouldSendEmail) {
           // Fire-and-forget the email so it doesn't bottleneck the HTTP response
           sendTicketUpdateEmail({
              name: info.name,
              email: info.email,
              ticketNo: info.ticket_no,
              agentName: actor.name,
-             message: dto.message
+             message: dto.message,
+             alternateEmail: info.alternate_email,
+             circuitId: info.circuit_description
           }).catch(err => {
              // We can just log it, no need to fail the entire ticket reply
              logger.error('[EMAIL] Failed to send ticket update email', err);
@@ -348,14 +357,16 @@ export class TicketService {
         email: result.info.email,
         ticketNo: result.info.ticket_no,
         status: result.updatedStatus,
-        updateType: result.newStatus
+        updateType: result.newStatus,
+        alternateEmail: result.info.alternate_email,
+        circuitId: result.info.circuit_description
       }).catch(err => logger.error('[EMAIL] Failed to send status update email', err));
     }
 
     return result.updatedTicket;
   }
 
-  static async updateTicketRca(ticketId: string, rca: string, actorUserId: string) {
+  static async updateTicketRca(ticketId: string, rca: string, existingImages: string[], newImages: string[], actorUserId: string) {
     const result = await withTransaction(async (client) => {
       const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
@@ -364,8 +375,13 @@ export class TicketService {
         throw new AppError(403, 'Cannot update RCA for a closed ticket', ErrorCodes.TICKET_CLOSED);
       }
 
+      const combinedImages = [...(existingImages || []), ...(newImages || [])];
+      if (combinedImages.length > 10) {
+        throw new AppError(400, 'Cannot attach more than 10 images to RCA', ErrorCodes.VALIDATION_ERROR);
+      }
+
       let autoClosed = false;
-      const fieldsToUpdate: any = { rca };
+      const fieldsToUpdate: any = { rca, rca_images: JSON.stringify(combinedImages) };
 
       if (ticket.status === 'RESOLVED' && ticket.resolved_at) {
         const resolvedTime = new Date(ticket.resolved_at).getTime();
@@ -382,14 +398,7 @@ export class TicketService {
 
       const updatedTicket = await TicketRepository.updateFields(client, ticketId, fieldsToUpdate);
 
-      const rcaEvent = await TicketEventRepository.insertEvent(client, {
-        ticket_id: ticketId,
-        actor_user_id: actorUserId,
-        event_type: 'TICKET_RCA_UPDATED',
-        message: 'Root Cause Analysis (RCA) was updated.',
-        metadata: { rca },
-        visible_to_customer: true
-      });
+      // RCA event creation removed
 
       let statusEvent = null;
       if (autoClosed) {
@@ -407,7 +416,7 @@ export class TicketService {
       
       ticketEventEmitter.emit('ticket_updated', {
         ticketId,
-        data: { type: 'TICKET_RCA_UPDATED', rca, event: rcaEvent }
+        data: { type: 'TICKET_RCA_UPDATED', rca, rca_images: combinedImages }
       });
 
       if (autoClosed) {
@@ -425,7 +434,9 @@ export class TicketService {
         name: result.info.name,
         email: result.info.email,
         ticketNo: result.info.ticket_no,
-        rca
+        rca,
+        alternateEmail: result.info.alternate_email,
+        circuitId: result.info.circuit_description
       }).catch(err => logger.error('[EMAIL] Failed to send ticket RCA email', err));
     }
 
@@ -439,21 +450,14 @@ export class TicketService {
 
       const updatedTicket = await TicketRepository.updateFields(client, ticketId, {
         problem_side: dto.problemSide,
-        external_ticket_no: dto.externalTicketNo
+        telco_sr_number: dto.externalTicketNo
       });
 
-      const event = await TicketEventRepository.insertEvent(client, {
-        ticket_id: ticketId,
-        actor_user_id: actorUserId,
-        event_type: 'OUTAGE_DETAILS_CHANGED',
-        message: 'Outage details updated.',
-        metadata: { problemSide: dto.problemSide, externalTicketNo: dto.externalTicketNo },
-        visible_to_customer: true
-      });
+      // Outage event creation removed
 
       ticketEventEmitter.emit('ticket_updated', {
         ticketId,
-        data: { type: 'OUTAGE_DETAILS_UPDATED', ticket: updatedTicket, event }
+        data: { type: 'OUTAGE_DETAILS_UPDATED', ticket: updatedTicket }
       });
 
       return updatedTicket;
@@ -505,18 +509,11 @@ export class TicketService {
         allow_customer_reply: allow
       });
 
-      const event = await TicketEventRepository.insertEvent(client, {
-        ticket_id: ticketId,
-        actor_user_id: actorUserId,
-        event_type: 'REPLY_TOGGLED',
-        message: `Customer replies are now ${allow ? 'enabled' : 'disabled'}.`,
-        metadata: { allow_customer_reply: allow },
-        visible_to_customer: false
-      });
+      // Reply toggle event creation removed
 
       ticketEventEmitter.emit('ticket_updated', {
          ticketId,
-         data: { type: 'REPLY_TOGGLED', allow_customer_reply: allow, event }
+         data: { type: 'REPLY_TOGGLED', allow_customer_reply: allow }
       });
 
       return updatedTicket;
