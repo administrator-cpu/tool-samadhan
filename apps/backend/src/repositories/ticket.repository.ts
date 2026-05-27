@@ -51,7 +51,7 @@ export class TicketRepository {
 
   static async findById(poolOrClient: Pool | PoolClient, ticketId: string): Promise<Ticket | null> {
     const result = await poolOrClient.query(
-      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, rca_images, problem_side, telco_sr_number, circuit_description, alternate_email
+      `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, rca_images, problem_side, telco_sr_number, circuit_description, alternate_email, created_at, updated_at
        FROM tickets
        WHERE id = $1`,
       [ticketId]

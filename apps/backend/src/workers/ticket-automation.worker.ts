@@ -55,7 +55,12 @@ export const ticketAutomationWorker = new Worker(
           break;
 
         case 'TROUBLESHOOTING_UPDATE':
-          if (!(await TicketEventRepository.hasAgentReplied(postgresPool, ticketId))) {
+          const createdAt = new Date(ticket.created_at);
+          const now = new Date();
+          const diffMs = now.getTime() - createdAt.getTime();
+          const fifteenMinutesMs = 15 * 60 * 1000 - 5000;
+
+          if (diffMs >= fifteenMinutesMs && !(await TicketEventRepository.hasAgentReplied(postgresPool, ticketId))) {
             await sendTroubleshootingUpdateEmail({
               name: ticketInfo.name,
               email: ticketInfo.email,
