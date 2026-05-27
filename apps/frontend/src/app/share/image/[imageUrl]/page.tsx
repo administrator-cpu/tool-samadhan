@@ -35,13 +35,28 @@ export default async function ShareImagePage({ params }: ShareImagePageProps) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 w-full overflow-hidden">
-      <div className="relative w-full h-screen">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black w-full overflow-hidden relative">
+      {/* Ambient Background Layer */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <Image
+          src={fullUrl}
+          alt="Ambient Background"
+          fill
+          className="object-cover blur-[100px] opacity-60 scale-125"
+          quality={10}
+          priority
+        />
+        {/* Dark overlay to ensure foreground pops */}
+        <div className="absolute inset-0 bg-black/40"></div>
+      </div>
+
+      {/* Foreground Image Layer */}
+      <div className="relative w-full h-screen z-10">
         <Image
           src={fullUrl}
           alt="Shared Image"
           fill
-          className="object-contain"
+          className="object-contain drop-shadow-2xl"
           quality={100}
           priority
           sizes="100vw"
