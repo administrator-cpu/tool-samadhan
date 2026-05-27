@@ -29,7 +29,7 @@ router.post('/:id/events', parseTicketEventUpload, validateAddEvent, TicketContr
 
 router.patch(
   '/:id/status',
-  requireRole([UserRole.SUPPORT_AGENT, UserRole.ADMIN, UserRole.USER]),
+  requireRole([UserRole.SUPPORT_AGENT, UserRole.ADMIN, UserRole.USER, UserRole.SALES]),
   validateUpdateStatus,
   TicketController.updateTicketStatus
 );

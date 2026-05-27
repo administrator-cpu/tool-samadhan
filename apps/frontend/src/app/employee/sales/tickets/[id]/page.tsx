@@ -48,6 +48,8 @@ interface TicketData {
     rating: number | null;
     rating_feedback: string | null;
     alternate_email?: string | null;
+    resolved_at?: string | null;
+    closed_at?: string | null;
   };
   events: TicketEvent[];
 }
@@ -88,6 +90,20 @@ export default function SalesTicketDetailPage() {
   const [data, setData] = useState<TicketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
+  const [updating, setUpdating] = useState(false);
+
+  const handleUpdate = async (updates: { status?: string }) => {
+    setUpdating(true);
+    try {
+      await api.patch(`/tickets/${id}/status`, updates);
+      toast.success("Ticket updated successfully");
+      await fetchTicket();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update ticket");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   const fetchTicket = useCallback(async () => {
     try {
@@ -146,6 +162,27 @@ export default function SalesTicketDetailPage() {
             <p className="text-xs font-bold text-slate-400 mt-0.5 uppercase tracking-wider">{ticket.subject}</p>
           </div>
         </div>
+
+        {/* Reopen Button */}
+        {ticket.status === "RESOLVED" && ticket.resolved_at && (() => {
+          const resolvedAt = new Date(ticket.resolved_at);
+          const now = new Date();
+          const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
+
+          if (diffHours <= 24) {
+            return (
+              <button
+                onClick={() => handleUpdate({ status: "REOPENED" })}
+                disabled={updating}
+                className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[18px]">restart_alt</span>
+                Reopen Ticket
+              </button>
+            );
+          }
+          return null;
+        })()}
       </header>
 
       {/* Main Content */}
