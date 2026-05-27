@@ -92,6 +92,43 @@ export class TicketStatsService {
     }
   }
 
+  static async getSalesStats(userId: string) {
+    const client = await postgresPool.connect();
+    try {
+      const countsRes = await client.query(`
+        SELECT status, COUNT(*) as count 
+        FROM tickets 
+        WHERE created_by_user_id = $1
+        GROUP BY status
+      `, [userId]);
+      
+      const statusCounts = {
+        OPEN: 0,
+        IN_PROGRESS: 0,
+        ESCALATED: 0,
+        RESOLVED: 0,
+        CLOSED: 0,
+        TOTAL: 0
+      };
+      
+      countsRes.rows.forEach(row => {
+        statusCounts[row.status as keyof typeof statusCounts] = parseInt(row.count, 10);
+        statusCounts.TOTAL += parseInt(row.count, 10);
+      });
+
+      return {
+        summary: {
+          total_tickets: statusCounts.TOTAL.toString(),
+          active_tickets: (statusCounts.OPEN + statusCounts.IN_PROGRESS + statusCounts.ESCALATED).toString(),
+          closed_tickets: statusCounts.CLOSED.toString(),
+          resolved_tickets: statusCounts.RESOLVED.toString(),
+        }
+      };
+    } finally {
+      client.release();
+    }
+  }
+
   static async getAgentStats(userId: string) {
     const client = await postgresPool.connect();
     try {
