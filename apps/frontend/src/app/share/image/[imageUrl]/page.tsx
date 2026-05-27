@@ -64,7 +64,7 @@ function ImageNotFoundUI() {
           
           <h1 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">Image Not Found</h1>
           <p className="text-slate-500 font-medium leading-relaxed">
-            The image you are looking for has been removed, expired, or the link is incorrect.
+            The image you are looking for has been removed, expired or the link is incorrect.
           </p>
         </div>
       </div>
