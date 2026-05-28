@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import { ArrowLeft, Info } from "lucide-react";
 import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
-import ProviderOutageTracker from "@/components/ProviderOutageTracker";
 
 interface TicketEvent {
   id: number;
@@ -296,16 +295,7 @@ export default function SalesTicketDetailPage() {
                   </div>
                 )}
 
-                {/* Outage Details */}
-                <ProviderOutageTracker
-                  ticketId={ticket.id}
-                  problemSide={ticket.problem_side}
-                  externalTicketNo={ticket.telco_sr_number}
-                  readOnly={true}
-                  onUpdate={() => {
-                    fetchTicket();
-                  }}
-                />
+
               </div>
             </div>
 
