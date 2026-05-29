@@ -136,8 +136,8 @@ export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, statu
   if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
 
-export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca, alternateEmail, circuitId }: any) => {
-  const { subject, html } = ticketRcaTemplate({ ticketNo, rca, circuitId });
+export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca, rcaImages, alternateEmail, circuitId }: any) => {
+  const { subject, html } = ticketRcaTemplate({ ticketNo, rca, rcaImages, circuitId });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
   if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
