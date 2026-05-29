@@ -41,7 +41,7 @@ export const welcomeStaffTemplate = ( { name, email, password, role }: any) => (
       <p style="font-size: 13px; color: #6b7280; margin-top: 20px;">Please change your password after your first login for security purposes.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -77,7 +77,7 @@ export const ticketCreatedHelpdeskTemplate = ( { customerName, ticketNo, categor
       </div>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -117,7 +117,7 @@ export const ticketAssignedToAgentTemplate = ( { ticketNo, customerName, agentNa
       </div>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -151,7 +151,7 @@ export const welcomeCustomerTemplate = ( { name, email, password }: any) => ( {
       <p style="font-size: 13px; color: #6b7280;">For security purposes, you will be required to change your password during your first login.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -168,7 +168,7 @@ export const ticketCreatedTemplate = ( { ticketNo, circuitId }: any) => ( {
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -185,7 +185,7 @@ export const ticketAssignedCustomer2MinTemplate = ( { ticketNo, circuitId }: any
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -202,7 +202,7 @@ export const ticketTroubleshootingCustomer15MinTemplate = ( { ticketNo, circuitI
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -219,7 +219,7 @@ export const mediaOutage45MinTemplate = ( { ticketNo, circuitId }: any) => ( {
       <p>Thank you for your patience and cooperation.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -238,7 +238,7 @@ export const ticketUpdateByStaffTemplate = ( { ticketNo, agentName, message, cir
       </div>
             
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -275,7 +275,7 @@ export const ticketStatusUpdateTemplate = ( { ticketNo, status, updateType, circ
         <p>${config.message}</p>
                 
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-          <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+          <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
         </div>
       `
     )
@@ -293,7 +293,7 @@ export const ticketResolvedTemplate = ( { ticketNo, circuitId }: any) => ( {
       <p>We would appreciate it if you could take a moment to share your feedback on portal of your experience with our support team. Your input is valuable and helps us improve our services.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -314,7 +314,7 @@ export const ticketRcaTemplate = ( { ticketNo, rca, circuitId }: any) => ( {
       <p>Please feel free to reach out if you have any questions or need additional clarification.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
@@ -339,7 +339,7 @@ export const passwordResetOtpTemplate = ( { name, otpCode }: any) => ( {
       <p style="font-size: 13px; color: #6b7280;">If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/></p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9742;</span> <span style="vertical-align: middle;">9953637300</span></span><br/><span style="color: #4b5563;"><span style="font-size: 18px; vertical-align: middle;">&#9993;</span> <span style="vertical-align: middle;">helpdesk@fab5network.com</span></span><br/></p>
       </div>
     `
   )
