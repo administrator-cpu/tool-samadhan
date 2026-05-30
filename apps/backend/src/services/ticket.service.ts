@@ -426,7 +426,7 @@ export class TicketService {
         });
       }
 
-      return { updatedTicket, info };
+      return { updatedTicket, info, combinedImages };
     });
 
     if (result.info) {
@@ -435,6 +435,7 @@ export class TicketService {
         email: result.info.email,
         ticketNo: result.info.ticket_no,
         rca,
+        rcaImages: result.combinedImages,
         alternateEmail: result.info.alternate_email,
         circuitId: result.info.circuit_description
       }).catch(err => logger.error('[EMAIL] Failed to send ticket RCA email', err));
