@@ -166,8 +166,8 @@ export default function TicketsPage() {
                 <tbody className="divide-y divide-slate-100">
                   {tickets.map((ticket) => (
                     <tr key={ticket.id} className="transition-colors hover:bg-slate-50/80">
-                      <td className="px-6 py-4 text-sm font-semibold text-emerald-700">
-                        #{ticket.ticket_no}
+                      <td className="px-6 py-4 text-sm font-bold text-emerald-700">
+                        {ticket.ticket_no}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
                         {ticket.circuit_description || "N/A"}
