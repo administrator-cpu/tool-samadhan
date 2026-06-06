@@ -38,6 +38,18 @@ export class TicketRepository {
     return result.rows[0] as Ticket;
   }
 
+  static async findActiveTicketByCircuit(client: PoolClient, circuit: string): Promise<Ticket | null> {
+    const result = await client.query(
+      `SELECT id, ticket_no, status, circuit_description
+       FROM tickets
+       WHERE UPPER(circuit_description) = UPPER($1)
+       AND status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED', 'RESOLVED')
+       LIMIT 1`,
+      [circuit]
+    );
+    return result.rowCount && result.rowCount > 0 ? (result.rows[0] as Ticket) : null;
+  }
+
   static async findByIdForUpdate(client: PoolClient, ticketId: string): Promise<Ticket | null> {
     const result = await client.query(
       `SELECT id, customer_id, created_by_user_id, current_assigned_employee_id, status, allow_customer_reply, resolved_at, closed_at, rca, rca_images, problem_side, telco_sr_number, alternate_email

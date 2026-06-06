@@ -143,7 +143,6 @@ button:hover {
     transition: all 0.1s ease;
 }
 
-.flow-gradient-btn:hover {
-    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+/* .flow-gradient-btn:hover {
     transform: translateY(-1px);
-}
+} */
