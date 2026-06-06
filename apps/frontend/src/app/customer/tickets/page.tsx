@@ -86,7 +86,7 @@ export default function TicketsPage() {
 
           <Link
             href="/customer/raise-new-ticket"
-            className="flow-gradient-btn inline-flex items-center gap-2 rounded-xl px-6 py-3 font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
+            className="flow-gradient-btn inline-flex items-center gap-2 rounded-lg px-4 py-3 font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
           >
             <span className="material-symbols-outlined">add_circle</span>
             Raise New Ticket

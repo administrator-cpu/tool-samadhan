@@ -37,6 +37,14 @@ export class TicketService {
 
       if (!customerId) throw new AppError(400, 'Customer ID is required', ErrorCodes.VALIDATION_ERROR);
 
+      if (dto.circuitDescription && dto.circuitDescription.trim() !== '') {
+        const circuit = dto.circuitDescription.trim();
+        const activeTicket = await TicketRepository.findActiveTicketByCircuit(client, circuit);
+        if (activeTicket) {
+          throw new AppError(400, 'There is already an open ticket raised in Samadhan', ErrorCodes.VALIDATION_ERROR);
+        }
+      }
+
       const ticket = await TicketRepository.create(client, {
         customerId: customerId as string,
         createdByUserId: actorRole !== UserRole.USER ? actorUserId : null,
