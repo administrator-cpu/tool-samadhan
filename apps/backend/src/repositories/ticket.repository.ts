@@ -231,6 +231,7 @@ export class TicketRepository {
         t.status,
         t.created_at,
         t.updated_at,
+        t.circuit_description,
         cu.name AS customer_name,
         eu.name AS assigned_employee_name,
         t.current_assigned_employee_id
@@ -329,6 +330,7 @@ export class TicketRepository {
         t.updated_at,
         t.resolved_at,
         t.closed_at,
+        t.circuit_description,
         c.customer_id,
         cu.name AS customer_name,
         eu.name AS assigned_agent_name
