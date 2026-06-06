@@ -10,6 +10,7 @@ interface Ticket {
   ticket_no: string;
   subject: string;
   status: string;
+  circuit_description?: string;
   created_at: string;
   updated_at: string;
 }
@@ -85,7 +86,7 @@ export default function TicketsPage() {
 
           <Link
             href="/customer/raise-new-ticket"
-            className="flow-gradient-btn inline-flex items-center gap-2 rounded-xl px-6 py-3 font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
+            className="flow-gradient-btn inline-flex items-center gap-2 rounded-lg px-4 py-3 font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
           >
             <span className="material-symbols-outlined">add_circle</span>
             Raise New Ticket
@@ -145,6 +146,9 @@ export default function TicketsPage() {
                       Ticket ID
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Circuit / BTS Id
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Issue Category
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -162,13 +166,14 @@ export default function TicketsPage() {
                 <tbody className="divide-y divide-slate-100">
                   {tickets.map((ticket) => (
                     <tr key={ticket.id} className="transition-colors hover:bg-slate-50/80">
-                      <td className="px-6 py-6 font-bold text-emerald-700">
+                      <td className="px-6 py-4 text-sm font-bold text-emerald-700">
                         {ticket.ticket_no}
                       </td>
-                      <td className="px-6 py-6">
-                        <span className="block text-base font-normal font-heading text-slate-600">
-                          {ticket.subject}
-                        </span>
+                      <td className="px-6 py-4 text-sm font-medium text-slate-600">
+                        {ticket.circuit_description || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-slate-600">
+                        {ticket.subject}
                       </td>
                       <td className="px-6 py-6">
                         <span

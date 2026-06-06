@@ -80,7 +80,7 @@ export default function StaffPage() {
   const hideAdminEmail = ["ajay@finviatech.co", "administrator@fab5network.com"];
 
   return (
-    <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
+    <div className="mx-auto flex max-w-[1400px] flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
     
       {/* Custom Delete Confirmation Modal */}
       {deleteModalOpen && (
@@ -130,7 +130,7 @@ export default function StaffPage() {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex h-12 items-center justify-center rounded-lg bg-emerald-700 px-8 text-sm font-bold tracking-wide text-white shadow-lg shadow-emerald-700/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800"
+          className="flex h-12 items-center justify-center rounded-lg bg-emerald-700 px-8 text-sm font-bold tracking-wide text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-emerald-800"
         >
           Add Staff
         </button>
@@ -154,8 +154,8 @@ export default function StaffPage() {
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Employee</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Role</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Specialties</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Joined At</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+                  <th className="px-2 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Joined At</th>
+                  <th className="px-2 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -177,8 +177,8 @@ export default function StaffPage() {
                         {emp.role.replace("_", " ")}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1 max-w-xs">
+                    <td className="px-2 py-4">
+                      <div className="flex flex-wrap gap-1 max-w-sm">
                         {emp.categories.map((cat) => (
                           <span key={cat.id} className="inline-flex rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700 uppercase border border-emerald-100 mb-1 mr-1">
                             {cat.name}
@@ -189,10 +189,10 @@ export default function StaffPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-500 font-medium">
+                    <td className="px-2 py-4 text-sm text-slate-500 font-medium text-center">
                       {new Date(emp.joined_at).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-2 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button 
                           onClick={() => { setEmployeeToEdit(emp); setIsEditModalOpen(true); }}

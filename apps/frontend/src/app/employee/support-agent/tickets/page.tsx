@@ -18,6 +18,7 @@ interface Ticket {
   customer_name: string;
   assigned_employee_name: string | null;
   current_assigned_employee_id: number | null;
+  circuit_description?: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -172,6 +173,7 @@ export default function AgentTicketsPage() {
                 <thead>
                   <tr className="border-b border-slate-50 bg-slate-50/30">
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Reference</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Circuit / BTS Id</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ticket & Customer</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ownership</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
@@ -184,6 +186,9 @@ export default function AgentTicketsPage() {
                     <tr key={ticket.id} className="group transition-all hover:bg-slate-50/80">
                       <td className="px-8 py-6 font-black text-[#2a14b4]">
                         #{ticket.ticket_no}
+                      </td>
+                      <td className="px-8 py-6 text-xs font-bold text-slate-600">
+                        {ticket.circuit_description || "N/A"}
                       </td>
                       <td className="px-8 py-6">
                         <div className="flex flex-col">
