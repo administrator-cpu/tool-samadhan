@@ -5,7 +5,7 @@ import { EmployeeRepository } from '../repositories/employee.repository.js';
 import { CustomerRepository } from '../repositories/customer.repository.js';
 import { UserRepository } from '../repositories/user.repository.js';
 import { AssignmentService } from './assignment.service.js';
-import { sendTicketConfirmationEmail, sendTicketCreatedHelpdeskEmail, sendImmediateAgentAssignmentEmails, sendTicketUpdateEmail, sendTicketStatusUpdateEmail, sendTicketRcaEmail } from './email.service.js';
+import { sendTicketConfirmationEmail, sendTicketCreatedHelpdeskEmail, sendImmediateAgentAssignmentEmails, sendTicketUpdateEmail, sendTicketStatusUpdateEmail, sendTicketRcaEmail, sendAgentReassignmentEmail } from './email.service.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
@@ -466,7 +466,7 @@ export class TicketService {
   }
 
   static async reassignTicket(ticketId: string, employeeId: string, actorUserId: string) {
-    return withTransaction(async (client) => {
+    const result = await withTransaction(async (client) => {
       const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
@@ -475,11 +475,13 @@ export class TicketService {
       });
 
       let agentName = 'Agent';
+      let agentEmail = '';
       const agent = await EmployeeRepository.findByRowId(client, employeeId);
       if (agent) {
          const agentUser = await UserRepository.findById(client, agent.user_id);
          if (agentUser) {
            agentName = agentUser.name;
+           agentEmail = agentUser.email;
          }
       }
 
@@ -497,8 +499,23 @@ export class TicketService {
         data: { type: 'TICKET_ASSIGNED', ticket: updatedTicket, event }
       });
 
-      return updatedTicket;
+      const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
+
+      return { updatedTicket, info, agentName, agentEmail };
     });
+
+    if (result.info && result.agentEmail) {
+      sendAgentReassignmentEmail({
+        customerName: result.info.name,
+        agentName: result.agentName,
+        agentEmail: result.agentEmail,
+        ticketNo: result.info.ticket_no,
+        category: result.info.category,
+        circuitId: result.info.circuit_description
+      }).catch(err => logger.error('[EMAIL] Failed to send agent reassignment email', err));
+    }
+
+    return result.updatedTicket;
   }
 
   static async toggleCustomerReply(ticketId: string, allow: boolean, actorUserId: string) {
