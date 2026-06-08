@@ -228,6 +228,7 @@ export class TicketRepository {
       salesUserId?: string;
       ownership?: string;
       statusGroup?: string;
+      status?: string;
       searchQuery?: string;
       sortField?: string;
       sortOrder?: string;
@@ -279,7 +280,10 @@ export class TicketRepository {
       filterClauses.push(`t.current_assigned_employee_id IS NULL`);
     }
 
-    if (filters.statusGroup === 'ACTIVE') {
+    if (filters.status) {
+      filterClauses.push(`t.status = $${paramIdx++}`);
+      params.push(filters.status);
+    } else if (filters.statusGroup === 'ACTIVE') {
       filterClauses.push(`t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED', 'ON_HOLD')`);
     }
 
