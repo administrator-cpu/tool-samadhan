@@ -56,11 +56,21 @@ export default function AgentTicketsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<"status" | "date">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/tickets?page=${page}&limit=10`);
+      const queryParams = new URLSearchParams();
+      if (statusFilter !== "ALL") queryParams.append("status", statusFilter);
+      if (searchQuery.trim()) queryParams.append("searchQuery", searchQuery.trim());
+      queryParams.append("sortField", sortField);
+      queryParams.append("sortOrder", sortOrder);
+      queryParams.append("page", page.toString());
+      queryParams.append("limit", "10");
+
+      const res = await api.get(`/tickets?${queryParams.toString()}`);
       setTickets(res.data.tickets);
       setPagination(res.data.pagination);
     } catch (err: any) {
@@ -72,33 +82,11 @@ export default function AgentTicketsPage() {
 
   useEffect(() => {
     fetchTickets();
-  }, [page]);
+  }, [page, searchQuery, sortField, sortOrder, statusFilter]);
 
-  const filteredAndSortedTickets = useMemo(() => {
-    let result = [...tickets];
+  const filteredAndSortedTickets = tickets;
 
-    if (searchQuery.trim()) {
-      let q = searchQuery.trim().toUpperCase();
-      if (/^\d+$/.test(q)) {
-        q = `TCK-${q}`;
-      }
-      result = result.filter(t => t.ticket_no.toUpperCase().includes(q));
-    }
-
-    result.sort((a, b) => {
-      let comparison = 0;
-      if (sortField === "status") {
-        comparison = (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
-      } else {
-        comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      }
-      return sortOrder === "desc" ? -comparison : comparison;
-    });
-
-    return result;
-  }, [tickets, searchQuery, sortField, sortOrder]);
-
-  const activeCount = tickets.filter(t => ["OPEN", "IN_PROGRESS", "ON_HOLD", "ESCALATED"].includes(t.status)).length;
+  const activeCount = tickets.filter(t => ["OPEN", "IN_PROGRESS"].includes(t.status)).length;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] antialiased">
@@ -121,29 +109,56 @@ export default function AgentTicketsPage() {
                 type="text"
                 placeholder="Search by ID (e.g. 10003)"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
                 className="h-12 w-full rounded-lg border border-slate-200 bg-white pl-11 pr-4 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all outline-hidden"
               />
             </div>
 
-            <div className="flex h-12 items-center rounded-lg border border-slate-200 bg-white px-2 py-1">
-              <button
-                onClick={() => {
-                  if (sortField === "status") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  else { setSortField("status"); setSortOrder("desc"); }
-                }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "status" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
-              >
-                <Filter size={14} />
-                Status
-                {sortField === "status" && <ArrowUpDown size={12} className="opacity-70" />}
-              </button>
+            <div className="flex h-12 items-center rounded-lg border border-slate-200 bg-white px-2 py-1 gap-1">
+              <div className="relative">
+                <button
+                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${statusFilter !== "ALL" ? "bg-emerald-700 text-white shadow-lg" : "text-slate-500 hover:bg-slate-50"}`}
+                >
+                  <Filter size={14} />
+                  {statusFilter === "ALL" ? "Status" : statusFilter.replace("_", " ")}
+                  <ChevronDown size={14} className={`opacity-70 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isStatusDropdownOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsStatusDropdownOpen(false)}
+                    />
+                    <div className="absolute top-full left-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-xl z-50 overflow-hidden">
+                      {["ALL", "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => {
+                            setStatusFilter(status);
+                            setIsStatusDropdownOpen(false);
+                            setPage(1);
+                          }}
+                          className={`block w-full text-left px-4 py-2 text-xs font-bold transition-colors ${statusFilter === status ? "bg-slate-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
+                        >
+                          {status === "ALL" ? "All Statuses" : status.replace("_", " ")}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
               <button
                 onClick={() => {
                   if (sortField === "date") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
                   else { setSortField("date"); setSortOrder("desc"); }
+                  setPage(1);
                 }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
+                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-emerald-700 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
               >
                 <Calendar size={14} />
                 Date
