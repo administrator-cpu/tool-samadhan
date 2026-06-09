@@ -54,6 +54,8 @@ export default function AdminTicketsPage() {
   const [sortField, setSortField] = useState<"status" | "date">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [ownershipFilter, setOwnershipFilter] = useState<"ALL" | "ASSIGNED" | "UNASSIGNED">("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
 
   const fetchTickets = async () => {
@@ -61,6 +63,7 @@ export default function AdminTicketsPage() {
       setLoading(true);
       const queryParams = new URLSearchParams();
       if (ownershipFilter !== "ALL") queryParams.append("ownership", ownershipFilter);
+      if (statusFilter !== "ALL") queryParams.append("status", statusFilter);
       if (searchQuery.trim()) queryParams.append("searchQuery", searchQuery.trim());
       queryParams.append("sortField", sortField);
       queryParams.append("sortOrder", sortOrder);
@@ -81,7 +84,7 @@ export default function AdminTicketsPage() {
     // Reset page to 1 when filters change (but avoid doing it inside the effect to prevent loop, 
     // actually it's fine if we handle page reset in the onChange handlers, but for now we just fetch)
     fetchTickets();
-  }, [ownershipFilter, page, searchQuery, sortField, sortOrder]);
+  }, [ownershipFilter, page, searchQuery, sortField, sortOrder, statusFilter]);
 
   const filteredAndSortedTickets = tickets;
 
@@ -90,7 +93,7 @@ export default function AdminTicketsPage() {
     setIsModalOpen(true);
   };
 
-  const activeCount = tickets.filter(t => ["OPEN", "IN_PROGRESS", "ON_HOLD", "ESCALATED"].includes(t.status)).length;
+  const activeCount = tickets.filter(t => ["OPEN", "IN_PROGRESS"].includes(t.status)).length;
   const closedCount = tickets.filter(t => t.status === "CLOSED" || t.status === "RESOLVED").length;
 
   return (
@@ -122,23 +125,41 @@ export default function AdminTicketsPage() {
               />
             </div>
 
-            <div className="flex h-12 items-center rounded-lg border border-slate-200 bg-white px-2 py-1">
-              <button
-                onClick={() => {
-                  if (sortField === "status") {
-                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  } else { 
-                    setSortField("status"); 
-                    setSortOrder("desc"); 
-                  }
-                  setPage(1);
-                }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "status" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
-              >
-                <Filter size={14} />
-                Status
-                {sortField === "status" && <ArrowUpDown size={12} className="opacity-70" />}
-              </button>
+            <div className="flex h-12 items-center rounded-lg border border-slate-200 bg-white px-2 py-1 gap-1">
+              <div className="relative">
+                <button
+                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${statusFilter !== "ALL" ? "bg-emerald-600 text-white shadow-lg" : "text-slate-500 hover:bg-slate-50"}`}
+                >
+                  <Filter size={14} />
+                  {statusFilter === "ALL" ? "Status" : statusFilter.replace("_", " ")}
+                  <ChevronDown size={14} className={`opacity-70 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isStatusDropdownOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsStatusDropdownOpen(false)}
+                    />
+                    <div className="absolute top-full left-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-xl z-50 overflow-hidden">
+                      {["ALL", "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => {
+                            setStatusFilter(status);
+                            setIsStatusDropdownOpen(false);
+                            setPage(1);
+                          }}
+                          className={`block w-full text-left px-4 py-2 text-xs font-bold transition-colors ${statusFilter === status ? "bg-slate-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
+                        >
+                          {status === "ALL" ? "All Statuses" : status.replace("_", " ")}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
               <button
                 onClick={() => {
                   if (sortField === "date") {
@@ -149,7 +170,7 @@ export default function AdminTicketsPage() {
                   }
                   setPage(1);
                 }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
+                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-emerald-700 text-white shadow-lg" : "text-slate-500 hover:bg-slate-50"}`}
               >
                 <Calendar size={14} />
                 Date
@@ -226,7 +247,7 @@ export default function AdminTicketsPage() {
                 <tbody className="divide-y divide-slate-50">
                   {filteredAndSortedTickets.map((ticket) => (
                     <tr key={ticket.id} className="group transition-all hover:bg-slate-50/80">
-                      <td className="px-8 py-6 font-bold  text-sm text-emerald-700">
+                      <td className="px-8 py-6 font-bold text-sm text-emerald-700">
                         {ticket.ticket_no}
                       </td>
                       <td className="px-8 py-6 text-xs font-bold text-slate-600">

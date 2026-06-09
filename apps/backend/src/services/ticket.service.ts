@@ -148,6 +148,7 @@ export class TicketService {
       const offset = (page - 1) * limit;
       const queryFilters: any = { 
         statusGroup: filters.statusGroup,
+        status: filters.status,
         searchQuery: filters.searchQuery,
         sortField: filters.sortField,
         sortOrder: filters.sortOrder,
