@@ -20,6 +20,7 @@ router.get('/agent-stats', requireRole([UserRole.SUPPORT_AGENT]), TicketControll
 
 // Resolved Export
 router.get('/resolved', requireRole([UserRole.ADMIN]), TicketController.getResolvedTicketsExport);
+router.get('/earliest-year', requireRole([UserRole.ADMIN]), TicketController.getEarliestTicketYear);
 
 // Ticket Details & Timeline
 router.get('/:id', TicketController.getTicketTimeline);

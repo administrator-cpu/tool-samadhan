@@ -149,13 +149,24 @@ export class TicketController {
     }
   }
 
+  static async getEarliestTicketYear(req: Request, res: Response, next: NextFunction) {
+    try {
+      const year = await TicketService.getEarliestTicketYear();
+      return sendResponse({ res, data: { year } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getResolvedTicketsExport(req: Request, res: Response, next: NextFunction) {
     try {
       const page = parseInt(req.query.page as unknown as string) || 1;
       const limit = parseInt(req.query.limit as unknown as string) || 10;
-      const exportAll = req.query.export === 'true';
+      const exportAll = req.query.exportAll === 'true' || req.query.export === 'true';
+      const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+      const month = req.query.month ? parseInt(req.query.month as string) : undefined;
 
-      const result = await TicketService.listResolvedTickets(page, limit, exportAll);
+      const result = await TicketService.listResolvedTickets(page, limit, exportAll, year, month);
       return sendResponse({ res, data: result });
     } catch (error) {
       next(error);
