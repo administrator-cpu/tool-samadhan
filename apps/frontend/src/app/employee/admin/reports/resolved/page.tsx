@@ -9,6 +9,7 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Eye,
   X,
   User,
@@ -48,6 +49,13 @@ export default function ResolvedTicketsPage() {
   const [exporting, setExporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Export Modal State
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportYear, setExportYear] = useState<string>(new Date().getFullYear().toString());
+  const [exportMonth, setExportMonth] = useState<string>("all");
+  const [earliestYear, setEarliestYear] = useState<number>(new Date().getFullYear());
+  const [earliestYearFetched, setEarliestYearFetched] = useState(false);
+
   // RCA Modal state
   const [selectedRca, setSelectedRca] = useState<Ticket | null>(null);
 
@@ -68,11 +76,30 @@ export default function ResolvedTicketsPage() {
     fetchTickets(currentPage);
   }, [currentPage, fetchTickets]);
 
+  const fetchEarliestYearAndOpenModal = async () => {
+    if (!earliestYearFetched) {
+      try {
+        const res = await api.get("/tickets/earliest-year");
+        if (res.data.year) {
+           setEarliestYear(res.data.year);
+           setEarliestYearFetched(true);
+        }
+      } catch (err: any) {
+        console.error("Failed to fetch earliest year", err);
+      }
+    }
+    setIsExportModalOpen(true);
+  };
+
   const handleDownloadCSV = async () => {
+    setIsExportModalOpen(false);
     setExporting(true);
     try {
-      // Fetch ALL resolved tickets for export
-      const res = await api.get("/tickets/resolved?exportAll=true");
+      let query = "/tickets/resolved?exportAll=true";
+      if (exportYear !== "all") query += `&year=${exportYear}`;
+      if (exportMonth !== "all") query += `&month=${exportMonth}`;
+
+      const res = await api.get(query);
       const allTickets: Ticket[] = res.data.tickets;
 
       if (allTickets.length === 0) {
@@ -141,7 +168,7 @@ export default function ResolvedTicketsPage() {
           </div>
 
           <button
-            onClick={handleDownloadCSV}
+            onClick={fetchEarliestYearAndOpenModal}
             disabled={exporting || tickets.length === 0}
             className="flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-5 py-2.5 text-sm font-black text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm disabled:opacity-50"
           >
@@ -376,6 +403,102 @@ export default function ResolvedTicketsPage() {
                   className="px-8 py-3 rounded-2xl bg-slate-900 text-white text-sm font-black hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
                 >
                   Close Analysis
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Period Modal */}
+      {isExportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsExportModalOpen(false)}
+          />
+          <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl shadow-slate-900/20 overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600">
+                    <Download size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Export Logs</h2>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Select Period</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsExportModalOpen(false)}
+                  className="h-10 w-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2">
+                    Year
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={exportYear}
+                      onChange={(e) => {
+                        setExportYear(e.target.value);
+                        setExportMonth("all");
+                      }}
+                      className="w-full pl-4 pr-10 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all appearance-none"
+                    >
+                      {Array.from({ length: new Date().getFullYear() - earliestYear + 1 }).map((_, i) => {
+                        const yr = new Date().getFullYear() - i;
+                        return <option key={yr} value={yr}>{yr}</option>;
+                      })}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500">
+                      <ChevronDown size={16} />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2">
+                    Month
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={exportMonth}
+                      onChange={(e) => setExportMonth(e.target.value)}
+                      className="w-full pl-4 pr-10 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all appearance-none"
+                    >
+                      <option value="all">All Months</option>
+                      {Array.from({ length: parseInt(exportYear) === new Date().getFullYear() ? new Date().getMonth() + 1 : 12 }).map((_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {new Date(2000, i).toLocaleString('default', { month: 'long' })}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500">
+                      <ChevronDown size={16} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-end gap-3">
+                <button
+                  onClick={() => setIsExportModalOpen(false)}
+                  className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDownloadCSV}
+                  className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center gap-2"
+                >
+                  <Download size={16} />
+                  Download CSV
                 </button>
               </div>
             </div>
