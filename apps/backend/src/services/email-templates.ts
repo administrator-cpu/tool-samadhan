@@ -163,6 +163,46 @@ export const ticketReassignedToAgentTemplate = ( { ticketNo, customerName, agent
   )
 });
 
+export const ticketReopenedAgentTemplate = ( { ticketNo, customerName, agentName, category, circuitId }: any) => ( {
+  subject: `Fab5: Ticket ID – ${ticketNo} – Reopened`,
+  html: emeraldLayout(
+    "Ticket Reopened",
+    `
+      <p>Dear Team,</p>
+      <p>This is to inform that a complaint has been reopened with below details:</p>
+      
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Assigned To:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${agentName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Name of Customer:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${customerName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Ticket ID:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;"><strong>${ticketNo}</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Issue Category:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${category}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Circuit Id:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${circuitId || 'N/A'}</td>
+          </tr>
+        </table>
+      </div>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
+      </div>
+    `
+  )
+});
+
 
 
 // ---Customer Templates---
