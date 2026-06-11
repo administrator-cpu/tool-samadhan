@@ -5,6 +5,7 @@ import {
   ticketAssignedToAgentTemplate,
   ticketCreatedHelpdeskTemplate,
   ticketReassignedToAgentTemplate,
+  ticketReopenedAgentTemplate,
 
   welcomeCustomerTemplate,
   ticketCreatedTemplate,
@@ -107,6 +108,26 @@ export const sendAgentReassignmentEmail = async ({ customerName, agentName, agen
     subject,
     htmlContent: html,
     ccEmail: env.emailjs.helpdeskEmail,
+  });
+};
+
+export const sendTicketReopenedAgentEmail = async ({ customerName, agentName, agentEmail, ticketNo, category, circuitId }: any) => {
+  const { subject, html } = ticketReopenedAgentTemplate({
+    ticketNo,
+    customerName,
+    agentName,
+    category,
+    circuitId,
+  });
+  const toEmail = agentEmail || env.emailjs.helpdeskEmail;
+  const ccEmail = agentEmail ? env.emailjs.helpdeskEmail : undefined;
+
+  await sendEmail({
+    toEmail,
+    toName: agentName || 'Team',
+    subject,
+    htmlContent: html,
+    ccEmail,
   });
 };
 

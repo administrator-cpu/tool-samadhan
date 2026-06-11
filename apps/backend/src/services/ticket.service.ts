@@ -5,7 +5,7 @@ import { EmployeeRepository } from '../repositories/employee.repository.js';
 import { CustomerRepository } from '../repositories/customer.repository.js';
 import { UserRepository } from '../repositories/user.repository.js';
 import { AssignmentService } from './assignment.service.js';
-import { sendTicketConfirmationEmail, sendTicketCreatedHelpdeskEmail, sendImmediateAgentAssignmentEmails, sendTicketUpdateEmail, sendTicketStatusUpdateEmail, sendTicketRcaEmail, sendAgentReassignmentEmail } from './email.service.js';
+import { sendTicketConfirmationEmail, sendTicketCreatedHelpdeskEmail, sendImmediateAgentAssignmentEmails, sendTicketUpdateEmail, sendTicketStatusUpdateEmail, sendTicketRcaEmail, sendAgentReassignmentEmail, sendTicketReopenedAgentEmail } from './email.service.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
@@ -356,8 +356,21 @@ export class TicketService {
         ticketId,
         data: { type: 'TICKET_STATUS_UPDATED', ticket: updatedTicket, event }
       });
+
+      let agentName = null;
+      let agentEmail = null;
+      if (newStatus === 'REOPENED' && ticket.current_assigned_employee_id) {
+          const agent = await EmployeeRepository.findByRowId(client, ticket.current_assigned_employee_id);
+          if (agent) {
+             const agentUser = await UserRepository.findById(client, agent.user_id);
+             if (agentUser) {
+               agentName = agentUser.name;
+               agentEmail = agentUser.email;
+             }
+          }
+      }
       
-      return { updatedTicket, info, newStatus, updatedStatus };
+      return { updatedTicket, info, newStatus, updatedStatus, agentName, agentEmail };
     });
 
     if (result.info) {
@@ -370,6 +383,17 @@ export class TicketService {
         alternateEmail: result.info.alternate_email,
         circuitId: result.info.circuit_description
       }).catch(err => logger.error('[EMAIL] Failed to send status update email', err));
+
+      if (result.newStatus === 'REOPENED') {
+          sendTicketReopenedAgentEmail({
+             customerName: result.info.name,
+             agentName: result.agentName || 'Helpdesk',
+             agentEmail: result.agentEmail,
+             ticketNo: result.info.ticket_no,
+             category: result.info.category,
+             circuitId: result.info.circuit_description
+          }).catch(err => logger.error('[EMAIL] Failed to send ticket reopened agent email', err));
+      }
     }
 
     return result.updatedTicket;
