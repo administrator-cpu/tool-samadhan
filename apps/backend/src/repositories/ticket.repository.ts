@@ -3,6 +3,8 @@ import { Ticket } from '../types/models.js';
 import { TicketStatus } from '../types/enums.js';
 
 export class TicketRepository {
+  private static cachedEarliestYear: number | null = null;
+
   static async create(
     client: PoolClient,
     data: {
@@ -328,11 +330,22 @@ export class TicketRepository {
     };
   }
 
+  static async getEarliestTicketYear(client: PoolClient): Promise<number> {
+    if (this.cachedEarliestYear !== null) {
+      return this.cachedEarliestYear;
+    }
+    const res = await client.query('SELECT EXTRACT(YEAR FROM MIN(created_at)) as year FROM tickets');
+    this.cachedEarliestYear = res.rows[0]?.year ? parseInt(res.rows[0].year, 10) : new Date().getFullYear();
+    return this.cachedEarliestYear;
+  }
+
   static async findResolvedTickets(
     client: PoolClient,
     limit: number,
     offset: number,
-    exportAll: boolean
+    exportAll: boolean,
+    year?: number,
+    month?: number
   ) {
     const baseSelect = `
       SELECT
@@ -361,24 +374,33 @@ export class TicketRepository {
       LEFT JOIN users eu ON eu.id = e.user_id
     `;
 
-    const whereClause = "WHERE t.status IN ('RESOLVED', 'CLOSED')";
+    let whereClause = "WHERE t.status IN ('RESOLVED', 'CLOSED')";
+    const params: any[] = [];
+
+    if (year) {
+      params.push(year);
+      whereClause += ` AND EXTRACT(YEAR FROM COALESCE(t.resolved_at, t.closed_at, t.updated_at)) = $${params.length}`;
+    }
+    if (month) {
+      params.push(month);
+      whereClause += ` AND EXTRACT(MONTH FROM COALESCE(t.resolved_at, t.closed_at, t.updated_at)) = $${params.length}`;
+    }
+
     const orderBy = "ORDER BY COALESCE(t.resolved_at, t.closed_at) DESC, t.created_at DESC";
 
     // Separate count query
     let total = 0;
     if (!exportAll) {
-      const countResult = await client.query(`SELECT COUNT(*) FROM tickets t ${whereClause}`);
+      const countResult = await client.query(`SELECT COUNT(*) FROM tickets t ${whereClause}`, params);
       total = parseInt(countResult.rows[0].count, 10);
     }
 
     let query;
-    const params: any[] = [];
-
     if (exportAll) {
       query = `${baseSelect} ${baseFrom} ${whereClause} ${orderBy}`;
     } else {
-      query = `${baseSelect} ${baseFrom} ${whereClause} ${orderBy} LIMIT $1 OFFSET $2`;
       params.push(limit, offset);
+      query = `${baseSelect} ${baseFrom} ${whereClause} ${orderBy} LIMIT $${params.length - 1} OFFSET $${params.length}`;
     }
 
     const dataResult = await client.query(query, params);
