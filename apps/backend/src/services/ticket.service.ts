@@ -571,11 +571,20 @@ export class TicketService {
     });
   }
 
-  static async listResolvedTickets(page: number, limit: number, exportAll: boolean = false) {
+  static async getEarliestTicketYear() {
+    const client = await postgresPool.connect();
+    try {
+      return await TicketRepository.getEarliestTicketYear(client);
+    } finally {
+      client.release();
+    }
+  }
+
+  static async listResolvedTickets(page: number, limit: number, exportAll: boolean = false, year?: number, month?: number) {
     const client = await postgresPool.connect();
     try {
       const offset = (page - 1) * limit;
-      const { tickets, total } = await TicketRepository.findResolvedTickets(client, limit, offset, exportAll);
+      const { tickets, total } = await TicketRepository.findResolvedTickets(client, limit, offset, exportAll, year, month);
       
       return {
         tickets,
