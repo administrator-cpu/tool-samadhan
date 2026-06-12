@@ -11,12 +11,14 @@ interface ReopenTicketModalProps {
 
 export default function ReopenTicketModal({ isOpen, onClose, onConfirm }: ReopenTicketModalProps) {
   const [selectedReason, setSelectedReason] = useState<string>("New issue");
+  const [newIssueDetails, setNewIssueDetails] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setIsSubmitting(false);
       setSelectedReason("New issue");
+      setNewIssueDetails("");
     }
   }, [isOpen]);
 
@@ -24,16 +26,22 @@ export default function ReopenTicketModal({ isOpen, onClose, onConfirm }: Reopen
 
   const handleConfirm = () => {
     setIsSubmitting(true);
-    onConfirm(`Ticket reopened reason: ${selectedReason}`);
+    if (selectedReason === "New issue") {
+      onConfirm(`Ticket reopened reason: New issue - ${newIssueDetails.trim()}`);
+    } else {
+      onConfirm(`Ticket reopened reason: ${selectedReason}`);
+    }
   };
+
+  const isConfirmDisabled = isSubmitting || (selectedReason === "New issue" && newIssueDetails.trim() === "");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div 
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-300" 
+        className="absolute inset-0 bg-slate-900/60  transition-opacity animate-in fade-in duration-300" 
         onClick={() => !isSubmitting && onClose()} 
       />
-      <div className="relative w-full max-w-md overflow-hidden rounded-[1rem] bg-white shadow-2xl animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-[1rem] bg-white shadow-2xl animate-in zoom-in-95 duration-300">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
@@ -77,9 +85,21 @@ export default function ReopenTicketModal({ isOpen, onClose, onConfirm }: Reopen
                   className="h-4 w-4 border-slate-300 text-emerald-600 focus:ring-emerald-600"
                 />
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col w-full">
                 <span className="text-sm font-bold text-slate-900">New issue</span>
                 <span className="text-xs font-medium text-slate-500 mt-0.5">This relates to a different problem.</span>
+                
+                {selectedReason === "New issue" && (
+                  <div className="mt-3 animate-in slide-in-from-top-1 fade-in duration-200">
+                    <textarea
+                      value={newIssueDetails}
+                      onChange={(e) => setNewIssueDetails(e.target.value)}
+                      placeholder="Please briefly describe the new issue..."
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                      rows={7}
+                    />
+                  </div>
+                )}
               </div>
             </label>
 
@@ -119,8 +139,8 @@ export default function ReopenTicketModal({ isOpen, onClose, onConfirm }: Reopen
           </button>
           <button
             onClick={handleConfirm}
-            disabled={isSubmitting}
-            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+            disabled={isConfirmDisabled}
+            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-emerald-700 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
           >
             {isSubmitting ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
