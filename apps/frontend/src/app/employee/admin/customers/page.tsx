@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AddCustomerModal from "@/components/AddCustomerModal";
 import EditCustomerModal from "@/components/EditCustomerModal";
+import { getVisiblePages } from "@/lib/pagination";
 
 interface Customer {
   customer_row_id: number;
@@ -259,7 +260,7 @@ export default function CustomersPage() {
                   <span className="sr-only">Previous</span>
                   <span className="material-symbols-outlined text-sm">chevron_left</span>
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                {getVisiblePages(page, totalPages).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPage(p)}

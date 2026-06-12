@@ -8,6 +8,7 @@ import ReassignModal from "@/components/ReassignModal";
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, TrendingUp, Calendar, UserCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { getVisiblePages } from "@/lib/pagination";
 
 interface Ticket {
   id: number;
@@ -311,7 +312,7 @@ export default function AdminTicketsPage() {
                 </button>
                 
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((p) => (
+                  {getVisiblePages(page, pagination.pages).map((p) => (
                     <button
                       key={p}
                       onClick={() => setPage(p)}
