@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Info } from "lucide-react";
 import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
+import ReopenTicketModal from "@/components/ReopenTicketModal";
 
 interface TicketEvent {
   id: number;
@@ -90,8 +91,9 @@ export default function SalesTicketDetailPage() {
   const [loading, setLoading] = useState(true);
   const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [isReopenModalOpen, setIsReopenModalOpen] = useState(false);
 
-  const handleUpdate = async (updates: { status?: string }) => {
+  const handleUpdate = async (updates: { status?: string; message?: string }) => {
     setUpdating(true);
     try {
       await api.patch(`/tickets/${id}/status`, updates);
@@ -171,7 +173,7 @@ export default function SalesTicketDetailPage() {
           if (diffHours <= 24) {
             return (
               <button
-                onClick={() => handleUpdate({ status: "REOPENED" })}
+                onClick={() => setIsReopenModalOpen(true)}
                 disabled={updating}
                 className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
               >
@@ -332,6 +334,15 @@ export default function SalesTicketDetailPage() {
           onClose={() => setLightboxData(null)}
         />
       )}
+
+      <ReopenTicketModal
+        isOpen={isReopenModalOpen}
+        onClose={() => setIsReopenModalOpen(false)}
+        onConfirm={(reason) => {
+          setIsReopenModalOpen(false);
+          handleUpdate({ status: "REOPENED", message: reason });
+        }}
+      />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { useSocket } from "@/hooks/useSocket";
 import { useSocketStore } from "@/store/useSocketStore";
 import { toast } from "sonner";
 import { useRef } from "react";
+import ReopenTicketModal from "@/components/ReopenTicketModal";
 
 interface Ticket {
   id: number;
@@ -91,6 +92,7 @@ export default function TicketDetailPage() {
   const [sending, setSending] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
+  const [isReopenModalOpen, setIsReopenModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const statusConfig = ticket ? getStatusBadgeConfig(ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
@@ -204,9 +206,9 @@ export default function TicketDetailPage() {
   }, [events?.length, id, markEventSeen]);
 
 
-  const handleStatusUpdate = async (newStatus: string) => {
+  const handleStatusUpdate = async (newStatus: string, message?: string) => {
     try {
-      await api.patch(`/tickets/${id}/status`, { status: newStatus });
+      await api.patch(`/tickets/${id}/status`, { status: newStatus, message });
       // Refresh data
       const response = await api.get(`/tickets/${id}`);
       setTicket(response.data.ticket);
@@ -351,7 +353,7 @@ export default function TicketDetailPage() {
             if (diffHours <= 24) {
               return (
                 <button
-                  onClick={() => handleStatusUpdate("REOPENED")}
+                  onClick={() => setIsReopenModalOpen(true)}
                   className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-emerald-100"
                 >
                   <span className="material-symbols-outlined text-sm">restart_alt</span>
@@ -637,6 +639,15 @@ export default function TicketDetailPage() {
           </div>
         </div>
       </main>
+
+      <ReopenTicketModal
+        isOpen={isReopenModalOpen}
+        onClose={() => setIsReopenModalOpen(false)}
+        onConfirm={(reason) => {
+          setIsReopenModalOpen(false);
+          handleStatusUpdate("REOPENED", reason);
+        }}
+      />
     </div>
   );
 }
