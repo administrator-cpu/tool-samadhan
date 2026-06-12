@@ -16,6 +16,7 @@ import { useSocket } from "@/hooks/useSocket";
 import { useSocketStore } from "@/store/useSocketStore";
 import TicketReplyForm from "./ticket/TicketReplyForm";
 import TicketRcaEditor from "./ticket/TicketRcaEditor";
+import ReopenTicketModal from "@/components/ReopenTicketModal";
 
 interface TicketEvent {
   id: number;
@@ -103,6 +104,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
   const [sending, setSending] = useState(false);
   const [savingRca, setSavingRca] = useState(false);
   const [togglingReply, setTogglingReply] = useState(false);
+  const [isReopenModalOpen, setIsReopenModalOpen] = useState(false);
 
   const statusConfig = data?.ticket ? getStatusBadgeConfig(data.ticket.status) : { dotClass: "", pingClass: "", textClass: "" };
 
@@ -243,7 +245,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
 
 
 
-  const handleUpdate = async (updates: { status?: string }) => {
+  const handleUpdate = async (updates: { status?: string; message?: string }) => {
     setUpdating(true);
     try {
       await api.patch(`/tickets/${id}/status`, updates);
@@ -400,7 +402,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                 if (diffHours <= 24) {
                   return (
                     <button
-                      onClick={() => handleUpdate({ status: "REOPENED" })}
+                      onClick={() => setIsReopenModalOpen(true)}
                       disabled={updating}
                       className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
                     >
@@ -578,7 +580,14 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
         </aside>
       </div>
 
-
+      <ReopenTicketModal
+        isOpen={isReopenModalOpen}
+        onClose={() => setIsReopenModalOpen(false)}
+        onConfirm={(reason) => {
+          setIsReopenModalOpen(false);
+          handleUpdate({ status: "REOPENED", message: reason });
+        }}
+      />
     </div>
   );
 }
