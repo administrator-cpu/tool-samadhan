@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AddStaffModal from "@/components/AddStaffModal";
 import EditStaffModal from "@/components/EditStaffModal";
+import { getVisiblePages } from "@/lib/pagination";
 
 interface Employee {
   employee_row_id: number;
@@ -236,7 +237,7 @@ export default function StaffPage() {
                     <span className="sr-only">Previous</span>
                     <span className="material-symbols-outlined text-sm">chevron_left</span>
                   </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  {getVisiblePages(page, totalPages).map((p) => (
                     <button
                       key={p}
                       onClick={() => setPage(p)}

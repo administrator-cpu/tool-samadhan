@@ -92,13 +92,11 @@ export class TicketService {
       const info = await TicketRepository.getCustomerContactInfo(client, ticket.id);
       
       if (info) {
-        if (!assignedAgentId) {
-          await ticketAutomationQueue.add(
-            'AGENT_ASSIGNMENT_CHECK',
-            { ticketId: ticket.id },
-            { delay: 2 * 60 * 1000 }
-          );
-        }
+        await ticketAutomationQueue.add(
+          'AGENT_ASSIGNMENT_CHECK',
+          { ticketId: ticket.id },
+          { delay: 2 * 60 * 1000 }
+        );
       }
 
       await ticketAutomationQueue.add('TROUBLESHOOTING_UPDATE', { ticketId: ticket.id }, { delay: 15 * 60 * 1000 });

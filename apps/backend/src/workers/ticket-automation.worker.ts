@@ -43,7 +43,7 @@ export const ticketAutomationWorker = new Worker(
     try {
       switch (jobName) {
         case 'AGENT_ASSIGNMENT_CHECK':
-          if (!ticket.current_assigned_employee_id) {
+          if (ticket.current_assigned_employee_id) {
             await sendCustomerAssignment2MinEmail({
               name: ticketInfo.name,
               email: ticketInfo.email,

@@ -19,6 +19,7 @@ import {
   Hash,
   ShieldCheck
 } from "lucide-react";
+import { getVisiblePages } from "@/lib/pagination";
 
 interface Ticket {
   id: number;
@@ -310,18 +311,18 @@ export default function ResolvedTicketsPage() {
                   <ChevronLeft size={18} />
                 </button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: pagination.pages }).map((_, i) => (
+                  {getVisiblePages(currentPage, pagination.pages).map((p) => (
                     <button
-                      key={i}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`h-9 w-9 rounded-xl text-xs font-black transition-all ${currentPage === i + 1
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`h-9 w-9 rounded-xl text-xs font-black transition-all ${currentPage === p
                           ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
                           : "bg-white border border-slate-200 text-slate-600 hover:border-indigo-300"
                         }`}
                     >
-                      {i + 1}
+                      {p}
                     </button>
-                  )).slice(Math.max(0, currentPage - 3), Math.min(pagination.pages, currentPage + 2))}
+                  ))}
                 </div>
                 <button
                   onClick={() => setCurrentPage(p => Math.min(pagination.pages, p + 1))}
