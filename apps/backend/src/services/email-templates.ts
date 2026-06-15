@@ -291,7 +291,7 @@ export const ticketTroubleshootingCustomer15MinTemplate = ( { ticketNo, circuitI
 export const mediaOutage45MinTemplate = ( { ticketNo, circuitId }: any) => ( {
   subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}${circuitId ? ` ( Reference: ${circuitId})` : ''}`,
   html: emeraldLayout(
-    "Media Outage",
+    "Issue Analysing",
     `
       <p>Dear Customer,</p>
       <p>We are currently coordinating with our Network Tier 2 team for end-to-end media verification. Rest assured, we will keep you informed with the latest updates as soon as they become available. The tentative Estimated Resolution Time is 90 min. We appreciate your patience during this process.</p>
