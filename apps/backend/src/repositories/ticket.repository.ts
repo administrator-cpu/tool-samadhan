@@ -151,22 +151,24 @@ export class TicketRepository {
     return result.rows[0] as Ticket;
   }
 
-  static async bulkCloseExpiredResolvedTickets(poolOrClient: Pool | PoolClient): Promise<string[]> {
+  static async bulkCloseExpiredResolvedTickets(poolOrClient: Pool | PoolClient): Promise<Ticket[]> {
     const expiredTicketsRes = await poolOrClient.query(
       `SELECT id FROM tickets WHERE status = 'RESOLVED' AND resolved_at < NOW() - INTERVAL '24 hours' AND rca IS NOT NULL AND TRIM(rca) <> ''`
     );
-    const closedIds: string[] = [];
+    const closedTickets: Ticket[] = [];
     
     if (expiredTicketsRes.rowCount && expiredTicketsRes.rowCount > 0) {
       for (const row of expiredTicketsRes.rows) {
-        await poolOrClient.query(
-          `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW(), allow_customer_reply = FALSE WHERE id = $1`,
+        const updateRes = await poolOrClient.query(
+          `UPDATE tickets SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW(), allow_customer_reply = FALSE WHERE id = $1 RETURNING *`,
           [row.id]
         );
-        closedIds.push(row.id);
+        if (updateRes.rows[0]) {
+          closedTickets.push(updateRes.rows[0] as Ticket);
+        }
       }
     }
-    return closedIds;
+    return closedTickets;
   }
 
   static async findTicketTimelineInfo(client: PoolClient, ticketId: string) {

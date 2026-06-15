@@ -6,6 +6,7 @@ import { postgresPool } from './config/database.js';
 import { initSocket } from './services/socket.service.js';
 import { createDatabaseTables } from './database/migrations.js';
 import { ticketAutomationWorker } from './workers/ticket-automation.worker.js';
+import { ticketAutomationQueue } from './config/redis.js';
 
 const PORT = env.port;
 const server = http.createServer(app);
@@ -19,6 +20,17 @@ const startServer = async () => {
     // Wait for DB to be ready and initialize tables
     await createDatabaseTables();
     logger.info('[DB] Database tables initialized/verified.');
+
+    // Schedule fallback cron job
+    await ticketAutomationQueue.add(
+      'BULK_CLOSE_RESOLVED_TICKETS',
+      {},
+      {
+        repeat: { pattern: '0 3 * * *' }, // 3 AM every day
+        jobId: 'bulk-close-resolved-tickets-cron'
+      }
+    );
+    logger.info('[CRON] Bulk close tickets fallback job scheduled for 3 AM daily.');
 
     server.listen(PORT, () => {
       logger.info(`[SERVER] Running in ${env.nodeEnv} mode on port ${PORT}`);
