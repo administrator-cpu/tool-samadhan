@@ -19,29 +19,68 @@ export const ticketAutomationWorker = new Worker(
     const { ticketId } = job.data;
     const { name: jobName } = job;
 
-    logger.info(`[WORKER] Processing ${jobName} for Ticket #${ticketId}`);
+    logger.info(`[WORKER] Processing ${jobName} ${ticketId ? `for Ticket #${ticketId}` : ''}`);
 
-    const ticketInfo = await TicketRepository.getCustomerContactInfo(postgresPool, ticketId);
-    if (!ticketInfo) {
-      logger.warn(`[WORKER] Ticket #${ticketId} not found.`);
-      return;
-    }
-    
-    const ticket = await TicketRepository.findById(postgresPool, ticketId);
-    if (!ticket) return;
+    let ticketInfo, ticket;
+    if (jobName !== 'BULK_CLOSE_RESOLVED_TICKETS') {
+      ticketInfo = await TicketRepository.getCustomerContactInfo(postgresPool, ticketId);
+      if (!ticketInfo) {
+        logger.warn(`[WORKER] Ticket #${ticketId} not found.`);
+        return;
+      }
+      
+      ticket = await TicketRepository.findById(postgresPool, ticketId);
+      if (!ticket) return;
 
-    if (ticket.status === 'CLOSED' || (ticket.status === 'RESOLVED' && jobName !== 'CLOSE_RESOLVED_TICKET')) {
-      logger.info(`[WORKER] Ticket #${ticketId} is ${ticket.status} for job ${jobName}. Skipping.`);
-      return;
-    }
+      if (ticket.status === 'CLOSED' || (ticket.status === 'RESOLVED' && jobName !== 'CLOSE_RESOLVED_TICKET')) {
+        logger.info(`[WORKER] Ticket #${ticketId} is ${ticket.status} for job ${jobName}. Skipping.`);
+        return;
+      }
 
-    if (await AutomatedEmailLogRepository.wasEmailSent(postgresPool, ticketId, jobName)) {
-      logger.info(`[WORKER] ${jobName} already sent for Ticket #${ticketId}. Skipping.`);
-      return;
+      if (await AutomatedEmailLogRepository.wasEmailSent(postgresPool, ticketId, jobName)) {
+        logger.info(`[WORKER] ${jobName} already sent for Ticket #${ticketId}. Skipping.`);
+        return;
+      }
     }
 
     try {
       switch (jobName) {
+        case 'BULK_CLOSE_RESOLVED_TICKETS': {
+          const client = await postgresPool.connect();
+          try {
+            await client.query('BEGIN');
+            const closedTickets = await TicketRepository.bulkCloseExpiredResolvedTickets(client);
+            
+            for (const t of closedTickets) {
+              const event: Partial<TicketEvent> = {
+                ticket_id: t.id,
+                actor_user_id: null,
+                event_type: 'STATUS_CHANGED',
+                message: 'Ticket automatically closed after 24 hours of resolution.',
+                metadata: { status: 'CLOSED', autoClosed: true, source: 'BULK_CRON' },
+                visible_to_customer: true
+              };
+              
+              await TicketEventRepository.insertEvent(client, event);
+              
+              ticketEventEmitter.emit('ticket_updated', {
+                ticketId: t.id,
+                data: {
+                  type: 'TICKET_STATUS_UPDATED',
+                  ticket: t
+                }
+              });
+            }
+            logger.info(`[WORKER] Bulk closed ${closedTickets.length} expired resolved tickets.`);
+            await client.query('COMMIT');
+          } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+          } finally {
+            client.release();
+          }
+          break;
+        }
         case 'AGENT_ASSIGNMENT_CHECK':
           if (ticket.current_assigned_employee_id) {
             await sendCustomerAssignment2MinEmail({

@@ -346,7 +346,7 @@ export class TicketService {
         await ticketAutomationQueue.add(
           'CLOSE_RESOLVED_TICKET',
           { ticketId },
-          { delay: 24 * 60 * 60 * 1000, jobId: `close-resolved-${ticketId}` }
+          { delay: 24 * 60 * 60 * 1000, jobId: `close-resolved-${ticketId}-${Date.now()}` }
         );
       }
 
