@@ -303,24 +303,48 @@ export const mediaOutage45MinTemplate = ( { ticketNo, circuitId }: any) => ( {
   )
 });
 
-export const ticketUpdateByStaffTemplate = ( { ticketNo, agentName, message, circuitId }: any) => ( {
-  subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}${circuitId ? ` ( Reference: ${circuitId})` : ''}`,
-  html: emeraldLayout(
-    "New Message Received",
-    `
-      <p>Dear Customer,</p>
-      <p>Our support specialist, <strong>${agentName}</strong>, has provided an update on your ticket:</p>
-      
-      <div style="background-color: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 20px 0; border-radius: 4px; font-style: italic;">
-        "${message}"
-      </div>
-            
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
+export const ticketUpdateByStaffTemplate = ( { ticketNo, agentName, message, attachments, circuitId }: any) => {
+  const imagesHtml = attachments && attachments.length > 0 
+    ? `
+      <div style="margin-top: 20px;">
+        <p style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px;">Attached Images:</p>
+        <div>
+          ${attachments.map((imgUrl: string) => `
+            <div style="display: inline-block; margin-right: 12px; margin-bottom: 12px; vertical-align: top;">
+              <img src="${imgUrl}" alt="Attachment" style="max-width: 100px; height: auto; border-radius: 8px; border: 1px solid #e2e8f0;"/>
+            </div>
+          `).join('')}
+        </div>
       </div>
     `
-  )
-});
+    : '';
+
+  const messageHtml = message && message.trim() !== ""
+    ? `
+      <div style="background-color: #f0fdf4; padding: 16px; margin: 20px 0; border-radius: 4px;">
+        ${message}
+      </div>
+    `
+    : '';
+
+  return {
+    subject: `Fab5: Update regarding your Ticket ID - ${ticketNo}${circuitId ? ` ( Reference: ${circuitId})` : ''}`,
+    html: emeraldLayout(
+      "New Message Received",
+      `
+        <p>Dear Customer,</p>
+        <p>Our support specialist, <strong>${agentName}</strong>, has provided an update on your ticket:</p>
+        
+        ${messageHtml}
+        ${imagesHtml}
+              
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
+          <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
+        </div>
+      `
+    )
+  };
+};
 
 export const ticketStatusUpdateTemplate = ( { ticketNo, status, updateType, circuitId }: any) => {
   if (updateType === "CLOSED" || status === "RESOLVED" || status === "CLOSED") {

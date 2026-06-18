@@ -1,9 +1,94 @@
 {
-  "id": "04ab2b67-3978-49d5-88cc-b9fc6637175d",
+  "id": "cfb23983-e5a7-4cf4-9945-9f53e1c0e527",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.automated_email_logs": {
+      "name": "automated_email_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "automated_email_logs_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "ticket_id": {
+          "name": "ticket_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email_type": {
+          "name": "email_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_automated_email_logs_ticket_type": {
+          "name": "idx_automated_email_logs_ticket_type",
+          "columns": [
+            {
+              "expression": "ticket_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "email_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "automated_email_logs_ticket_id_tickets_id_fk": {
+          "name": "automated_email_logs_ticket_id_tickets_id_fk",
+          "tableFrom": "automated_email_logs",
+          "tableTo": "tickets",
+          "columnsFrom": [
+            "ticket_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.customers": {
       "name": "customers",
       "schema": "",
@@ -35,7 +120,8 @@
           "name": "customer_id",
           "type": "varchar(20)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "('CUST-' || nextval('customer_number_seq'))"
         },
         "joined_at": {
           "name": "joined_at",
@@ -135,17 +221,16 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "employee_issue_categories_employee_id_issue_category_id_unique": {
-          "name": "employee_issue_categories_employee_id_issue_category_id_unique",
-          "nullsNotDistinct": false,
+      "compositePrimaryKeys": {
+        "employee_issue_categories_employee_id_issue_category_id_pk": {
+          "name": "employee_issue_categories_employee_id_issue_category_id_pk",
           "columns": [
             "employee_id",
             "issue_category_id"
           ]
         }
       },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -181,7 +266,8 @@
           "name": "employee_id",
           "type": "varchar(20)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "('EMP-' || nextval('employee_number_seq'))"
         },
         "joined_at": {
           "name": "joined_at",
@@ -355,7 +441,7 @@
             {
               "expression": "created_at",
               "isExpression": false,
-              "asc": true,
+              "asc": false,
               "nulls": "last"
             }
           ],
@@ -574,7 +660,29 @@
           "default": "CURRENT_TIMESTAMP"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_ticket_events_ticket_created": {
+          "name": "idx_ticket_events_ticket_created",
+          "columns": [
+            {
+              "expression": "ticket_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "ticket_events_ticket_id_tickets_id_fk": {
           "name": "ticket_events_ticket_id_tickets_id_fk",
@@ -621,7 +729,8 @@
           "name": "ticket_no",
           "type": "varchar(20)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "('TCK-' || nextval('ticket_number_seq'))"
         },
         "status": {
           "name": "status",
@@ -659,7 +768,7 @@
           "name": "circuit_description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "rca": {
           "name": "rca",
@@ -676,11 +785,9 @@
         },
         "problem_side": {
           "name": "problem_side",
-          "type": "problem_side",
-          "typeSchema": "public",
+          "type": "varchar(100)",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'UNKNOWN'"
+          "notNull": false
         },
         "telco_sr_number": {
           "name": "telco_sr_number",
@@ -690,7 +797,7 @@
         },
         "rating": {
           "name": "rating",
-          "type": "bigint",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -711,7 +818,7 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "default": true
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -1045,15 +1152,6 @@
     }
   },
   "enums": {
-    "public.problem_side": {
-      "name": "problem_side",
-      "schema": "public",
-      "values": [
-        "CLIENT_SIDE",
-        "ISP_SIDE",
-        "UNKNOWN"
-      ]
-    },
     "public.ticket_status": {
       "name": "ticket_status",
       "schema": "public",
@@ -1061,7 +1159,6 @@
         "OPEN",
         "IN_PROGRESS",
         "ESCALATED",
-        "ON_HOLD",
         "RESOLVED",
         "CLOSED"
       ]
@@ -1078,7 +1175,38 @@
     }
   },
   "schemas": {},
-  "sequences": {},
+  "sequences": {
+    "public.customer_number_seq": {
+      "name": "customer_number_seq",
+      "schema": "public",
+      "increment": "1",
+      "startWith": "10001",
+      "minValue": "1",
+      "maxValue": "9223372036854775807",
+      "cache": "1",
+      "cycle": false
+    },
+    "public.employee_number_seq": {
+      "name": "employee_number_seq",
+      "schema": "public",
+      "increment": "1",
+      "startWith": "10001",
+      "minValue": "1",
+      "maxValue": "9223372036854775807",
+      "cache": "1",
+      "cycle": false
+    },
+    "public.ticket_number_seq": {
+      "name": "ticket_number_seq",
+      "schema": "public",
+      "increment": "1",
+      "startWith": "10001",
+      "minValue": "1",
+      "maxValue": "9223372036854775807",
+      "cache": "1",
+      "cycle": false
+    }
+  },
   "roles": {},
   "policies": {},
   "views": {},
