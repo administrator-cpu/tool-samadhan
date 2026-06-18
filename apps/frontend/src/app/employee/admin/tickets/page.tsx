@@ -3,12 +3,10 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { useAuthStore } from "@/store/useAuthStore";
 import ReassignModal from "@/components/ReassignModal";
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, TrendingUp, Calendar, UserCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { getVisiblePages } from "@/lib/pagination";
 
 interface Ticket {
   id: number;
@@ -277,7 +275,7 @@ export default function AdminTicketsPage() {
                           <ChevronDown size={14} className="opacity-40 group-hover/btn:opacity-100" />
                         </button>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-2 py-6">
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tight ${statusColors[ticket.status] || "bg-slate-100"}`}>
                           {ticket.status.replace("_", " ")}
                         </span>
