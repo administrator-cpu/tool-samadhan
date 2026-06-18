@@ -92,12 +92,26 @@ export const ticketAutomationWorker = new Worker(
           const fifteenMinutesMs = 15 * 60 * 1000 - 5000;
 
           if (diffMs >= fifteenMinutesMs && !(await TicketEventRepository.hasAgentReplied(db, ticketId))) {
-            await sendTroubleshootingUpdateEmail({
+            const success = await sendTroubleshootingUpdateEmail({
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
               circuitId: ticketInfo.circuit_description
             });
+            if (success) {
+              await TicketEventRepository.insertEvent(db, {
+                ticket_id: ticketId,
+                actor_user_id: null,
+                event_type: 'AUTOMATED_UPDATE',
+                message: "To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.",
+                metadata: { heading: "Troubleshooting", source: "AUTOMATION_WORKER" },
+                visible_to_customer: true
+              });
+              ticketEventEmitter.emit('ticket_updated', {
+                ticketId,
+                data: { type: 'TICKET_EVENT_ADDED' }
+              });
+            }
             await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
           }
           break;
@@ -109,12 +123,26 @@ export const ticketAutomationWorker = new Worker(
           const fortyFiveMinutesMs = 45 * 60 * 1000 - 5000;
 
           if (diffMs >= fortyFiveMinutesMs && !(await TicketEventRepository.hasAgentReplied(db, ticketId))) {
-            await sendLongDelayUpdateEmail({
+            const success = await sendLongDelayUpdateEmail({
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
               circuitId: ticketInfo.circuit_description
             });
+            if (success) {
+              await TicketEventRepository.insertEvent(db, {
+                ticket_id: ticketId,
+                actor_user_id: null,
+                event_type: 'AUTOMATED_UPDATE',
+                message: "We are currently coordinating with our Network Tier 2 team for end-to-end media verification. Rest assured, we will keep you informed with the latest updates as soon as they become available. The tentative Estimated Resolution Time is 90 min. We appreciate your patience during this process.",
+                metadata: { heading: "Issue Analysing", source: "AUTOMATION_WORKER" },
+                visible_to_customer: true
+              });
+              ticketEventEmitter.emit('ticket_updated', {
+                ticketId,
+                data: { type: 'TICKET_EVENT_ADDED' }
+              });
+            }
             await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
           }
           break;

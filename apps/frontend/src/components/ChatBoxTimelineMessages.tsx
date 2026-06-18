@@ -45,6 +45,8 @@ export default function Timeline({ events }: TimelineProps) {
         return "published_with_changes";
       case "TICKET_RESOLVED":
         return "task_alt";
+      case "AUTOMATED_UPDATE":
+        return "robot_2";
       default:
         return "info";
     }
@@ -88,6 +90,8 @@ export default function Timeline({ events }: TimelineProps) {
         }
         return event.event_type === "USER_REPLY" ? "Customer Reply" : "Support Reply";
       }
+      case "AUTOMATED_UPDATE":
+        return event.metadata?.heading || "System Update";
       default:
         return "System Update";
     }
