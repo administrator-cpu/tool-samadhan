@@ -31,25 +31,4 @@ postgresPool.on('error', (err) => {
   logger.error('Unexpected PostgreSQL pool error:', err);
 });
 
-/**
- * Utility function to manage database transactions.
- * Automates checking out a client, BEGIN, COMMIT/ROLLBACK, and release.
- */
-export async function withTransaction<T>( work: (client: PoolClient) => Promise<T> ): Promise<T> {
-  const client = await postgresPool.connect();
-  try {
-    await client.query('BEGIN');
-    const result = await work(client);
-    await client.query('COMMIT');
-    return result;
-  } catch (error) {
-    try {
-      await client.query('ROLLBACK');
-    } catch (rollbackError) {
-      logger.error('Error during transaction rollback', rollbackError);
-    }
-    throw error;
-  } finally {
-    client.release();
-  }
-}
+
