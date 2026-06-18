@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node dist/index.js",
-    "build": "tsc",
+    "build": "tsc && mkdir -p dist/database/drizzle && cp -r src/database/drizzle/migrations dist/database/drizzle/migrations",
     "dev": "tsx watch src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
