@@ -153,7 +153,7 @@ export default function AdminTicketsPage() {
                       onClick={() => setIsStatusDropdownOpen(false)}
                     />
                     <div className="absolute top-full left-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-xl z-50 overflow-hidden">
-                      {["ALL", "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((status) => (
+                      {["ALL", "OPEN", "IN_PROGRESS", "ESCALATED", "RESOLVED", "CLOSED"].map((status) => (
                         <button
                           key={status}
                           onClick={() => {

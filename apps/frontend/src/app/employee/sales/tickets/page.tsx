@@ -50,12 +50,15 @@ export default function SalesTicketsPage() {
   const [sortField, setSortField] = useState<"status" | "date">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [ownershipFilter, setOwnershipFilter] = useState<"ALL" | "ASSIGNED" | "UNASSIGNED">("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
   const fetchTickets = async (reset = false) => {
     try {
       if (reset) setLoading(true);
       const queryParams = new URLSearchParams();
       if (ownershipFilter !== "ALL") queryParams.append("ownership", ownershipFilter);
+      if (statusFilter !== "ALL") queryParams.append("status", statusFilter);
       
       const currentCursor = reset ? null : cursor;
       if (currentCursor) queryParams.append("cursor", currentCursor);
@@ -80,7 +83,7 @@ export default function SalesTicketsPage() {
 
   useEffect(() => {
     fetchTickets(true);
-  }, [ownershipFilter]);
+  }, [ownershipFilter, statusFilter]);
 
   const filteredAndSortedTickets = useMemo(() => {
     let result = [...tickets];
@@ -109,7 +112,7 @@ export default function SalesTicketsPage() {
     return result;
   }, [tickets, searchQuery, sortField, sortOrder]);
 
-  const activeCount = tickets.filter(t => ["OPEN", "IN_PROGRESS", "ON_HOLD", "ESCALATED"].includes(t.status)).length;
+  const activeCount = tickets.filter(t => ["OPEN", "IN_PROGRESS", "ESCALATED"].includes(t.status)).length;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] antialiased">
@@ -137,24 +140,47 @@ export default function SalesTicketsPage() {
               />
             </div>
 
-            <div className="flex h-12 items-center rounded-lg border border-slate-200 bg-white px-2 py-1">
-              <button
-                onClick={() => {
-                  if (sortField === "status") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  else { setSortField("status"); setSortOrder("desc"); }
-                }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "status" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
-              >
-                <Filter size={14} />
-                Status
-                {sortField === "status" && <ArrowUpDown size={12} className="opacity-70" />}
-              </button>
+            <div className="flex h-12 items-center rounded-lg border border-slate-200 bg-white px-2 py-1 gap-1">
+              <div className="relative">
+                <button
+                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${statusFilter !== "ALL" ? "bg-emerald-600 text-white shadow-lg " : "text-slate-500 hover:bg-slate-50"}`}
+                >
+                  <Filter size={14} />
+                  {statusFilter === "ALL" ? "Status" : statusFilter.replace("_", " ")}
+                  <ChevronDown size={14} className={`opacity-70 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isStatusDropdownOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsStatusDropdownOpen(false)}
+                    />
+                    <div className="absolute top-full left-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-xl z-50 overflow-hidden">
+                      {["ALL", "OPEN", "IN_PROGRESS", "ESCALATED", "RESOLVED", "CLOSED"].map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => {
+                            setStatusFilter(status);
+                            setIsStatusDropdownOpen(false);
+                          }}
+                          className={`block w-full text-left px-4 py-2 text-xs font-bold transition-colors ${statusFilter === status ? "bg-slate-50 text-emerald-600" : "text-slate-600 hover:bg-emerald-50 hover:text-slate-900"}`}
+                        >
+                          {status === "ALL" ? "All Statuses" : status.replace("_", " ")}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
               <button
                 onClick={() => {
                   if (sortField === "date") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
                   else { setSortField("date"); setSortOrder("desc"); }
                 }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
+                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-emerald-600 text-white shadow-lg " : "text-slate-500 hover:bg-slate-50"}`}
               >
                 <Calendar size={14} />
                 Date
