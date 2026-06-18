@@ -1,93 +1,96 @@
-import { PoolClient, Pool } from 'pg';
+import { db } from '../config/database.js';
+import { ticketEvents, users } from '../database/drizzle/schema.js';
+import { eq, and, gt, inArray, asc } from 'drizzle-orm';
 import { TicketEvent } from '../types/models.js';
 
 export class TicketEventRepository {
-  static async insertEvent(client: PoolClient, event: Partial<TicketEvent>): Promise<TicketEvent> {
-    const result = await this.insertEvents(client, [event]);
+  static async insertEvent(tx: any, event: Partial<TicketEvent>): Promise<TicketEvent> {
+    const result = await this.insertEvents(tx, [event]);
     return result[0];
   }
 
-  static async insertEvents(client: PoolClient, events: Partial<TicketEvent>[]): Promise<TicketEvent[]> {
+  static async insertEvents(tx: any, events: Partial<TicketEvent>[]): Promise<TicketEvent[]> {
     if (!events || events.length === 0) return [];
 
-    const values: any[] = [];
-    const placeholders: string[] = [];
-    let idx = 1;
+    const insertData = events.map(e => ({
+      ticket_id: parseInt(String(e.ticket_id), 10),
+      actor_user_id: e.actor_user_id ? parseInt(String(e.actor_user_id), 10) : null,
+      event_type: String(e.event_type) as any,
+      message: e.message || null,
+      metadata: e.metadata || {},
+      visible_to_customer: e.visible_to_customer ?? true
+    }));
 
-    for (const e of events) {
-      placeholders.push(`($${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++})`);
-      values.push(
-        e.ticket_id,
-        e.actor_user_id || null,
-        e.event_type,
-        e.message || null,
-        e.metadata || {},
-        e.visible_to_customer ?? true
-      );
-    }
+    const result = await tx.insert(ticketEvents)
+      .values(insertData)
+      .returning();
 
-    const query = `
-      INSERT INTO ticket_events (
-        ticket_id,
-        actor_user_id,
-        event_type,
-        message,
-        metadata,
-        visible_to_customer
-      )
-      VALUES ${placeholders.join(', ')}
-      RETURNING id, ticket_id, actor_user_id, event_type, message, metadata, visible_to_customer, created_at
-    `;
-
-    const result = await client.query(query, values);
-    return result.rows as TicketEvent[];
+    return result.map((r: any) => ({
+      ...r,
+      id: String(r.id),
+      ticket_id: String(r.ticket_id),
+      actor_user_id: r.actor_user_id ? String(r.actor_user_id) : null
+    })) as TicketEvent[];
   }
 
-  static async findByTicketId(client: PoolClient, ticketId: string, visibleToCustomerOnly: boolean = false): Promise<any[]> {
-    let whereClause = 'WHERE te.ticket_id = $1';
+  static async findByTicketId(tx: any, ticketId: string, visibleToCustomerOnly: boolean = false): Promise<any[]> {
+    const conditions = [eq(ticketEvents.ticket_id, parseInt(ticketId, 10))];
     if (visibleToCustomerOnly) {
-      whereClause += ' AND te.visible_to_customer = true';
+      conditions.push(eq(ticketEvents.visible_to_customer, true));
     }
 
-    const query = `
-      SELECT
-        te.id,
-        te.ticket_id,
-        te.actor_user_id,
-        u.name AS actor_name,
-        te.event_type,
-        te.message,
-        te.metadata,
-        te.visible_to_customer,
-        te.created_at
-      FROM ticket_events te
-      LEFT JOIN users u ON u.id = te.actor_user_id
-      ${whereClause}
-      ORDER BY te.created_at ASC, te.id ASC
-    `;
+    const result = await tx.select({
+      id: ticketEvents.id,
+      ticket_id: ticketEvents.ticket_id,
+      actor_user_id: ticketEvents.actor_user_id,
+      actor_name: users.name,
+      event_type: ticketEvents.event_type,
+      message: ticketEvents.message,
+      metadata: ticketEvents.metadata,
+      visible_to_customer: ticketEvents.visible_to_customer,
+      created_at: ticketEvents.created_at
+    })
+    .from(ticketEvents)
+    .leftJoin(users, eq(ticketEvents.actor_user_id, users.id))
+    .where(and(...conditions))
+    .orderBy(asc(ticketEvents.created_at), asc(ticketEvents.id));
 
-    const result = await client.query(query, [ticketId]);
-    return result.rows;
+    return result.map((r: any) => ({
+      ...r,
+      id: String(r.id),
+      ticket_id: String(r.ticket_id),
+      actor_user_id: r.actor_user_id ? String(r.actor_user_id) : null
+    }));
   }
 
-  static async findMissedEvents(
-    pool: Pool,
-    ticketId: string,
-    afterEventId: string,
-    limit: number
-  ): Promise<{ events: any[]; hasMore: boolean }> {
-    const result = await pool.query(
-      `SELECT te.id, te.ticket_id, te.actor_user_id, u.name AS actor_name, 
-              te.event_type, te.message, te.metadata, te.visible_to_customer, te.created_at
-       FROM ticket_events te
-       LEFT JOIN users u ON u.id = te.actor_user_id
-       WHERE te.ticket_id = $1 AND te.id > $2
-       ORDER BY te.id ASC
-       LIMIT $3`,
-      [ticketId, afterEventId, limit + 1]
-    );
+  static async findMissedEvents( tx: any, ticketId: string, afterEventId: string, limit: number ): Promise<{ events: any[]; hasMore: boolean }> {
+    const result = await tx.select({
+      id: ticketEvents.id,
+      ticket_id: ticketEvents.ticket_id,
+      actor_user_id: ticketEvents.actor_user_id,
+      actor_name: users.name,
+      event_type: ticketEvents.event_type,
+      message: ticketEvents.message,
+      metadata: ticketEvents.metadata,
+      visible_to_customer: ticketEvents.visible_to_customer,
+      created_at: ticketEvents.created_at
+    })
+    .from(ticketEvents)
+    .leftJoin(users, eq(ticketEvents.actor_user_id, users.id))
+    .where(and(
+      eq(ticketEvents.ticket_id, parseInt(ticketId, 10)),
+      gt(ticketEvents.id, parseInt(afterEventId, 10))
+    ))
+    .orderBy(asc(ticketEvents.id))
+    .limit(limit + 1);
 
-    let events = result.rows;
+    let events = result.map((r: any) => ({
+      ...r,
+      id: String(r.id),
+      ticket_id: String(r.ticket_id),
+      actor_user_id: r.actor_user_id ? String(r.actor_user_id) : null
+    }));
+    
     const hasMore = events.length > limit;
 
     if (hasMore) {
@@ -97,14 +100,14 @@ export class TicketEventRepository {
     return { events, hasMore };
   }
 
-  static async hasAgentReplied(poolOrClient: Pool | PoolClient, ticketId: string): Promise<boolean> {
-    const res = await poolOrClient.query(
-      `SELECT 1 FROM ticket_events 
-       WHERE ticket_id = $1 
-       AND event_type IN ('AGENT_REPLY', 'ADMIN_REPLY')
-       LIMIT 1`,
-      [ticketId]
-    );
-    return res.rowCount !== null && res.rowCount > 0;
+  static async hasAgentReplied(tx: any, ticketId: string): Promise<boolean> {
+    const res = await tx.query.ticketEvents.findFirst({
+      where: and(
+        eq(ticketEvents.ticket_id, parseInt(ticketId, 10)),
+        inArray(ticketEvents.event_type, ['AGENT_REPLY', 'ADMIN_REPLY'])
+      ),
+      columns: { id: true }
+    });
+    return !!res;
   }
 }

@@ -21,8 +21,6 @@ const getStatusClassName = (status: string) => {
       return "bg-blue-100 text-blue-700";
     case "IN_PROGRESS":
       return "bg-indigo-100 text-[#2a14b4]";
-    case "ON_HOLD":
-      return "bg-amber-100 text-amber-700";
     case "RESOLVED":
       return "bg-emerald-100 text-emerald-700";
     case "CLOSED":
@@ -37,25 +35,40 @@ export default function TicketsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({ total: 0, pages: 0, currentPage: 1, limit: 10 });
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(true);
+
+  const fetchTickets = async (reset = false) => {
+    try {
+      if (reset) setLoading(true);
+      
+      const queryParams = new URLSearchParams();
+      const currentCursor = reset ? null : cursor;
+      if (currentCursor) queryParams.append("cursor", currentCursor);
+      queryParams.append("limit", "10");
+
+      const response = await api.get(`/tickets?${queryParams.toString()}`);
+      
+      if (reset) {
+        setTickets(response.data.tickets || []);
+      } else {
+        setTickets(prev => [...prev, ...(response.data.tickets || [])]);
+      }
+      
+      setPagination(response.data.pagination || { total: 0, pages: 0, currentPage: 1, limit: 10 });
+      setCursor(response.data.pagination?.nextCursor || null);
+      setHasNextPage(!!response.data.pagination?.nextCursor);
+    } catch (err: any) {
+      console.error("Failed to fetch tickets:", err);
+      setError("Failed to load tickets. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchTickets = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(`/tickets?page=${page}&limit=10`);
-        setTickets(response.data.tickets || []);
-        setPagination(response.data.pagination || { total: 0, pages: 0, currentPage: 1, limit: 10 });
-      } catch (err: any) {
-        console.error("Failed to fetch tickets:", err);
-        setError("Failed to load tickets. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTickets();
-  }, [page]);
+    fetchTickets(true);
+  }, []);
 
   const activeTicketsCount = tickets.filter(t => !["RESOLVED", "CLOSED"].includes(t.status)).length;
   const closedTicketsCount = tickets.filter(t => ["RESOLVED", "CLOSED"].includes(t.status)).length;
@@ -219,37 +232,15 @@ export default function TicketsPage() {
             )}
           </div>
 
-          {!loading && tickets.length > 0 && (
-            <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/30 px-6 py-4">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium text-slate-500">
-                  Showing <span className="font-bold text-slate-900">{((page - 1) * pagination.limit) + 1}</span> to{" "}
-                  <span className="font-bold text-slate-900">{Math.min(page * pagination.limit, pagination.total)}</span> of{" "}
-                  <span className="font-bold text-slate-900">{pagination.total}</span> tickets
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <span className="material-symbols-outlined text-lg">chevron_left</span>
-                  Previous
-                </button>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-700 font-bold text-white shadow-lg shadow-emerald-700/20">
-                  {page}
-                </div>
-                <button
-                  onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
-                  disabled={page >= pagination.pages}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Next
-                  <span className="material-symbols-outlined text-lg">chevron_right</span>
-                </button>
-              </div>
+          {!loading && hasNextPage && tickets.length > 0 && (
+            <div className="flex flex-col items-center justify-center gap-4 border-t border-slate-50 bg-slate-50/30 px-8 py-5">
+              <button
+                onClick={() => fetchTickets(false)}
+                className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-xs font-black text-indigo-600 transition-all hover:bg-slate-50 hover:border-indigo-200 shadow-sm"
+              >
+                Load More Tickets
+                <span className="material-symbols-outlined text-[18px]">expand_more</span>
+              </button>
             </div>
           )}
         </section>

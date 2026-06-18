@@ -1,5 +1,5 @@
 import argon2 from 'argon2';
-import { withTransaction } from '../config/database.js';
+import { db } from '../config/database.js';
 import { UserRepository } from '../repositories/user.repository.js';
 import { SessionRepository } from '../repositories/session.repository.js';
 import { generateTokens, verifyRefreshToken, hashToken } from './jwt.service.js';
@@ -10,8 +10,8 @@ import { disconnectUser } from './socket.service.js';
 
 export class AuthService {
   static async loginUser(dto: LoginDto, reqMeta: { userAgent: string; ipAddress: string }): Promise<AuthResult> {
-    return withTransaction(async (client) => {
-      const user = await UserRepository.findByEmail(client, dto.email);
+    return db.transaction(async (tx) => {
+      const user = await UserRepository.findByEmail(tx, dto.email);
       if (!user) {
         throw new AppError(401, 'Invalid credentials', ErrorCodes.INVALID_CREDENTIALS);
       }
@@ -35,7 +35,7 @@ export class AuthService {
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
       await SessionRepository.create(
-        client,
+        tx,
         user.id,
         tokenHash,
         jti,
@@ -60,7 +60,7 @@ export class AuthService {
   }
 
   static async refreshSession(refreshToken: string, reqMeta: { userAgent: string; ipAddress: string }): Promise<AuthResult> {
-    return withTransaction(async (client) => {
+    return db.transaction(async (tx) => {
       let decoded: any;
       try {
         decoded = verifyRefreshToken(refreshToken);
@@ -70,7 +70,7 @@ export class AuthService {
 
       const tokenHash = hashToken(refreshToken);
 
-      const session = await SessionRepository.findActiveByJtiAndHashForUpdate(client, decoded.jti, tokenHash);
+      const session = await SessionRepository.findActiveByJtiAndHashForUpdate(tx, decoded.jti, tokenHash);
 
       if (!session) {
         // Session hijacking attempt or already logged out
@@ -81,13 +81,13 @@ export class AuthService {
         throw new AppError(401, 'Session revoked or expired', ErrorCodes.REFRESH_REVOKED);
       }
 
-      const user = await UserRepository.findById(client, decoded.userId);
+      const user = await UserRepository.findById(tx, decoded.userId);
       if (!user) {
         throw new AppError(401, 'User not found', ErrorCodes.USER_NOT_FOUND);
       }
 
       // Invalidate old session
-      await SessionRepository.markRevoked(client, session.id);
+      await SessionRepository.markRevoked(tx, session.id);
 
       // Create new session
       const newTokens = generateTokens({
@@ -100,7 +100,7 @@ export class AuthService {
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
       await SessionRepository.create(
-        client,
+        tx,
         user.id,
         newTokenHash,
         newTokens.jti,
@@ -125,7 +125,7 @@ export class AuthService {
   }
 
   static async logoutSession(refreshToken: string): Promise<void> {
-    return withTransaction(async (client) => {
+    return db.transaction(async (tx) => {
       let decoded: any;
       try {
         decoded = verifyRefreshToken(refreshToken);
@@ -134,7 +134,7 @@ export class AuthService {
       }
 
       const tokenHash = hashToken(refreshToken);
-      await SessionRepository.markRevokedByJti(client, decoded.jti, tokenHash);
+      await SessionRepository.markRevokedByJti(tx, decoded.jti, tokenHash);
 
       // Force disconnect sockets
       disconnectUser(decoded.userId);

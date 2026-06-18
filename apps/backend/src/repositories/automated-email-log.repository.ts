@@ -1,18 +1,23 @@
-import { Pool, PoolClient } from 'pg';
+import { db } from '../config/database.js';
+import { automatedEmailLogs } from '../database/drizzle/schema.js';
+import { eq, and } from 'drizzle-orm';
 
 export class AutomatedEmailLogRepository {
-  static async wasEmailSent(poolOrClient: Pool | PoolClient, ticketId: string, emailType: string): Promise<boolean> {
-    const res = await poolOrClient.query(
-      `SELECT 1 FROM automated_email_logs WHERE ticket_id = $1 AND email_type = $2`,
-      [ticketId, emailType]
-    );
-    return res.rowCount !== null && res.rowCount > 0;
+  static async wasEmailSent(tx: any = db, ticketId: string, emailType: string): Promise<boolean> {
+    const res = await tx.query.automatedEmailLogs.findFirst({
+      where: and(
+        eq(automatedEmailLogs.ticket_id, parseInt(ticketId, 10)),
+        eq(automatedEmailLogs.email_type, emailType)
+      ),
+      columns: { id: true }
+    });
+    return !!res;
   }
 
-  static async logEmailSent(poolOrClient: Pool | PoolClient, ticketId: string, emailType: string): Promise<void> {
-    await poolOrClient.query(
-      `INSERT INTO automated_email_logs (ticket_id, email_type) VALUES ($1, $2)`,
-      [ticketId, emailType]
-    );
+  static async logEmailSent(tx: any = db, ticketId: string, emailType: string): Promise<void> {
+    await tx.insert(automatedEmailLogs).values({
+      ticket_id: parseInt(ticketId, 10),
+      email_type: emailType
+    });
   }
 }
