@@ -237,8 +237,8 @@ export default function SalesTicketsPage() {
                 <tbody className="divide-y divide-slate-50">
                   {filteredAndSortedTickets.map((ticket) => (
                     <tr key={ticket.id} className="group transition-all hover:bg-slate-50/80">
-                      <td className="px-8 py-6 font-black text-[#2a14b4]">
-                        #{ticket.ticket_no}
+                      <td className="px-8 py-6 font-bold text-sm text-emerald-700">
+                        {ticket.ticket_no}
                       </td>
                       <td className="px-8 py-6 text-xs font-bold text-slate-600">
                         {ticket.circuit_description || "N/A"}
