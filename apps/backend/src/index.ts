@@ -4,6 +4,7 @@ import { env } from './config/environment.js';
 import { logger } from './lib/logger.js';
 import { postgresPool } from './config/database.js';
 import { initSocket } from './services/socket.service.js';
+import { applyMigrations } from './database/migrate.js';
 import { ticketAutomationWorker } from './workers/ticket-automation.worker.js';
 import { ticketAutomationQueue } from './config/redis.js';
 
@@ -18,6 +19,9 @@ const startServer = async () => {
   try {
     // Wait for DB to be ready
     logger.info('[DB] Database is ready.');
+
+    // Automatically apply migrations
+    await applyMigrations();
 
     // Schedule fallback cron job
     await ticketAutomationQueue.add(
