@@ -20,8 +20,8 @@ export const updateStatusSchema = z.object({
 export const addEventSchema = z.object({
   message: z.string().optional().default(""),
   metadata: z.record(z.string(), z.any()).optional(),
-  visibleToCustomer: z.boolean().optional(),
-  send_email: z.boolean().optional(),
+  visibleToCustomer: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional(),
+  send_email: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional(),
 });
 
 export const updateRcaSchema = z.object({

@@ -163,8 +163,8 @@ export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo, alternat
   if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
 
-export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, message, alternateEmail, circuitId }: any) => {
-  const { subject, html } = ticketUpdateByStaffTemplate({ ticketNo, agentName, message, circuitId });
+export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, message, attachments, alternateEmail, circuitId }: any) => {
+  const { subject, html } = ticketUpdateByStaffTemplate({ ticketNo, agentName, message, attachments, circuitId });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
   if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };

@@ -286,6 +286,7 @@ export class TicketService {
              ticketNo: info.ticket_no,
              agentName: actor.name,
              message: dto.message,
+             attachments: dto.metadata?.attachments,
              alternateEmail: info.alternate_email,
              circuitId: info.circuit_description
           }).catch(err => {
