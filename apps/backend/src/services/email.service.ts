@@ -19,13 +19,13 @@ import {
   passwordResetOtpTemplate,
 } from './email-templates.js';
 
-const sendEmail = async ({ toEmail, toName, subject, htmlContent, ccEmail }: { toEmail: string; toName: string; subject: string; htmlContent: string; ccEmail?: string; }) => {
+const sendEmail = async ({ toEmail, toName, subject, htmlContent, ccEmail }: { toEmail: string; toName: string; subject: string; htmlContent: string; ccEmail?: string; }): Promise<boolean> => {
   const { serviceId, templateId, publicKey, privateKey } = env.emailjs;
 
   if (!serviceId || !templateId || !publicKey || !privateKey) {
     logger.warn('[EMAIL-SERVICE] Missing EmailJS credentials.');
     logger.debug(`Email delivery skipped. Intended recipient: ${toEmail}${ccEmail ? ` (CC: ${ccEmail})` : ''}, subject: "${subject}".`);
-    return;
+    return false;
   }
 
   try {
@@ -56,8 +56,10 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent, ccEmail }: { t
     }
 
     logger.info(`[EMAIL-SERVICE] Email sent successfully to ${toEmail}`);
+    return true;
   } catch (error: any) {
     logger.error('[EMAIL-SERVICE] Failed to send email:', error.message);
+    return false;
   }
 };
 
@@ -151,16 +153,18 @@ export const sendCustomerAssignment2MinEmail = async ({ name, email, ticketNo, a
   if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };
 
-export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo, alternateEmail, circuitId }: any) => {
+export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo, alternateEmail, circuitId }: any): Promise<boolean> => {
   const { subject, html } = ticketTroubleshootingCustomer15MinTemplate({ ticketNo, circuitId });
-  await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+  const success = await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
   if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
+  return success;
 };
 
-export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo, alternateEmail, circuitId }: any) => {
+export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo, alternateEmail, circuitId }: any): Promise<boolean> => {
   const { subject, html } = mediaOutage45MinTemplate({ ticketNo, circuitId });
-  await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+  const success = await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
   if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
+  return success;
 };
 
 export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, message, attachments, alternateEmail, circuitId }: any) => {
