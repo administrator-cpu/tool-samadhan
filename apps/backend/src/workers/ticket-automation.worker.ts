@@ -1,14 +1,10 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../config/redis.js';
-import { postgresPool } from '../config/database.js';
+import { db } from '../config/database.js';
 import { TicketRepository } from '../repositories/ticket.repository.js';
 import { AutomatedEmailLogRepository } from '../repositories/automated-email-log.repository.js';
 import { TicketEventRepository } from '../repositories/ticket-event.repository.js';
-import {
-  sendCustomerAssignment2MinEmail,
-  sendTroubleshootingUpdateEmail,
-  sendLongDelayUpdateEmail,
-} from '../services/email.service.js';
+import { sendCustomerAssignment2MinEmail, sendTroubleshootingUpdateEmail, sendLongDelayUpdateEmail } from '../services/email.service.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
 import { logger } from '../lib/logger.js';
 import { TicketEvent } from '../types/models.js';
@@ -23,13 +19,13 @@ export const ticketAutomationWorker = new Worker(
 
     let ticketInfo, ticket;
     if (jobName !== 'BULK_CLOSE_RESOLVED_TICKETS') {
-      ticketInfo = await TicketRepository.getCustomerContactInfo(postgresPool, ticketId);
+      ticketInfo = await TicketRepository.getCustomerContactInfo(db, ticketId);
       if (!ticketInfo) {
         logger.warn(`[WORKER] Ticket #${ticketId} not found.`);
         return;
       }
       
-      ticket = await TicketRepository.findById(postgresPool, ticketId);
+      ticket = await TicketRepository.findById(db, ticketId);
       if (!ticket) return;
 
       if (ticket.status === 'CLOSED' || (ticket.status === 'RESOLVED' && jobName !== 'CLOSE_RESOLVED_TICKET')) {
@@ -37,7 +33,7 @@ export const ticketAutomationWorker = new Worker(
         return;
       }
 
-      if (await AutomatedEmailLogRepository.wasEmailSent(postgresPool, ticketId, jobName)) {
+      if (await AutomatedEmailLogRepository.wasEmailSent(db, ticketId, jobName)) {
         logger.info(`[WORKER] ${jobName} already sent for Ticket #${ticketId}. Skipping.`);
         return;
       }
@@ -46,10 +42,9 @@ export const ticketAutomationWorker = new Worker(
     try {
       switch (jobName) {
         case 'BULK_CLOSE_RESOLVED_TICKETS': {
-          const client = await postgresPool.connect();
           try {
-            await client.query('BEGIN');
-            const closedTickets = await TicketRepository.bulkCloseExpiredResolvedTickets(client);
+            await db.transaction(async (tx) => {
+              const closedTickets = await TicketRepository.bulkCloseExpiredResolvedTickets(tx);
             
             for (const t of closedTickets) {
               const event: Partial<TicketEvent> = {
@@ -61,7 +56,7 @@ export const ticketAutomationWorker = new Worker(
                 visible_to_customer: true
               };
               
-              await TicketEventRepository.insertEvent(client, event);
+              await TicketEventRepository.insertEvent(tx, event);
               
               ticketEventEmitter.emit('ticket_updated', {
                 ticketId: t.id,
@@ -72,12 +67,9 @@ export const ticketAutomationWorker = new Worker(
               });
             }
             logger.info(`[WORKER] Bulk closed ${closedTickets.length} expired resolved tickets.`);
-            await client.query('COMMIT');
+            });
           } catch (err) {
-            await client.query('ROLLBACK');
             throw err;
-          } finally {
-            client.release();
           }
           break;
         }
@@ -89,7 +81,7 @@ export const ticketAutomationWorker = new Worker(
               ticketNo: ticketInfo.ticket_no,
               circuitId: ticketInfo.circuit_description
             });
-            await AutomatedEmailLogRepository.logEmailSent(postgresPool, ticketId, jobName);
+            await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
           }
           break;
 
@@ -99,14 +91,14 @@ export const ticketAutomationWorker = new Worker(
           const diffMs = now.getTime() - createdAt.getTime();
           const fifteenMinutesMs = 15 * 60 * 1000 - 5000;
 
-          if (diffMs >= fifteenMinutesMs && !(await TicketEventRepository.hasAgentReplied(postgresPool, ticketId))) {
+          if (diffMs >= fifteenMinutesMs && !(await TicketEventRepository.hasAgentReplied(db, ticketId))) {
             await sendTroubleshootingUpdateEmail({
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
               circuitId: ticketInfo.circuit_description
             });
-            await AutomatedEmailLogRepository.logEmailSent(postgresPool, ticketId, jobName);
+            await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
           }
           break;
 
@@ -116,23 +108,22 @@ export const ticketAutomationWorker = new Worker(
           const diffMs = now.getTime() - createdAt.getTime();
           const fortyFiveMinutesMs = 45 * 60 * 1000 - 5000;
 
-          if (diffMs >= fortyFiveMinutesMs && !(await TicketEventRepository.hasAgentReplied(postgresPool, ticketId))) {
+          if (diffMs >= fortyFiveMinutesMs && !(await TicketEventRepository.hasAgentReplied(db, ticketId))) {
             await sendLongDelayUpdateEmail({
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
               circuitId: ticketInfo.circuit_description
             });
-            await AutomatedEmailLogRepository.logEmailSent(postgresPool, ticketId, jobName);
+            await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
           }
           break;
         }
 
         case 'CLOSE_RESOLVED_TICKET': {
-          const client = await postgresPool.connect();
           try {
-            await client.query('BEGIN');
-            const lockedTicket = await TicketRepository.findByIdForUpdate(client, ticketId);
+            await db.transaction(async (tx) => {
+              const lockedTicket = await TicketRepository.findByIdForUpdate(tx, ticketId);
             
             if (
               lockedTicket &&
@@ -140,7 +131,7 @@ export const ticketAutomationWorker = new Worker(
               lockedTicket.rca &&
               lockedTicket.rca.trim()
             ) {
-              const updatedTicket = await TicketRepository.updateFields(client, ticketId, {
+              const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
                 status: 'CLOSED' as any,
                 closed_at: new Date(),
                 allow_customer_reply: false
@@ -155,7 +146,7 @@ export const ticketAutomationWorker = new Worker(
                 visible_to_customer: true
               };
               
-              await TicketEventRepository.insertEvent(client, event);
+              await TicketEventRepository.insertEvent(tx, event);
               
               ticketEventEmitter.emit('ticket_updated', {
                 ticketId,
@@ -169,12 +160,9 @@ export const ticketAutomationWorker = new Worker(
             } else {
               logger.info(`[WORKER] Ticket #${ticketId} not closed: either status is not RESOLVED or RCA is missing.`);
             }
-            await client.query('COMMIT');
+            });
           } catch (err) {
-            await client.query('ROLLBACK');
             throw err;
-          } finally {
-            client.release();
           }
           break;
         }

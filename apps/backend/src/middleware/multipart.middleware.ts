@@ -5,7 +5,8 @@ import { Readable } from 'stream';
 import { UploadService } from '../services/upload.service.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
-import { postgresPool } from '../config/database.js';
+import { db } from '../config/database.js';
+import { sql } from 'drizzle-orm';
 
 export const parseTicketEventUpload = async (req: Request, res: Response, next: NextFunction) => {
   // Pass through if not multipart
@@ -28,29 +29,23 @@ export const parseTicketEventUpload = async (req: Request, res: Response, next: 
   let ticketNo = 'TCK';
   let sanitizedCustomerName = 'customer';
   
-  try {
-    const client = await postgresPool.connect();
     try {
-      const result = await client.query(
-        `SELECT t.ticket_no, cu.name AS customer_name 
+      const result = await db.execute(sql`
+        SELECT t.ticket_no, cu.name AS customer_name 
          FROM tickets t 
          JOIN customers c ON c.id = t.customer_id 
          JOIN users cu ON cu.id = c.user_id
-         WHERE t.id = $1`,
-        [req.params.id]
-      );
+         WHERE t.id = ${parseInt(String(req.params.id), 10)}
+      `);
       if (result.rows.length > 0) {
-        ticketNo = result.rows[0].ticket_no.replace(/[^0-9]/g, '');
-        sanitizedCustomerName = result.rows[0].customer_name
+        ticketNo = String(result.rows[0].ticket_no).replace(/[^0-9]/g, '');
+        sanitizedCustomerName = String(result.rows[0].customer_name)
           .toLowerCase()
           .replace(/[^a-z0-9]/g, ''); // strict alphanumeric sanitization
       }
-    } finally {
-      client.release();
+    } catch (error) {
+      return next(new AppError(500, 'Failed to resolve ticket metadata for upload', ErrorCodes.INTERNAL_ERROR));
     }
-  } catch (error) {
-    return next(new AppError(500, 'Failed to resolve ticket metadata for upload', ErrorCodes.INTERNAL_ERROR));
-  }
 
   let uploadPromises: Promise<void>[] = [];
   let fileError: Error | null = null;

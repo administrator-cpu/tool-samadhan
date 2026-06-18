@@ -42,8 +42,8 @@ const statusOrder: Record<string, number> = {
 export default function SalesTicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ total: 0, pages: 0, currentPage: 1, limit: 10 });
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(true);
 
   // Search and Sort states
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,17 +51,26 @@ export default function SalesTicketsPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [ownershipFilter, setOwnershipFilter] = useState<"ALL" | "ASSIGNED" | "UNASSIGNED">("ALL");
 
-  const fetchTickets = async () => {
+  const fetchTickets = async (reset = false) => {
     try {
-      setLoading(true);
+      if (reset) setLoading(true);
       const queryParams = new URLSearchParams();
       if (ownershipFilter !== "ALL") queryParams.append("ownership", ownershipFilter);
-      queryParams.append("page", page.toString());
+      
+      const currentCursor = reset ? null : cursor;
+      if (currentCursor) queryParams.append("cursor", currentCursor);
       queryParams.append("limit", "10");
 
       const res = await api.get(`/tickets?${queryParams.toString()}`);
-      setTickets(res.data.tickets || []);
-      setPagination(res.data.pagination || { total: 0, pages: 0, currentPage: 1, limit: 10 });
+      
+      if (reset) {
+        setTickets(res.data.tickets || []);
+      } else {
+        setTickets(prev => [...prev, ...(res.data.tickets || [])]);
+      }
+      
+      setCursor(res.data.pagination?.nextCursor || null);
+      setHasNextPage(!!res.data.pagination?.nextCursor);
     } catch (err: any) {
       toast.error(err.message || "Failed to fetch tickets");
     } finally {
@@ -70,8 +79,8 @@ export default function SalesTicketsPage() {
   };
 
   useEffect(() => {
-    fetchTickets();
-  }, [ownershipFilter, page]);
+    fetchTickets(true);
+  }, [ownershipFilter]);
 
   const filteredAndSortedTickets = useMemo(() => {
     let result = [...tickets];
@@ -241,47 +250,15 @@ export default function SalesTicketsPage() {
           </div>
 
           {/* Pagination Controls */}
-          {!loading && pagination.pages > 1 && (
-            <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-50 bg-slate-50/30 px-8 py-5 sm:flex-row">
-              <p className="text-sm font-bold text-slate-500">
-                Showing <span className="text-slate-900">{((page - 1) * 10) + 1}</span> to <span className="text-slate-900">{Math.min(page * 10, pagination.total)}</span> of <span className="text-slate-900">{pagination.total}</span> tickets
-              </p>
-              
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
-                >
-                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                  Previous
-                </button>
-                
-                <div className="flex items-center gap-1">
-                  {getVisiblePages(page, pagination.pages).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl text-xs font-black transition-all ${
-                        page === p 
-                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" 
-                          : "text-slate-500 hover:bg-slate-50"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
-                  disabled={page === pagination.pages}
-                  className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
-                >
-                  Next
-                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                </button>
-              </div>
+          {!loading && hasNextPage && (
+            <div className="flex flex-col items-center justify-center gap-4 border-t border-slate-50 bg-slate-50/30 px-8 py-5">
+              <button
+                onClick={() => fetchTickets(false)}
+                className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-xs font-black text-indigo-600 transition-all hover:bg-slate-50 hover:border-indigo-200 shadow-sm"
+              >
+                Load More Tickets
+                <span className="material-symbols-outlined text-[18px]">expand_more</span>
+              </button>
             </div>
           )}
         </section>
