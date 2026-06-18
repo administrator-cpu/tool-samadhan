@@ -4,7 +4,6 @@ import { env } from './config/environment.js';
 import { logger } from './lib/logger.js';
 import { postgresPool } from './config/database.js';
 import { initSocket } from './services/socket.service.js';
-import { createDatabaseTables } from './database/migrations.js';
 import { ticketAutomationWorker } from './workers/ticket-automation.worker.js';
 import { ticketAutomationQueue } from './config/redis.js';
 
@@ -17,9 +16,8 @@ initSocket(server);
 // Start server function
 const startServer = async () => {
   try {
-    // Wait for DB to be ready and initialize tables
-    await createDatabaseTables();
-    logger.info('[DB] Database tables initialized/verified.');
+    // Wait for DB to be ready
+    logger.info('[DB] Database is ready.');
 
     // Schedule fallback cron job
     await ticketAutomationQueue.add(
