@@ -153,11 +153,11 @@ export class TicketService {
 
       if (role === UserRole.USER) {
         const cust = await CustomerRepository.findByUserId(tx, userId);
-        if (!cust) return { tickets: [], pagination: { nextCursor: null, limit } };
+        if (!cust) return { tickets: [], pagination: { nextCursor: null, hasNext: false, limit } };
         queryFilters.customerId = cust.id;
       } else if (role === UserRole.SUPPORT_AGENT) {
         const emp = await EmployeeRepository.findByUserId(tx, userId);
-        if (!emp) return { tickets: [], pagination: { nextCursor: null, limit } };
+        if (!emp) return { tickets: [], pagination: { nextCursor: null, hasNext: false, limit } };
         queryFilters.employeeId = emp.id;
       } else if (role === UserRole.SALES) {
         queryFilters.salesUserId = userId;
@@ -168,11 +168,11 @@ export class TicketService {
         if (filters.agentId) queryFilters.employeeId = filters.agentId;
       }
 
-      const { tickets, nextCursor } = await TicketRepository.findUserTickets(tx, queryFilters, limit, cursor);
+      const { tickets, nextCursor, hasNext } = await TicketRepository.findUserTickets(tx, queryFilters, limit, cursor);
       
       return {
         tickets,
-        pagination: { nextCursor, limit }
+        pagination: { nextCursor, hasNext, limit }
       };
     } finally {
       // client.release();

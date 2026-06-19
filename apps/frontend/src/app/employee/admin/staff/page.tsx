@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AddStaffModal from "@/components/AddStaffModal";
 import EditStaffModal from "@/components/EditStaffModal";
-import { getVisiblePages } from "@/lib/pagination";
+import StandardPagination from "@/components/StandardPagination";
 
 interface Employee {
   employee_row_id: number;
@@ -23,6 +23,8 @@ export default function StaffPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+
   
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -165,7 +167,9 @@ export default function StaffPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold">
-                          {emp.name.charAt(0)}
+                          {emp.name.charAt(0).toUpperCase()}
+
+            
                         </div>
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-900">{emp.name}</span>
@@ -219,50 +223,14 @@ export default function StaffPage() {
         )}
 
         {/* Pagination Controls */}
-        {!loading && totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-4">
-            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-slate-700">
-                  Showing <span className="font-medium">{(page - 1) * 10 + 1}</span> to <span className="font-medium">{Math.min(page * 10, totalCount)}</span> of <span className="font-medium">{totalCount}</span> results
-                </p>
-              </div>
-              <div>
-                <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                  >
-                    <span className="sr-only">Previous</span>
-                    <span className="material-symbols-outlined text-sm">chevron_left</span>
-                  </button>
-                  {getVisiblePages(page, totalPages).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0 ${
-                        page === p
-                          ? "z-10 bg-emerald-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-                          : "text-slate-900 ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                  >
-                    <span className="sr-only">Next</span>
-                    <span className="material-symbols-outlined text-sm">chevron_right</span>
-                  </button>
-                </nav>
-              </div>
-            </div>
-          </div>
-        )}
+        <StandardPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          itemName="staff members"
+          onPageChange={setPage}
+          loading={loading}
+        />
       </div>
 
       <AddStaffModal

@@ -287,7 +287,7 @@ export class TicketRepository {
     const dataResult = await tx.query.tickets.findMany({
       where: and(...whereConditions),
       orderBy,
-      limit,
+      limit: limit + 1,
       with: {
         category: { columns: { name: true } },
         customer: {
@@ -298,6 +298,11 @@ export class TicketRepository {
         }
       }
     });
+
+    const hasNext = dataResult.length > limit;
+    if (hasNext) {
+      dataResult.pop();
+    }
 
     const mappedTickets = dataResult.map((t: any) => ({
       id: String(t.id),
@@ -313,7 +318,7 @@ export class TicketRepository {
     }));
 
     let nextCursor: string | null = null;
-    if (dataResult.length === limit) {
+    if (hasNext) {
       const lastItem = dataResult[dataResult.length - 1];
       const lastSortVal = lastItem[filters.sortField as keyof typeof lastItem] ?? lastItem.created_at;
       
@@ -328,6 +333,7 @@ export class TicketRepository {
     return {
       tickets: mappedTickets,
       nextCursor,
+      hasNext,
     };
   }
 
