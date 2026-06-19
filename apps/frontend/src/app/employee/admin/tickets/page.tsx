@@ -7,6 +7,9 @@ import ReassignModal from "@/components/ReassignModal";
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, TrendingUp, Calendar, UserCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useCursorPagination } from "@/hooks/useCursorPagination";
+import CursorPagination from "@/components/CursorPagination";
+import { useRef } from "react";
 
 interface Ticket {
   id: number;
@@ -42,8 +45,6 @@ const statusOrder: Record<string, number> = {
 export default function AdminTicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [hasNextPage, setHasNextPage] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -55,35 +56,44 @@ export default function AdminTicketsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
+  const queryParams = useMemo(() => {
+    const params: Record<string, string> = {
+      sortField,
+      sortOrder
+    };
+    if (ownershipFilter !== "ALL") params.ownership = ownershipFilter;
+    if (statusFilter !== "ALL") params.status = statusFilter;
+    if (searchQuery.trim()) params.searchQuery = searchQuery.trim();
+    return params;
+  }, [ownershipFilter, statusFilter, searchQuery, sortField, sortOrder]);
 
-  const fetchTickets = async (reset = false) => {
+  const {
+    currentPage,
+    setCurrentPage,
+    pageMap,
+    resetPagination,
+    handlePageResponse,
+  } = useCursorPagination({
+    fetchUrl: "/tickets",
+    limit: 10,
+    queryParams
+  });
+
+  const fetchTickets = async (page: number) => {
     try {
-      if (reset) {
-         setLoading(true);
-      }
-      const queryParams = new URLSearchParams();
-      if (ownershipFilter !== "ALL") queryParams.append("ownership", ownershipFilter);
-      if (statusFilter !== "ALL") queryParams.append("status", statusFilter);
-      if (searchQuery.trim()) queryParams.append("searchQuery", searchQuery.trim());
-      queryParams.append("sortField", sortField);
-      queryParams.append("sortOrder", sortOrder);
+      setLoading(true);
+      const cursor = pageMap[page]?.cursor;
       
-      const currentCursor = reset ? null : cursor;
-      if (currentCursor) {
-        queryParams.append("cursor", currentCursor);
-      }
-      queryParams.append("limit", "10");
+      const params = new URLSearchParams();
+      Object.entries(queryParams).forEach(([k, v]) => params.append(k, v));
+      if (cursor) params.append("cursor", cursor);
+      params.append("limit", "10");
 
-      const res = await api.get(`/tickets?${queryParams.toString()}`);
+      const res = await api.get(`/tickets?${params.toString()}`);
+      setTickets(res.data.tickets);
       
-      if (reset) {
-        setTickets(res.data.tickets);
-      } else {
-        setTickets(prev => [...prev, ...res.data.tickets]);
-      }
-      
-      setCursor(res.data.pagination.nextCursor);
-      setHasNextPage(!!res.data.pagination.nextCursor);
+      const { nextCursor, hasNext } = res.data.pagination;
+      handlePageResponse(page, nextCursor, hasNext);
     } catch (err: any) {
       toast.error(err.message || "Failed to fetch tickets");
     } finally {
@@ -91,9 +101,18 @@ export default function AdminTicketsPage() {
     }
   };
 
+  const prevParamsRef = useRef(JSON.stringify(queryParams));
+
   useEffect(() => {
-    fetchTickets(true);
-  }, [ownershipFilter, searchQuery, sortField, sortOrder, statusFilter]);
+    const currentParamsStr = JSON.stringify(queryParams);
+    if (prevParamsRef.current !== currentParamsStr) {
+      resetPagination();
+      prevParamsRef.current = currentParamsStr;
+      return;
+    }
+    fetchTickets(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, queryParams]);
 
   const filteredAndSortedTickets = tickets;
 
@@ -299,17 +318,12 @@ export default function AdminTicketsPage() {
           </div>
 
           {/* Pagination Controls */}
-          {!loading && hasNextPage && (
-            <div className="flex flex-col items-center justify-center gap-4 border-t border-slate-50 bg-slate-50/30 px-8 py-5">
-              <button
-                onClick={() => fetchTickets(false)}
-                className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-xs font-black text-indigo-600 transition-all hover:bg-slate-50 hover:border-indigo-200 shadow-sm"
-              >
-                Load More Tickets
-                <span className="material-symbols-outlined text-[18px]">expand_more</span>
-              </button>
-            </div>
-          )}
+          <CursorPagination
+            currentPage={currentPage}
+            pageMap={pageMap}
+            onPageChange={setCurrentPage}
+            loading={loading}
+          />
         </section>
       </main>
 
@@ -319,7 +333,7 @@ export default function AdminTicketsPage() {
           ticketId={selectedTicket.id}
           currentAgentId={selectedTicket.current_assigned_employee_id}
           onClose={() => setIsModalOpen(false)}
-          onSuccess={fetchTickets}
+          onSuccess={() => fetchTickets(currentPage)}
         />
       )}
     </div>

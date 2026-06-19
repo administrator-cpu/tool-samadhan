@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
+import { useCursorPagination } from "@/hooks/useCursorPagination";
+import CursorPagination from "@/components/CursorPagination";
+import { useMemo, useRef } from "react";
 
 interface Ticket {
   id: number;
@@ -34,30 +37,35 @@ export default function TicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({ total: 0, pages: 0, currentPage: 1, limit: 10 });
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [hasNextPage, setHasNextPage] = useState(true);
 
-  const fetchTickets = async (reset = false) => {
+  const queryParams = useMemo(() => ({}), []);
+
+  const {
+    currentPage,
+    setCurrentPage,
+    pageMap,
+    resetPagination,
+    handlePageResponse,
+  } = useCursorPagination({
+    fetchUrl: "/tickets",
+    limit: 10,
+    queryParams
+  });
+
+  const fetchTickets = async (page: number) => {
     try {
-      if (reset) setLoading(true);
+      setLoading(true);
+      const cursor = pageMap[page]?.cursor;
       
-      const queryParams = new URLSearchParams();
-      const currentCursor = reset ? null : cursor;
-      if (currentCursor) queryParams.append("cursor", currentCursor);
-      queryParams.append("limit", "10");
+      const params = new URLSearchParams();
+      if (cursor) params.append("cursor", cursor);
+      params.append("limit", "10");
 
-      const response = await api.get(`/tickets?${queryParams.toString()}`);
+      const response = await api.get(`/tickets?${params.toString()}`);
+      setTickets(response.data.tickets || []);
       
-      if (reset) {
-        setTickets(response.data.tickets || []);
-      } else {
-        setTickets(prev => [...prev, ...(response.data.tickets || [])]);
-      }
-      
-      setPagination(response.data.pagination || { total: 0, pages: 0, currentPage: 1, limit: 10 });
-      setCursor(response.data.pagination?.nextCursor || null);
-      setHasNextPage(!!response.data.pagination?.nextCursor);
+      const { nextCursor, hasNext } = response.data.pagination;
+      handlePageResponse(page, nextCursor, hasNext);
     } catch (err: any) {
       console.error("Failed to fetch tickets:", err);
       setError("Failed to load tickets. Please try again later.");
@@ -66,9 +74,18 @@ export default function TicketsPage() {
     }
   };
 
+  const prevParamsRef = useRef(JSON.stringify(queryParams));
+
   useEffect(() => {
-    fetchTickets(true);
-  }, []);
+    const currentParamsStr = JSON.stringify(queryParams);
+    if (prevParamsRef.current !== currentParamsStr) {
+      resetPagination();
+      prevParamsRef.current = currentParamsStr;
+      return;
+    }
+    fetchTickets(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, queryParams]);
 
   const activeTicketsCount = tickets.filter(t => !["RESOLVED", "CLOSED"].includes(t.status)).length;
   const closedTicketsCount = tickets.filter(t => ["RESOLVED", "CLOSED"].includes(t.status)).length;
@@ -232,17 +249,12 @@ export default function TicketsPage() {
             )}
           </div>
 
-          {!loading && hasNextPage && tickets.length > 0 && (
-            <div className="flex flex-col items-center justify-center gap-4 border-t border-slate-50 bg-slate-50/30 px-8 py-5">
-              <button
-                onClick={() => fetchTickets(false)}
-                className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-xs font-black text-indigo-600 transition-all hover:bg-slate-50 hover:border-indigo-200 shadow-sm"
-              >
-                Load More Tickets
-                <span className="material-symbols-outlined text-[18px]">expand_more</span>
-              </button>
-            </div>
-          )}
+          <CursorPagination
+            currentPage={currentPage}
+            pageMap={pageMap}
+            onPageChange={setCurrentPage}
+            loading={loading}
+          />
         </section>
       </main>
     </div>
