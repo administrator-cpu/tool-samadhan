@@ -60,7 +60,7 @@ export class TicketService {
         actor_user_id: actorUserId,
         event_type: 'TICKET_CREATED',
         message: initialMessage,
-        metadata: { source: 'WEB' },
+        metadata: { source: 'WEB', attachments: dto.metadata?.attachments || [] },
         visible_to_customer: true
       });
 
@@ -113,12 +113,13 @@ export class TicketService {
     if (result.info) {
       // ALWAYS send confirmation to customer and helpdesk upon registration FIRST
       Promise.allSettled([
-        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no, alternateEmail: result.info.alternate_email, circuitId: result.info.circuit_description }),
+        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no, alternateEmail: result.info.alternate_email, circuitId: result.info.circuit_description, attachments: dto.metadata?.attachments }),
         sendTicketCreatedHelpdeskEmail({
           customerName: result.info.name,
           ticketNo: result.info.ticket_no,
           category: result.info.category,
-          circuitId: result.info.circuit_description
+          circuitId: result.info.circuit_description,
+          attachments: dto.metadata?.attachments
         })
       ])
       .then(() => {

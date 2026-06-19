@@ -69,8 +69,8 @@ export const sendStaffWelcomeEmail = async ({ name, email, password, role }: any
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
 };
 
-export const sendTicketCreatedHelpdeskEmail = async ({ customerName, ticketNo, category, circuitId }: any) => {
-  const { subject, html } = ticketCreatedHelpdeskTemplate({ customerName, ticketNo, category, circuitId });
+export const sendTicketCreatedHelpdeskEmail = async ({ customerName, ticketNo, category, circuitId, attachments }: any) => {
+  const { subject, html } = ticketCreatedHelpdeskTemplate({ customerName, ticketNo, category, circuitId, attachments });
   await sendEmail({
     toEmail: env.emailjs.helpdeskEmail,
     toName: 'Fab5 Helpdesk',
@@ -141,8 +141,8 @@ export const sendCustomerWelcomeEmail = async ({ name, email, password }: any) =
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
 };
 
-export const sendTicketConfirmationEmail = async ({ name, email, ticketNo, alternateEmail, circuitId }: any) => {
-  const { subject, html } = ticketCreatedTemplate({ ticketNo, circuitId });
+export const sendTicketConfirmationEmail = async ({ name, email, ticketNo, alternateEmail, circuitId, attachments }: any) => {
+  const { subject, html } = ticketCreatedTemplate({ ticketNo, circuitId, attachments });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
   if (alternateEmail) await sendEmail({ toEmail: alternateEmail, toName: name, subject, htmlContent: html });
 };

@@ -47,41 +47,60 @@ export const welcomeStaffTemplate = ( { name, email, password, role }: any) => (
   )
 });
 
-export const ticketCreatedHelpdeskTemplate = ( { customerName, ticketNo, category, circuitId }: any) => ( {
-  subject: `Fab5: Ticket ID – ${ticketNo} – Registered`,
-  html: emeraldLayout(
-    "New Ticket Registered",
-    `
-      <p>Dear Team,</p>
-      <p>This is to inform that a complaint has been registered with below details:</p>
-      
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-          <tr>
-            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Name of Customer:</td>
-            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${customerName}</td>
-          </tr>
-          <tr>
-            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Ticket ID:</td>
-            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;"><strong>${ticketNo}</strong></td>
-          </tr>
-          <tr>
-            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Issue Category:</td>
-            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${category}</td>
-          </tr>
-          <tr>
-            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Circuit Id:</td>
-            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${circuitId || 'N/A'}</td>
-          </tr>
-        </table>
-      </div>
-      
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
+export const ticketCreatedHelpdeskTemplate = ( { customerName, ticketNo, category, circuitId, attachments }: any) => {
+  const imagesHtml = attachments && attachments.length > 0 
+    ? `
+      <div style="margin-top: 20px;">
+        <p style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px;">Attached Images:</p>
+        <div>
+          ${attachments.map((imgUrl: string) => `
+            <div style="display: inline-block; margin-right: 12px; margin-bottom: 12px; vertical-align: top;">
+              <img src="${imgUrl}" alt="Attachment" style="max-width: 100px; height: auto; border-radius: 8px; border: 1px solid #e2e8f0;"/>
+            </div>
+          `).join('')}
+        </div>
       </div>
     `
-  )
-});
+    : '';
+
+  return {
+    subject: `Fab5: Ticket ID – ${ticketNo} – Registered`,
+    html: emeraldLayout(
+      "New Ticket Registered",
+      `
+        <p>Dear Team,</p>
+        <p>This is to inform that a complaint has been registered with below details:</p>
+        
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+              <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Name of Customer:</td>
+              <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${customerName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Ticket ID:</td>
+              <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;"><strong>${ticketNo}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Issue Category:</td>
+              <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${category}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Circuit Id:</td>
+              <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${circuitId || 'N/A'}</td>
+            </tr>
+          </table>
+        </div>
+        
+        ${imagesHtml}
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
+          <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
+        </div>
+      `
+    )
+  };
+};
 
 export const ticketAssignedToAgentTemplate = ( { ticketNo, customerName, agentName, category, circuitId }: any) => ( {
   subject: `Fab5: Ticket ID – ${ticketNo} – Assigned`,
@@ -237,22 +256,41 @@ export const welcomeCustomerTemplate = ( { name, email, password }: any) => ( {
   )
 });
 
-export const ticketCreatedTemplate = ( { ticketNo, circuitId }: any) => ( {
-  subject: `Fab5: Complaint Registered Successfully | Ticket ID: ${ticketNo}${circuitId ? ` ( Reference: ${circuitId})` : ''}`,
-  html: emeraldLayout(
-    "Complaint Registered",
-    `
-      <p>Dear Customer,</p>
-      <p>This is to acknowledge that your complaint has been successfully registered in our system. Your Ticket ID is <strong>${ticketNo}</strong>. Please refer to this ID for any future communication regarding your concern.</p>
-            
-      <p>Thank you for your patience and cooperation.</p>
-      
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
-        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
+export const ticketCreatedTemplate = ( { ticketNo, circuitId, attachments }: any) => {
+  const imagesHtml = attachments && attachments.length > 0 
+    ? `
+      <div style="margin-top: 20px;">
+        <p style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px;">Attached Images:</p>
+        <div>
+          ${attachments.map((imgUrl: string) => `
+            <div style="display: inline-block; margin-right: 12px; margin-bottom: 12px; vertical-align: top;">
+              <img src="${imgUrl}" alt="Attachment" style="max-width: 100px; height: auto; border-radius: 8px; border: 1px solid #e2e8f0;"/>
+            </div>
+          `).join('')}
+        </div>
       </div>
     `
-  )
-});
+    : '';
+
+  return {
+    subject: `Fab5: Complaint Registered Successfully | Ticket ID: ${ticketNo}${circuitId ? ` ( Reference: ${circuitId})` : ''}`,
+    html: emeraldLayout(
+      "Complaint Registered",
+      `
+        <p>Dear Customer,</p>
+        <p>This is to acknowledge that your complaint has been successfully registered in our system. Your Ticket ID is <strong>${ticketNo}</strong>. Please refer to this ID for any future communication regarding your concern.</p>
+        
+        ${imagesHtml}
+
+        <p>Thank you for your patience and cooperation.</p>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
+          <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
+        </div>
+      `
+    )
+  };
+};
 
 export const ticketAssignedCustomer2MinTemplate = ( { ticketNo, circuitId }: any) => ( {
   subject: `Fab5: Complaint Assigned for Investigation | Ticket ID: ${ticketNo}${circuitId ? ` ( Reference: ${circuitId})` : ''}`,
