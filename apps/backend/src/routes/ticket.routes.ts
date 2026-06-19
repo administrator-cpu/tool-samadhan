@@ -4,14 +4,14 @@ import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { UserRole } from '../types/dto.js';
 import { validateCreateTicket, validateUpdateStatus, validateAddEvent, validateUpdateRca, validateUpdateOutage, validateReassign, validateToggleReply, validateRateTicket } from '../middleware/validators/ticket.validator.js';
 
-import { parseTicketEventUpload } from '../middleware/multipart.middleware.js';
+import { parseTicketEventUpload, parseTicketCreationUpload } from '../middleware/multipart.middleware.js';
 
 const router = Router();
 
 router.use(requireAuth);
 
 // Base operations
-router.post('/', validateCreateTicket, TicketController.createTicket);
+router.post('/', parseTicketCreationUpload, validateCreateTicket, TicketController.createTicket);
 router.get('/', TicketController.getTickets);
 
 // Dashboard Stats

@@ -138,3 +138,104 @@ export const parseTicketEventUpload = async (req: Request, res: Response, next: 
 
   req.pipe(bb);
 };
+
+export const parseTicketCreationUpload = async (req: Request, res: Response, next: NextFunction) => {
+  // Pass through if not multipart
+  if (!req.is('multipart/form-data')) {
+    return next();
+  }
+
+  const bb = busboy({ 
+    headers: req.headers,
+    limits: {
+      files: 10,
+      fileSize: 5 * 1024 * 1024 // 5MB
+    }
+  });
+
+  req.body = req.body || {};
+  const attachments: string[] = [];
+  
+  // Since ticket is not created yet, use a timestamp and user identifier if available
+  const userIdentifier = (req as any).user?.userId || 'anonymous';
+  
+  let uploadPromises: Promise<void>[] = [];
+  let fileError: Error | null = null;
+
+  bb.on('field', (fieldname, val) => {
+    req.body[fieldname] = val;
+  });
+
+  bb.on('file', (name, file, info) => {
+    // If an error already occurred (e.g. invalid type), discard remaining files
+    if (fileError) {
+      file.resume();
+      return;
+    }
+
+    const publicId = `new-ticket-${userIdentifier}-${Date.now()}`;
+    
+    const uploadTask = async () => {
+      try {
+        const webStream = Readable.toWeb(file);
+        const streamWithFileType = await fileTypeStream(webStream);
+        
+        // Validate MIME securely
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+        if (!streamWithFileType.fileType || !allowedTypes.includes(streamWithFileType.fileType.mime)) {
+           throw new AppError(400, 'Invalid file type. Only JPEG, PNG, WEBP, HEIC, and HEIF are allowed.', ErrorCodes.VALIDATION_ERROR);
+        }
+
+        // Convert back to Node.js stream for Cloudinary piping
+        const nodeStream = Readable.fromWeb(streamWithFileType as any);
+
+        // Upload to Cloudinary
+        const secureUrl = await UploadService.uploadImageStream(nodeStream, publicId);
+        attachments.push(secureUrl);
+        
+      } catch (err) {
+        fileError = err as Error;
+        file.resume(); // drain current stream so busboy can finish cleanly
+      }
+    };
+    
+    uploadPromises.push(uploadTask());
+  });
+
+  // Handle stream abortion (e.g. max file size exceeded)
+  bb.on('filesLimit', () => {
+    fileError = new AppError(400, 'Maximum of 10 images allowed', ErrorCodes.VALIDATION_ERROR);
+  });
+
+  bb.on('finish', async () => {
+    try {
+      // Ensure all strictly sequenced tasks have completed
+      await Promise.all(uploadPromises);
+      
+      if (fileError) {
+        return next(fileError);
+      }
+      
+      if (attachments.length > 0) {
+        // Hydrate req.body for standard Zod validation
+        let existingMetadata = {};
+        if (req.body.metadata) {
+           try {
+             existingMetadata = typeof req.body.metadata === 'string' ? JSON.parse(req.body.metadata) : req.body.metadata;
+           } catch (e) {}
+        }
+        req.body.metadata = { ...existingMetadata, attachments };
+      }
+
+      next();
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  bb.on('error', (err) => {
+    next(new AppError(500, 'Upload parsing failed', ErrorCodes.INTERNAL_ERROR));
+  });
+
+  req.pipe(bb);
+};
