@@ -430,7 +430,15 @@ export class TicketService {
 
       const updatedTicket = await TicketRepository.updateFields(tx, ticketId, fieldsToUpdate);
 
-      // RCA event creation removed
+      // Create an event for the RCA update so it's recorded in the timeline history
+      const rcaEvent = await TicketEventRepository.insertEvent(tx, {
+        ticket_id: ticketId,
+        actor_user_id: actorUserId,
+        event_type: 'TICKET_RCA_UPDATED',
+        message: 'Root Cause Analysis submitted',
+        metadata: { rca, attachments: combinedImages },
+        visible_to_customer: true
+      });
 
       let statusEvent = null;
       if (autoClosed) {
@@ -448,7 +456,7 @@ export class TicketService {
       
       ticketEventEmitter.emit('ticket_updated', {
         ticketId,
-        data: { type: 'TICKET_RCA_UPDATED', rca, rca_images: combinedImages }
+        data: { type: 'TICKET_RCA_UPDATED', rca, rca_images: combinedImages, event: rcaEvent }
       });
 
       if (autoClosed) {
