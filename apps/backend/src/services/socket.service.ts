@@ -1,7 +1,8 @@
 import { Server, Socket } from 'socket.io';
 import { verifyAccessToken } from './jwt.service.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
-import { postgresPool } from '../config/database.js';
+import { db } from '../config/database.js';
+import { sql } from 'drizzle-orm';
 import { logger } from '../lib/logger.js';
 import { env } from '../config/environment.js';
 
@@ -57,19 +58,18 @@ export const initSocket = (server: any) => {
         const hasAccess = await checkTicketAccess(socket.user.userId, ticketId);
         if (!hasAccess) return;
 
-        const userRes = await postgresPool.query('SELECT role FROM users WHERE id = $1', [socket.user.userId]);
-        const role = userRes.rows[0]?.role;
+        const userRes = await db.execute(sql`SELECT role FROM users WHERE id = ${socket.user.userId}`);
+        const role = userRes.rows[0]?.role as string;
 
-        const result = await postgresPool.query(
-          `SELECT te.id, te.ticket_id, te.actor_user_id, u.name AS actor_name, 
+        const result = await db.execute(sql`
+          SELECT te.id, te.ticket_id, te.actor_user_id, u.name AS actor_name, 
                   te.event_type, te.message, te.metadata, te.visible_to_customer, te.created_at
            FROM ticket_events te
            LEFT JOIN users u ON u.id = te.actor_user_id
-           WHERE te.ticket_id = $1 AND te.id > $2
+           WHERE te.ticket_id = ${ticketId} AND te.id > ${lastSeenEventId}
            ORDER BY te.id ASC
-           LIMIT 201`,
-          [ticketId, lastSeenEventId]
-        );
+           LIMIT 201
+        `);
 
         let missedEvents = result.rows;
         const hasMore = missedEvents.length === 201;
@@ -116,33 +116,25 @@ export const disconnectUser = (userId: string) => {
 };
 
 const checkTicketAccess = async (userId: string, ticketId: string) => {
-  const client = await postgresPool.connect();
   try {
-    const userRes = await client.query('SELECT role FROM users WHERE id = $1', [userId]);
-    const role = userRes.rows[0]?.role;
+    const userRes = await db.execute(sql`SELECT role FROM users WHERE id = ${userId}`);
+    const role = userRes.rows[0]?.role as string;
 
     // Notice we've kept 'MANAGER' logic intact here because it represents business logic, 
     // even though it's not strictly an enum on the DB.
-    if (['ADMIN', 'MANAGER'].includes(role)) return true;
+    if (['ADMIN', 'MANAGER'].includes(role as string)) return true;
 
     if (role === 'SUPPORT_AGENT') {
-      const agentRes = await client.query(
-        'SELECT 1 FROM tickets t JOIN employees e ON e.id = t.current_assigned_employee_id WHERE t.id = $1 AND e.user_id = $2',
-        [ticketId, userId]
-      );
+      const agentRes = await db.execute(sql`SELECT 1 FROM tickets t JOIN employees e ON e.id = t.current_assigned_employee_id WHERE t.id = ${ticketId} AND e.user_id = ${userId}`);
       return agentRes.rowCount !== null && agentRes.rowCount > 0;
     }
 
-    const customerRes = await client.query(
-      'SELECT 1 FROM tickets t JOIN customers c ON c.id = t.customer_id WHERE t.id = $1 AND c.user_id = $2',
-      [ticketId, userId]
-    );
+    const customerRes = await db.execute(sql`SELECT 1 FROM tickets t JOIN customers c ON c.id = t.customer_id WHERE t.id = ${ticketId} AND c.user_id = ${userId}`);
     return customerRes.rowCount !== null && customerRes.rowCount > 0;
   } catch (err) {
     logger.error('[SOCKET] Ticket access check failed:', err);
     throw err;
   } finally {
-    client.release();
   }
 };
 

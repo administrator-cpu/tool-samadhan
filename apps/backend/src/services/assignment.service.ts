@@ -1,14 +1,12 @@
 import { EmployeeRepository } from '../repositories/employee.repository.js';
 import { TicketRepository } from '../repositories/ticket.repository.js';
 import { logger } from '../lib/logger.js';
-import { PoolClient } from 'pg';
-
 export class AssignmentService {
-  static async assignAgentAutomatically(client: PoolClient, ticketId: string, categoryId: string): Promise<string | null> {
+  static async assignAgentAutomatically(tx: any, ticketId: string, categoryId: string): Promise<string | null> {
     let assignedEmployeeId: string | null = null;
     
     // 1. Lock the ticket
-    const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
+    const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
     if (!ticket) {
       throw new Error(`Ticket ${ticketId} not found`);
     }
@@ -19,13 +17,13 @@ export class AssignmentService {
     }
 
     // 2. Find best agent (least active tickets in OPEN/IN_PROGRESS/ESCALATED) for this category
-    const bestAgent = await EmployeeRepository.findBestAgentForCategory(client, categoryId);
+    const bestAgent = await EmployeeRepository.findBestAgentForCategory(tx, categoryId);
 
     if (bestAgent) {
       assignedEmployeeId = bestAgent.employee_id;
       
       // 3. Assign the ticket
-      await TicketRepository.updateFields(client, ticketId, {
+      await TicketRepository.updateFields(tx, ticketId, {
         current_assigned_employee_id: assignedEmployeeId
       });
 

@@ -1,0 +1,4 @@
+-- Drizzle Baseline Migration
+-- This file was deliberately emptied because the database was previously initialized via legacy Raw PG scripts.
+-- Applying the CREATE TABLE statements would cause 'relation already exists' errors.
+-- Drizzle uses the snapshot JSON to track state, so this SQL file can safely be empty.

@@ -7,7 +7,9 @@ import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, TrendingUp, Calendar } from "lucide-react";
 import ReassignModal from "@/components/ReassignModal";
-import { getVisiblePages } from "@/lib/pagination";
+import { useCursorPagination } from "@/hooks/useCursorPagination";
+import CursorPagination from "@/components/CursorPagination";
+import { useRef } from "react";
 
 interface Ticket {
   id: number;
@@ -25,7 +27,6 @@ interface Ticket {
 const statusColors: Record<string, string> = {
   OPEN: "bg-emerald-50 text-emerald-600",
   IN_PROGRESS: "bg-indigo-50 text-[#2a14b4]",
-  ON_HOLD: "bg-amber-50 text-amber-600",
   ESCALATED: "bg-red-50 text-red-600",
   RESOLVED: "bg-slate-100 text-slate-600",
   CLOSED: "bg-slate-100 text-slate-400",
@@ -44,8 +45,6 @@ const statusOrder: Record<string, number> = {
 export default function AgentTicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ total: 0, pages: 0, currentPage: 1, limit: 10 });
-  const [page, setPage] = useState(1);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -60,20 +59,43 @@ export default function AgentTicketsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
-  const fetchTickets = async () => {
+  const queryParams = useMemo(() => {
+    const params: Record<string, string> = {
+      sortField,
+      sortOrder
+    };
+    if (statusFilter !== "ALL") params.status = statusFilter;
+    if (searchQuery.trim()) params.searchQuery = searchQuery.trim();
+    return params;
+  }, [statusFilter, searchQuery, sortField, sortOrder]);
+
+  const {
+    currentPage,
+    setCurrentPage,
+    pageMap,
+    resetPagination,
+    handlePageResponse,
+  } = useCursorPagination({
+    fetchUrl: "/tickets",
+    limit: 10,
+    queryParams
+  });
+
+  const fetchTickets = async (page: number) => {
     try {
       setLoading(true);
-      const queryParams = new URLSearchParams();
-      if (statusFilter !== "ALL") queryParams.append("status", statusFilter);
-      if (searchQuery.trim()) queryParams.append("searchQuery", searchQuery.trim());
-      queryParams.append("sortField", sortField);
-      queryParams.append("sortOrder", sortOrder);
-      queryParams.append("page", page.toString());
-      queryParams.append("limit", "10");
+      const cursor = pageMap[page]?.cursor;
+      
+      const params = new URLSearchParams();
+      Object.entries(queryParams).forEach(([k, v]) => params.append(k, v));
+      if (cursor) params.append("cursor", cursor);
+      params.append("limit", "10");
 
-      const res = await api.get(`/tickets?${queryParams.toString()}`);
+      const res = await api.get(`/tickets?${params.toString()}`);
       setTickets(res.data.tickets);
-      setPagination(res.data.pagination);
+      
+      const { nextCursor, hasNext } = res.data.pagination;
+      handlePageResponse(page, nextCursor, hasNext);
     } catch (err: any) {
       toast.error(err.message || "Failed to fetch tickets");
     } finally {
@@ -81,9 +103,18 @@ export default function AgentTicketsPage() {
     }
   };
 
+  const prevParamsRef = useRef(JSON.stringify(queryParams));
+
   useEffect(() => {
-    fetchTickets();
-  }, [page, searchQuery, sortField, sortOrder, statusFilter]);
+    const currentParamsStr = JSON.stringify(queryParams);
+    if (prevParamsRef.current !== currentParamsStr) {
+      resetPagination();
+      prevParamsRef.current = currentParamsStr;
+      return;
+    }
+    fetchTickets(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, queryParams]);
 
   const filteredAndSortedTickets = tickets;
 
@@ -112,7 +143,6 @@ export default function AgentTicketsPage() {
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
-                  setPage(1);
                 }}
                 className="h-12 w-full rounded-lg border border-slate-200 bg-white pl-11 pr-4 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all outline-hidden"
               />
@@ -136,13 +166,12 @@ export default function AgentTicketsPage() {
                       onClick={() => setIsStatusDropdownOpen(false)}
                     />
                     <div className="absolute top-full left-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-xl z-50 overflow-hidden">
-                      {["ALL", "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((status) => (
+                      {["ALL", "OPEN", "IN_PROGRESS", "ESCALATED", "RESOLVED", "CLOSED"].map((status) => (
                         <button
                           key={status}
                           onClick={() => {
                             setStatusFilter(status);
                             setIsStatusDropdownOpen(false);
-                            setPage(1);
                           }}
                           className={`block w-full text-left px-4 py-2 text-xs font-bold transition-colors ${statusFilter === status ? "bg-slate-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
                         >
@@ -157,7 +186,6 @@ export default function AgentTicketsPage() {
                 onClick={() => {
                   if (sortField === "date") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
                   else { setSortField("date"); setSortOrder("desc"); }
-                  setPage(1);
                 }}
                 className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-emerald-700 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
               >
@@ -247,49 +275,12 @@ export default function AgentTicketsPage() {
           </div>
 
           {/* Pagination Controls */}
-          {!loading && pagination.pages > 1 && (
-            <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-50 bg-slate-50/30 px-8 py-5 sm:flex-row">
-              <p className="text-sm font-bold text-slate-500">
-                Showing <span className="text-slate-900">{((page - 1) * 10) + 1}</span> to <span className="text-slate-900">{Math.min(page * 10, pagination.total)}</span> of <span className="text-slate-900">{pagination.total}</span> tickets
-              </p>
-              
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
-                >
-                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                  Previous
-                </button>
-                
-                <div className="flex items-center gap-1">
-                  {getVisiblePages(page, pagination.pages).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`flex h-10 w-10 items-center justify-center rounded-lg text-xs font-black transition-all ${
-                        page === p 
-                          ? "bg-emerald-600 text-white" 
-                          : "text-slate-500 hover:bg-slate-50"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
-                  disabled={page === pagination.pages}
-                  className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
-                >
-                  Next
-                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                </button>
-              </div>
-            </div>
-          )}
+          <CursorPagination
+            currentPage={currentPage}
+            pageMap={pageMap}
+            onPageChange={setCurrentPage}
+            loading={loading}
+          />
         </section>
       </main>
       {selectedTicket && (
@@ -298,7 +289,7 @@ export default function AgentTicketsPage() {
           ticketId={selectedTicket.id}
           currentAgentId={selectedTicket.current_assigned_employee_id}
           onClose={() => setIsModalOpen(false)}
-          onSuccess={fetchTickets}
+          onSuccess={() => fetchTickets(currentPage)}
         />
       )}
     </div>

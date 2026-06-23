@@ -1,44 +1,55 @@
-import { PoolClient, Pool } from 'pg';
+import { db } from '../config/database.js';
+import { employees, users, issueCategories, employeeIssueCategories, tickets } from '../database/drizzle/schema.js';
+import { eq, inArray, isNotNull, desc, asc, count, sql, isNull } from 'drizzle-orm';
 import { Employee } from '../types/models.js';
 
 export class EmployeeRepository {
-  static async create(client: PoolClient, userId: string): Promise<Employee> {
-    const result = await client.query(
-      `INSERT INTO employees (user_id)
-       VALUES ($1)
-       RETURNING id, employee_id, joined_at`,
-      [userId]
-    );
-    return result.rows[0] as Employee;
+  static async create(tx: any, userId: string): Promise<Employee> {
+    const result = await tx.insert(employees)
+      .values({ user_id: parseInt(userId, 10) })
+      .returning({ id: employees.id, employee_id: employees.employee_id, joined_at: employees.joined_at });
+    
+    return {
+      ...result[0],
+      id: String(result[0].id),
+      user_id: userId,
+      joined_at: result[0].joined_at
+    } as Employee;
   }
 
-  static async findByUserId(client: PoolClient, userId: string): Promise<(Employee & { role: string; name: string }) | null> {
-    const result = await client.query(
-      `SELECT e.id, e.employee_id, u.role, u.name
-       FROM employees e
-       JOIN users u ON u.id = e.user_id
-       WHERE e.user_id = $1
-       LIMIT 1`,
-      [userId]
-    );
-    return result.rowCount && result.rowCount > 0 ? result.rows[0] : null;
+  static async findByUserId(tx: any, userId: string): Promise<(Employee & { role: string; name: string }) | null> {
+    const result = await tx.select({
+      id: employees.id,
+      employee_id: employees.employee_id,
+      role: users.role,
+      name: users.name
+    })
+    .from(employees)
+    .innerJoin(users, eq(employees.user_id, users.id))
+    .where(eq(employees.user_id, parseInt(userId, 10)))
+    .limit(1);
+
+    if (!result.length) return null;
+    return { ...result[0], id: String(result[0].id) } as any;
   }
 
-  static async findByRowId(client: PoolClient, employeeRowId: string): Promise<{ user_id: string } | null> {
-    const result = await client.query(
-      `SELECT user_id FROM employees WHERE id = $1 LIMIT 1`,
-      [employeeRowId]
-    );
-    return result.rowCount && result.rowCount > 0 ? result.rows[0] : null;
+  static async findByRowId(tx: any, employeeRowId: string): Promise<{ user_id: string } | null> {
+    const result = await tx.query.employees.findFirst({
+      where: eq(employees.id, parseInt(employeeRowId, 10)),
+      columns: { user_id: true }
+    });
+    
+    if (!result) return null;
+    return { user_id: String(result.user_id) };
   }
 
-  static async findAllWithCategories(pool: Pool, page: number = 1, limit: number = 10): Promise<{ employees: any[]; total: number }> {
+  static async findAllWithCategories(tx: any, page: number = 1, limit: number = 10): Promise<{ employees: any[]; total: number }> {
     const offset = (page - 1) * limit;
 
-    const countResult = await pool.query(`SELECT COUNT(*) FROM employees`);
-    const total = parseInt(countResult.rows[0].count, 10);
+    const countRes = await tx.select({ value: count() }).from(employees);
+    const total = countRes[0].value;
 
-    const result = await pool.query(`
+    const result = await tx.execute(sql`
       SELECT 
         e.id as employee_row_id,
         e.employee_id,
@@ -60,48 +71,55 @@ export class EmployeeRepository {
       LEFT JOIN issue_categories ic ON eic.issue_category_id = ic.id
       GROUP BY e.id, u.id
       ORDER BY e.joined_at DESC
-      LIMIT $1 OFFSET $2
-    `, [limit, offset]);
+      LIMIT ${limit} OFFSET ${offset}
+    `);
+
     return { employees: result.rows, total };
   }
 
-  static async findAllAgents(pool: Pool): Promise<any[]> {
-    const result = await pool.query(`
-      SELECT e.id, u.name, u.email
-      FROM employees e
-      JOIN users u ON u.id = e.user_id
-      WHERE u.role = 'SUPPORT_AGENT'
-      ORDER BY u.name ASC
-    `);
-    return result.rows;
+  static async findAllAgents(tx: any): Promise<any[]> {
+    const result = await tx.select({
+      id: employees.id,
+      name: users.name,
+      email: users.email
+    })
+    .from(employees)
+    .innerJoin(users, eq(employees.user_id, users.id))
+    .where(eq(users.role, 'SUPPORT_AGENT'))
+    .orderBy(asc(users.name));
+
+    return result;
   }
 
-  static async replaceCategoriesByName(client: PoolClient, employeeRowId: string, categoryNames: string[]): Promise<void> {
-    await client.query(
-      `DELETE FROM employee_issue_categories WHERE employee_id = $1`,
-      [employeeRowId]
-    );
+  static async replaceCategoriesByName(tx: any, employeeRowId: string, categoryNames: string[]): Promise<void> {
+    await tx.delete(employeeIssueCategories)
+      .where(eq(employeeIssueCategories.employee_id, parseInt(employeeRowId, 10)));
     
     if (categoryNames && categoryNames.length > 0) {
-      await client.query(
-        `INSERT INTO employee_issue_categories (employee_id, issue_category_id)
-         SELECT $1, id FROM issue_categories WHERE name = ANY($2)`,
-        [employeeRowId, categoryNames]
-      );
+      const cats = await tx.select({ id: issueCategories.id })
+        .from(issueCategories)
+        .where(inArray(issueCategories.name, categoryNames));
+        
+      if (cats.length > 0) {
+        await tx.insert(employeeIssueCategories)
+          .values(cats.map((c: any) => ({
+            employee_id: parseInt(employeeRowId, 10),
+            issue_category_id: c.id
+          })));
+      }
     }
   }
 
-  static async findBestAgentForCategory(client: PoolClient, categoryId: string): Promise<{ employee_id: string } | null> {
+  static async findBestAgentForCategory(tx: any, categoryId: string): Promise<{ employee_id: string } | null> {
     if (!categoryId) return null;
 
-    const result = await client.query(
-      `
+    const result = await tx.execute(sql`
       WITH active_load AS (
         SELECT
           t.current_assigned_employee_id AS employee_id,
           COUNT(*)::int AS active_count
         FROM tickets t
-        WHERE t.status = ANY($1::ticket_status[])
+        WHERE t.status IN ('OPEN', 'IN_PROGRESS', 'ESCALATED')
           AND t.current_assigned_employee_id IS NOT NULL
         GROUP BY t.current_assigned_employee_id
       )
@@ -113,13 +131,11 @@ export class EmployeeRepository {
       JOIN employee_issue_categories eic ON eic.employee_id = e.id
       LEFT JOIN active_load al ON al.employee_id = e.id
       WHERE u.role = 'SUPPORT_AGENT'
-        AND eic.issue_category_id = $2
+        AND eic.issue_category_id = ${parseInt(categoryId, 10)}
       ORDER BY COALESCE(al.active_count, 0) ASC, e.joined_at ASC, e.id ASC
       LIMIT 1
-      `,
-      [['OPEN', 'IN_PROGRESS', 'ON_HOLD', 'ESCALATED'], categoryId]
-    );
+    `);
 
-    return result.rowCount && result.rowCount > 0 ? result.rows[0] : null;
+    return result.rowCount && result.rowCount > 0 ? { employee_id: String(result.rows[0].employee_id) } : null;
   }
 }

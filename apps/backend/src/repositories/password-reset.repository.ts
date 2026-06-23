@@ -1,48 +1,55 @@
-import { PoolClient } from 'pg';
+import { db } from '../config/database.js';
+import { passwordResetOtps, users } from '../database/drizzle/schema.js';
+import { eq, and, desc, sql } from 'drizzle-orm';
 
 export class PasswordResetRepository {
-  static async findLastOtp(client: PoolClient, userId: string): Promise<{ created_at: Date } | null> {
-    const result = await client.query(
-      `SELECT created_at 
-       FROM password_reset_otps 
-       WHERE user_id = $1 
-       ORDER BY created_at DESC 
-       LIMIT 1`,
-      [userId]
-    );
-    return result.rowCount && result.rowCount > 0 ? result.rows[0] : null;
+  static async findLastOtp(tx: any = db, userId: string): Promise<{ created_at: Date } | null> {
+    const result = await tx.query.passwordResetOtps.findFirst({
+      where: eq(passwordResetOtps.user_id, parseInt(userId, 10)),
+      orderBy: [desc(passwordResetOtps.created_at)],
+      columns: { created_at: true }
+    });
+    return result || null;
   }
 
-  static async deleteOtpsForUser(client: PoolClient, userId: string): Promise<void> {
-    await client.query(`DELETE FROM password_reset_otps WHERE user_id = $1`, [userId]);
+  static async deleteOtpsForUser(tx: any = db, userId: string): Promise<void> {
+    await tx.delete(passwordResetOtps).where(eq(passwordResetOtps.user_id, parseInt(userId, 10)));
   }
 
   static async createOtp(
-    client: PoolClient,
+    tx: any = db,
     userId: string,
     otpCode: string,
     expiresAt: Date
   ): Promise<void> {
-    await client.query(
-      `INSERT INTO password_reset_otps (user_id, otp_code, expires_at) 
-       VALUES ($1, $2, $3)`,
-      [userId, otpCode, expiresAt]
-    );
+    await tx.insert(passwordResetOtps).values({
+      user_id: parseInt(userId, 10),
+      otp_code: otpCode,
+      expires_at: expiresAt
+    });
   }
 
   static async verifyOtp(
-    client: PoolClient,
+    tx: any = db,
     email: string,
     otpCode: string
   ): Promise<{ id: number; user_id: string; expires_at: Date } | null> {
-    const result = await client.query(
-      `SELECT pro.id, pro.user_id, pro.expires_at 
-       FROM password_reset_otps pro 
-       JOIN users u ON u.id = pro.user_id 
-       WHERE u.email = $1 AND pro.otp_code = $2 
-       LIMIT 1`,
-      [email.toLowerCase(), otpCode]
-    );
-    return result.rowCount && result.rowCount > 0 ? result.rows[0] : null;
+    const result = await tx.select({
+      id: passwordResetOtps.id,
+      user_id: passwordResetOtps.user_id,
+      expires_at: passwordResetOtps.expires_at
+    })
+    .from(passwordResetOtps)
+    .innerJoin(users, eq(passwordResetOtps.user_id, users.id))
+    .where(and(
+      eq(users.email, email.toLowerCase()),
+      eq(passwordResetOtps.otp_code, otpCode)
+    ))
+    .limit(1);
+
+    if (result.length > 0) {
+      return { ...result[0], user_id: String(result[0].user_id) };
+    }
+    return null;
   }
 }

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { TicketService } from '../services/ticket.service.js';
 import { TicketStatsService } from '../services/ticket-stats.service.js';
 import { IssueCategoryRepository } from '../repositories/issue-category.repository.js';
-import { postgresPool } from '../config/database.js';
+import { db } from '../config/database.js';
 import { sendResponse } from '../utils/response.js';
 import { UserRole } from '../types/dto.js';
 
@@ -10,7 +10,7 @@ export class TicketController {
 
   static async getCategories(req: Request, res: Response, next: NextFunction) {
     try {
-      const categories = await IssueCategoryRepository.findAllActive(postgresPool);
+      const categories = await IssueCategoryRepository.findAllActive(db);
       return sendResponse({ res, data: categories });
     } catch (error) {
       next(error);
@@ -27,7 +27,7 @@ export class TicketController {
 
   static async getTickets(req: Request, res: Response, next: NextFunction) {
     try {
-      const page = parseInt(req.query.page as unknown as string) || 1;
+      const cursor = req.query.cursor as string | undefined;
       const limit = parseInt(req.query.limit as unknown as string) || 10;
       const filters = {
         ownership: req.query.ownership as unknown as string,
@@ -39,7 +39,7 @@ export class TicketController {
         sortOrder: req.query.sortOrder as unknown as string,
       };
 
-      const result = await TicketService.listUserTickets(req.user!.userId, req.user!.role, page, limit, filters);
+      const result = await TicketService.listUserTickets(req.user!.userId, req.user!.role, cursor, limit, filters);
       return sendResponse({ res, data: result });
     } catch (error) {
       next(error);

@@ -271,15 +271,29 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
     }
   };
 
-  const handleSendReply = async (message: string, sendEmail: boolean) => {
-    if (!message.trim()) return;
+  const handleSendReply = async (message: string, sendEmail: boolean, attachments?: File[]) => {
+    if (!message.trim() && (!attachments || attachments.length === 0)) return;
     setSending(true);
     try {
-      await api.post(`/tickets/${id}/events`, {
-        event_type: replyEventType,
-        message: message.trim(),
-        send_email: sendEmail
-      });
+      if (attachments && attachments.length > 0) {
+        const formData = new FormData();
+        formData.append("event_type", replyEventType);
+        formData.append("message", message.trim());
+        formData.append("send_email", String(sendEmail));
+        
+        attachments.forEach(file => {
+          formData.append("files", file);
+        });
+
+        await api.post(`/tickets/${id}/events`, formData);
+      } else {
+        await api.post(`/tickets/${id}/events`, {
+          event_type: replyEventType,
+          message: message.trim(),
+          send_email: sendEmail
+        });
+      }
+
       toast.success("Reply sent");
       await fetchTicket();
     } catch (err: any) {
