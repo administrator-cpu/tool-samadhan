@@ -41,14 +41,14 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     s.on("connect", () => {
       console.log("[SOCKET-STORE] Global socket connected");
       set({ isConnected: true });
-      
+
       // Automatic Re-join Logic
       const { joinedRooms } = get();
       if (joinedRooms.size > 0) {
         console.log(`[SOCKET-STORE] Re-joining ${joinedRooms.size} rooms after reconnect`);
         joinedRooms.forEach((id) => {
           s.emit("join_ticket", id);
-          
+
           // Trigger initial sync if we have a last seen ID
           const lastId = get().lastSeenEventIdMap[id];
           if (lastId) {
@@ -63,13 +63,13 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       if (!events || events.length === 0) return;
 
       console.log(`[SOCKET-STORE] Sync received ${events.length} events for ticket ${ticketId}. hasMore: ${hasMore}`);
-      
+
       // We don't update the UI state directly here (components listen for missed_events)
       // but we update our lastSeen tracking to ensure continuity
       const lastEvent = events[events.length - 1];
       if (lastEvent) {
         get().markEventSeen(ticketId, lastEvent.id);
-        
+
         // Continuation Sync: Fetch the next batch if hasMore is true
         if (hasMore) {
           console.log(`[SOCKET-STORE] Continuation sync triggered for ticket ${ticketId}...`);
@@ -85,7 +85,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     s.on("connect_error", async (err) => {
       set({ isConnected: false });
-      
+
       if (err.message.includes("Authentication error")) {
         console.warn("[SOCKET-STORE] Socket auth expired. Refreshing token...");
 
@@ -150,7 +150,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     if (socket) {
       console.log("[SOCKET-STORE] Updating global auth token");
       socket.auth = { token };
-      
+
       // During socket auth recovery, the connect_error handler owns reconnecting.
       if (!isConnected && !socketTokenRefresh) {
         console.log("[SOCKET-STORE] Socket disconnected, attempting to connect with new token...");
@@ -170,7 +170,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     console.log(`[SOCKET-STORE] Joining ticket room: ${ticketId}`);
     socket.emit("join_ticket", ticketId);
-    
+
     // Also sync missed events immediately on join if we have history
     const lastId = lastSeenEventIdMap[ticketId];
     if (lastId) {
@@ -199,7 +199,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
   markEventSeen: (ticketId: number, eventId: number) => {
     const { lastSeenEventIdMap } = get();
     const currentMax = lastSeenEventIdMap[ticketId] || 0;
-    
+
     if (eventId > currentMax) {
       set({
         lastSeenEventIdMap: {
