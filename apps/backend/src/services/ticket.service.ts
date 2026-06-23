@@ -1,4 +1,4 @@
-import { withTransaction, postgresPool } from '../config/database.js';
+import { db } from '../config/database.js';
 import { TicketRepository } from '../repositories/ticket.repository.js';
 import { TicketEventRepository } from '../repositories/ticket-event.repository.js';
 import { EmployeeRepository } from '../repositories/employee.repository.js';
@@ -15,21 +15,21 @@ import { logger } from '../lib/logger.js';
 
 export class TicketService {
   static async createTicket(dto: any, actorUserId: string, actorRole: string) {
-    const result = await withTransaction(async (client) => {
+    const result = await db.transaction(async (tx) => {
       let customerId: string | null = null;
 
       if (actorRole === UserRole.USER) {
-        const cust = await CustomerRepository.findByUserId(client, actorUserId);
+        const cust = await CustomerRepository.findByUserId(tx, actorUserId);
         if (!cust) throw new AppError(404, 'Customer record not found', ErrorCodes.CUSTOMER_NOT_FOUND);
         customerId = cust.id;
       } else {
         if (dto.customerId) {
           customerId = dto.customerId;
         } else if (dto.customerEmail) {
-          const user = await UserRepository.findByEmail(client, dto.customerEmail);
+          const user = await UserRepository.findByEmail(tx, dto.customerEmail);
           if (!user) throw new AppError(404, 'Customer with this email not found', ErrorCodes.CUSTOMER_NOT_FOUND);
           if (user.role !== UserRole.USER) throw new AppError(400, 'Provided email does not belong to a customer', ErrorCodes.VALIDATION_ERROR);
-          const cust = await CustomerRepository.findByUserId(client, user.id);
+          const cust = await CustomerRepository.findByUserId(tx, user.id);
           if (!cust) throw new AppError(404, 'Customer record not found', ErrorCodes.CUSTOMER_NOT_FOUND);
           customerId = cust.id;
         }
@@ -39,13 +39,13 @@ export class TicketService {
 
       if (dto.circuitDescription && dto.circuitDescription.trim() !== '') {
         const circuit = dto.circuitDescription.trim();
-        const activeTicket = await TicketRepository.findActiveTicketByCircuit(client, circuit);
+        const activeTicket = await TicketRepository.findActiveTicketByCircuit(tx, circuit);
         if (activeTicket) {
           throw new AppError(400, 'There is already an open ticket raised in Samadhan', ErrorCodes.VALIDATION_ERROR);
         }
       }
 
-      const ticket = await TicketRepository.create(client, {
+      const ticket = await TicketRepository.create(tx, {
         customerId: customerId as string,
         createdByUserId: actorRole !== UserRole.USER ? actorUserId : null,
         assignedEmployeeId: null,
@@ -55,31 +55,31 @@ export class TicketService {
       });
 
       const initialMessage = dto.message && dto.message.trim() !== '' ? dto.message.trim() : null;
-      await TicketEventRepository.insertEvent(client, {
+      await TicketEventRepository.insertEvent(tx, {
         ticket_id: ticket.id,
         actor_user_id: actorUserId,
         event_type: 'TICKET_CREATED',
         message: initialMessage,
-        metadata: { source: 'WEB' },
+        metadata: { source: 'WEB', attachments: dto.metadata?.attachments || [] },
         visible_to_customer: true
       });
 
-      const assignedAgentId = await AssignmentService.assignAgentAutomatically(client, ticket.id, dto.issueCategoryId);
+      const assignedAgentId = await AssignmentService.assignAgentAutomatically(tx, ticket.id, dto.issueCategoryId);
 
       let assignedAgentName = 'Agent';
       let agent = null;
       let agentUser = null;
 
       if (assignedAgentId) {
-        agent = await EmployeeRepository.findByRowId(client, assignedAgentId);
+        agent = await EmployeeRepository.findByRowId(tx, assignedAgentId);
         if (agent) {
-           agentUser = await UserRepository.findById(client, agent.user_id);
+           agentUser = await UserRepository.findById(tx, agent.user_id);
            if (agentUser) {
              assignedAgentName = agentUser.name;
            }
         }
 
-        await TicketEventRepository.insertEvent(client, {
+        await TicketEventRepository.insertEvent(tx, {
           ticket_id: ticket.id,
           actor_user_id: null,
           event_type: 'TICKET_ASSIGNED',
@@ -89,18 +89,18 @@ export class TicketService {
         });
       }
 
-      const info = await TicketRepository.getCustomerContactInfo(client, ticket.id);
+      const info = await TicketRepository.getCustomerContactInfo(tx, ticket.id);
       
       if (info) {
         await ticketAutomationQueue.add(
           'AGENT_ASSIGNMENT_CHECK',
           { ticketId: ticket.id },
-          { delay: 2 * 60 * 1000 }
+          { delay: 2 * 60 * 1000, jobId: `agent-assign-${ticket.id}-${Date.now()}` }
         );
       }
 
-      await ticketAutomationQueue.add('TROUBLESHOOTING_UPDATE', { ticketId: ticket.id }, { delay: 15 * 60 * 1000 });
-      await ticketAutomationQueue.add('FINAL_ACTIVITY_CHECK', { ticketId: ticket.id }, { delay: 45 * 60 * 1000 });
+      await ticketAutomationQueue.add('TROUBLESHOOTING_UPDATE', { ticketId: ticket.id }, { delay: 15 * 60 * 1000, jobId: `troubleshoot-${ticket.id}-${Date.now()}` });
+      await ticketAutomationQueue.add('FINAL_ACTIVITY_CHECK', { ticketId: ticket.id }, { delay: 45 * 60 * 1000, jobId: `final-activity-${ticket.id}-${Date.now()}` });
 
       ticketEventEmitter.emit('ticket_updated', {
         ticketId: ticket.id,
@@ -113,12 +113,13 @@ export class TicketService {
     if (result.info) {
       // ALWAYS send confirmation to customer and helpdesk upon registration FIRST
       Promise.allSettled([
-        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no, alternateEmail: result.info.alternate_email, circuitId: result.info.circuit_description }),
+        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no, alternateEmail: result.info.alternate_email, circuitId: result.info.circuit_description, attachments: dto.metadata?.attachments }),
         sendTicketCreatedHelpdeskEmail({
           customerName: result.info.name,
           ticketNo: result.info.ticket_no,
           category: result.info.category,
-          circuitId: result.info.circuit_description
+          circuitId: result.info.circuit_description,
+          attachments: dto.metadata?.attachments
         })
       ])
       .then(() => {
@@ -140,11 +141,10 @@ export class TicketService {
     return { ticket: result.ticket, assignedAgentId: result.assignedAgentId };
   }
 
-  static async listUserTickets(userId: string, role: string, page: number, limit: number, filters: any) {
-    const client = await postgresPool.connect();
+  static async listUserTickets(userId: string, role: string, cursor: string | undefined, limit: number, filters: any) {
+    const tx = db; const client = db;
     try {
-      const offset = (page - 1) * limit;
-      const queryFilters: any = { 
+            const queryFilters: any = { 
         statusGroup: filters.statusGroup,
         status: filters.status,
         searchQuery: filters.searchQuery,
@@ -153,12 +153,12 @@ export class TicketService {
       };
 
       if (role === UserRole.USER) {
-        const cust = await CustomerRepository.findByUserId(client, userId);
-        if (!cust) return { tickets: [], total: 0, pages: 0, currentPage: page, limit };
+        const cust = await CustomerRepository.findByUserId(tx, userId);
+        if (!cust) return { tickets: [], pagination: { nextCursor: null, hasNext: false, limit } };
         queryFilters.customerId = cust.id;
       } else if (role === UserRole.SUPPORT_AGENT) {
-        const emp = await EmployeeRepository.findByUserId(client, userId);
-        if (!emp) return { tickets: [], total: 0, pages: 0, currentPage: page, limit };
+        const emp = await EmployeeRepository.findByUserId(tx, userId);
+        if (!emp) return { tickets: [], pagination: { nextCursor: null, hasNext: false, limit } };
         queryFilters.employeeId = emp.id;
       } else if (role === UserRole.SALES) {
         queryFilters.salesUserId = userId;
@@ -169,29 +169,29 @@ export class TicketService {
         if (filters.agentId) queryFilters.employeeId = filters.agentId;
       }
 
-      const { tickets, total } = await TicketRepository.findUserTickets(client, queryFilters, limit, offset);
+      const { tickets, nextCursor, hasNext } = await TicketRepository.findUserTickets(tx, queryFilters, limit, cursor);
       
       return {
         tickets,
-        pagination: { total, pages: Math.ceil(total / limit), currentPage: page, limit }
+        pagination: { nextCursor, hasNext, limit }
       };
     } finally {
-      client.release();
+      // client.release();
     }
   }
 
   static async getTicketTimeline(ticketId: string, userId: string, role: string, afterEventId?: string, limit: number = 200) {
-    const client = await postgresPool.connect();
+    const tx = db; const client = db;
     try {
-      const ticketInfo = await TicketRepository.findTicketTimelineInfo(client, ticketId);
+      const ticketInfo = await TicketRepository.findTicketTimelineInfo(tx, ticketId);
       if (!ticketInfo) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
-      if (role === UserRole.USER && !await TicketRepository.checkCustomerOwnership(client, ticketInfo.customer_row_id, userId)) {
+      if (role === UserRole.USER && !await TicketRepository.checkCustomerOwnership(tx, ticketInfo.customer_row_id, userId)) {
         throw new AppError(403, 'You do not have access to this ticket', ErrorCodes.FORBIDDEN);
       }
       
       if (role === UserRole.SUPPORT_AGENT) {
-        const emp = await EmployeeRepository.findByUserId(client, userId);
+        const emp = await EmployeeRepository.findByUserId(tx, userId);
         if (ticketInfo.current_assigned_employee_id !== emp?.id) {
           throw new AppError(403, 'You are not assigned to this ticket', ErrorCodes.FORBIDDEN);
         }
@@ -201,11 +201,11 @@ export class TicketService {
       let hasMore = false;
       
       if (afterEventId) {
-        const eventRes = await TicketEventRepository.findMissedEvents(postgresPool, ticketId, afterEventId, limit);
+        const eventRes = await TicketEventRepository.findMissedEvents(db, ticketId, afterEventId, limit);
         events = eventRes.events;
         hasMore = eventRes.hasMore;
       } else {
-        events = await TicketEventRepository.findByTicketId(client, ticketId, role === UserRole.USER);
+        events = await TicketEventRepository.findByTicketId(tx, ticketId, role === UserRole.USER);
       }
 
       const formattedTicket = {
@@ -228,13 +228,13 @@ export class TicketService {
         hasMore
       };
     } finally {
-      client.release();
+      // client.release();
     }
   }
 
   static async addTicketEvent(ticketId: string, dto: any, actorUserId: string, role: string) {
-    return withTransaction(async (client) => {
-      const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
+    return db.transaction(async (tx) => {
+      const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
       
       if (ticket.status === 'CLOSED') {
@@ -257,7 +257,7 @@ export class TicketService {
         eventType = 'ADMIN_REPLY';
       }
 
-      const rawEvent = await TicketEventRepository.insertEvent(client, {
+      const rawEvent = await TicketEventRepository.insertEvent(tx, {
         ticket_id: ticketId,
         actor_user_id: actorUserId,
         event_type: eventType,
@@ -266,17 +266,17 @@ export class TicketService {
         visible_to_customer: visibleToCustomer
       });
 
-      const actor = await UserRepository.findById(client, actorUserId);
+      const actor = await UserRepository.findById(tx, actorUserId);
       const event = { ...rawEvent, actor_name: actor?.name || null };
 
       const isStaffReply = eventType === 'AGENT_REPLY' || eventType === 'ADMIN_REPLY';
       
       if (isStaffReply) {
         if (ticket.status === 'OPEN') {
-          await TicketRepository.updateStatus(client, ticketId, 'IN_PROGRESS');
+          await TicketRepository.updateStatus(tx, ticketId, 'IN_PROGRESS');
         }
 
-        const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
+        const info = await TicketRepository.getCustomerContactInfo(tx, ticketId);
         const shouldSendEmail = dto.send_email !== false; // Default to true if undefined
         
         if (info && actor && visibleToCustomer && shouldSendEmail) {
@@ -287,6 +287,7 @@ export class TicketService {
              ticketNo: info.ticket_no,
              agentName: actor.name,
              message: dto.message,
+             attachments: dto.metadata?.attachments,
              alternateEmail: info.alternate_email,
              circuitId: info.circuit_description
           }).catch(err => {
@@ -306,8 +307,8 @@ export class TicketService {
   }
 
   static async updateTicketStatus(ticketId: string, dto: any, actorUserId: string, role: string) {
-    const result = await withTransaction(async (client) => {
-      const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
+    const result = await db.transaction(async (tx) => {
+      const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
       
       const oldStatus = ticket.status;
@@ -323,15 +324,15 @@ export class TicketService {
          }
          
          const resolvedDate = ticket.resolved_at || ticket.closed_at;
-         if (resolvedDate && new Date().getTime() - resolvedDate.getTime() > 24 * 60 * 60 * 1000) {
+         if (resolvedDate && new Date().getTime() - new Date(resolvedDate).getTime() > 24 * 60 * 60 * 1000) {
              throw new AppError(403, 'Ticket cannot be reopened after 24 hours', ErrorCodes.REOPEN_EXPIRED);
          }
       }
       
       const updatedStatus = newStatus === 'REOPENED' ? 'OPEN' : newStatus;
-      const updatedTicket = await TicketRepository.updateStatus(client, ticketId, updatedStatus);
+      const updatedTicket = await TicketRepository.updateStatus(tx, ticketId, updatedStatus);
       
-      const event = await TicketEventRepository.insertEvent(client, {
+      const event = await TicketEventRepository.insertEvent(tx, {
         ticket_id: ticketId,
         actor_user_id: actorUserId,
         event_type: 'STATUS_CHANGED',
@@ -340,7 +341,7 @@ export class TicketService {
         visible_to_customer: true
       });
 
-      const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
+      const info = await TicketRepository.getCustomerContactInfo(tx, ticketId);
       
       if (updatedStatus === 'RESOLVED') {
         await ticketAutomationQueue.add(
@@ -358,9 +359,9 @@ export class TicketService {
       let agentName = null;
       let agentEmail = null;
       if (newStatus === 'REOPENED' && ticket.current_assigned_employee_id) {
-          const agent = await EmployeeRepository.findByRowId(client, ticket.current_assigned_employee_id);
+          const agent = await EmployeeRepository.findByRowId(tx, ticket.current_assigned_employee_id);
           if (agent) {
-             const agentUser = await UserRepository.findById(client, agent.user_id);
+             const agentUser = await UserRepository.findById(tx, agent.user_id);
              if (agentUser) {
                agentName = agentUser.name;
                agentEmail = agentUser.email;
@@ -398,8 +399,8 @@ export class TicketService {
   }
 
   static async updateTicketRca(ticketId: string, rca: string, existingImages: string[], newImages: string[], actorUserId: string) {
-    const result = await withTransaction(async (client) => {
-      const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
+    const result = await db.transaction(async (tx) => {
+      const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
       
       if (ticket.status === 'CLOSED') {
@@ -427,13 +428,21 @@ export class TicketService {
         }
       }
 
-      const updatedTicket = await TicketRepository.updateFields(client, ticketId, fieldsToUpdate);
+      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, fieldsToUpdate);
 
-      // RCA event creation removed
+      // Create an event for the RCA update so it's recorded in the timeline history
+      const rcaEvent = await TicketEventRepository.insertEvent(tx, {
+        ticket_id: ticketId,
+        actor_user_id: actorUserId,
+        event_type: 'TICKET_RCA_UPDATED',
+        message: 'Root Cause Analysis submitted',
+        metadata: { rca, attachments: combinedImages },
+        visible_to_customer: true
+      });
 
       let statusEvent = null;
       if (autoClosed) {
-        statusEvent = await TicketEventRepository.insertEvent(client, {
+        statusEvent = await TicketEventRepository.insertEvent(tx, {
           ticket_id: ticketId,
           actor_user_id: null,
           event_type: 'STATUS_CHANGED',
@@ -443,11 +452,11 @@ export class TicketService {
         });
       }
 
-      const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
+      const info = await TicketRepository.getCustomerContactInfo(tx, ticketId);
       
       ticketEventEmitter.emit('ticket_updated', {
         ticketId,
-        data: { type: 'TICKET_RCA_UPDATED', rca, rca_images: combinedImages }
+        data: { type: 'TICKET_RCA_UPDATED', rca, rca_images: combinedImages, event: rcaEvent }
       });
 
       if (autoClosed) {
@@ -476,11 +485,11 @@ export class TicketService {
   }
 
   static async updateOutageDetails(ticketId: string, dto: any, actorUserId: string) {
-    return withTransaction(async (client) => {
-      const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
+    return db.transaction(async (tx) => {
+      const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
-      const updatedTicket = await TicketRepository.updateFields(client, ticketId, {
+      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
         problem_side: dto.problemSide,
         telco_sr_number: dto.externalTicketNo
       });
@@ -497,26 +506,26 @@ export class TicketService {
   }
 
   static async reassignTicket(ticketId: string, employeeId: string, actorUserId: string) {
-    const result = await withTransaction(async (client) => {
-      const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
+    const result = await db.transaction(async (tx) => {
+      const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
-      const updatedTicket = await TicketRepository.updateFields(client, ticketId, {
+      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
         current_assigned_employee_id: employeeId
       });
 
       let agentName = 'Agent';
       let agentEmail = '';
-      const agent = await EmployeeRepository.findByRowId(client, employeeId);
+      const agent = await EmployeeRepository.findByRowId(tx, employeeId);
       if (agent) {
-         const agentUser = await UserRepository.findById(client, agent.user_id);
+         const agentUser = await UserRepository.findById(tx, agent.user_id);
          if (agentUser) {
            agentName = agentUser.name;
            agentEmail = agentUser.email;
          }
       }
 
-      const event = await TicketEventRepository.insertEvent(client, {
+      const event = await TicketEventRepository.insertEvent(tx, {
         ticket_id: ticketId,
         actor_user_id: actorUserId,
         event_type: 'TICKET_ASSIGNED',
@@ -530,7 +539,7 @@ export class TicketService {
         data: { type: 'TICKET_ASSIGNED', ticket: updatedTicket, event }
       });
 
-      const info = await TicketRepository.getCustomerContactInfo(client, ticketId);
+      const info = await TicketRepository.getCustomerContactInfo(tx, ticketId);
 
       return { updatedTicket, info, agentName, agentEmail };
     });
@@ -550,11 +559,11 @@ export class TicketService {
   }
 
   static async toggleCustomerReply(ticketId: string, allow: boolean, actorUserId: string) {
-    return withTransaction(async (client) => {
-      const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
+    return db.transaction(async (tx) => {
+      const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
-      const updatedTicket = await TicketRepository.updateFields(client, ticketId, {
+      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
         allow_customer_reply: allow
       });
 
@@ -570,43 +579,43 @@ export class TicketService {
   }
 
   static async getEarliestTicketYear() {
-    const client = await postgresPool.connect();
+    const tx = db; const client = db;
     try {
-      return await TicketRepository.getEarliestTicketYear(client);
+      return await TicketRepository.getEarliestTicketYear(tx);
     } finally {
-      client.release();
+      // client.release();
     }
   }
 
   static async listResolvedTickets(page: number, limit: number, exportAll: boolean = false, year?: number, month?: number) {
-    const client = await postgresPool.connect();
+    const tx = db; const client = db;
     try {
-      const offset = (page - 1) * limit;
-      const { tickets, total } = await TicketRepository.findResolvedTickets(client, limit, offset, exportAll, year, month);
+      const pageNum = page || 1; const limitNum = limit || 10; const offset = (pageNum - 1) * limitNum;
+      const { tickets, total } = await TicketRepository.findResolvedTickets(tx, limit, offset, exportAll, year, month);
       
       return {
         tickets,
-        pagination: { total, pages: exportAll ? 1 : Math.ceil(total / limit), currentPage: page, limit }
+        pagination: { total, pages: exportAll ? 1 : Math.ceil(total / limitNum), currentPage: page, limit }
       };
     } finally {
-      client.release();
+      // client.release();
     }
   }
 
   static async updateTicketRating(ticketId: string, rating: number, feedback: string, actorUserId: string) {
-    return withTransaction(async (client) => {
-      const ticket = await TicketRepository.findByIdForUpdate(client, ticketId);
+    return db.transaction(async (tx) => {
+      const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
       
       if (ticket.status !== 'CLOSED' && ticket.status !== 'RESOLVED') {
         throw new AppError(400, 'Only resolved or closed tickets can be rated.', ErrorCodes.INVALID_TICKET_STATE);
       }
 
-      if (!await TicketRepository.checkCustomerOwnership(client, ticket.customer_id, actorUserId)) {
+      if (!await TicketRepository.checkCustomerOwnership(tx, ticket.customer_id, actorUserId)) {
          throw new AppError(403, 'You do not have access to rate this ticket', ErrorCodes.FORBIDDEN);
       }
 
-      const updatedTicket = await TicketRepository.updateFields(client, ticketId, {
+      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
         rating,
         rating_feedback: feedback
       });

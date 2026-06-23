@@ -25,7 +25,7 @@ export default function Timeline({ events }: TimelineProps) {
 
 
 
-  const visibleEvents = events.filter(e => e.event_type !== "TICKET_RCA_UPDATED");
+  const visibleEvents = events;
 
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -43,8 +43,12 @@ export default function Timeline({ events }: TimelineProps) {
         return "robot_2";
       case "STATUS_CHANGED":
         return "published_with_changes";
+      case "TICKET_RCA_UPDATED":
+        return "troubleshoot";
       case "TICKET_RESOLVED":
         return "task_alt";
+      case "AUTOMATED_UPDATE":
+        return "robot_2";
       default:
         return "info";
     }
@@ -75,6 +79,8 @@ export default function Timeline({ events }: TimelineProps) {
         const formattedStatus = rawStatus.replace(/_/g, ' ').replace(/\w\S*/g, (txt: string) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
         return `Status: "${formattedStatus}"`;
       }
+      case "TICKET_RCA_UPDATED":
+        return "Root Cause Analysis";
       case "TICKET_RESOLVED":
         return "Ticket Resolved";
       case "AGENT_REPLY":
@@ -88,6 +94,8 @@ export default function Timeline({ events }: TimelineProps) {
         }
         return event.event_type === "USER_REPLY" ? "Customer Reply" : "Support Reply";
       }
+      case "AUTOMATED_UPDATE":
+        return event.metadata?.heading || "System Update";
       default:
         return "System Update";
     }

@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import argon2 from 'argon2';
-import { withTransaction, postgresPool } from '../config/database.js';
+import { db } from '../config/database.js';
+import { sql } from 'drizzle-orm';
 import { UserRepository } from '../repositories/user.repository.js';
 import { EmployeeRepository } from '../repositories/employee.repository.js';
 import { CustomerRepository } from '../repositories/customer.repository.js';
@@ -13,8 +14,8 @@ import { logger } from '../lib/logger.js';
 
 export class UserService {
   static async createEmployee(dto: CreateEmployeeDto) {
-    const result = await withTransaction(async (client) => {
-      const existingUser = await UserRepository.findByEmail(client, dto.email);
+    const result = await db.transaction(async (tx) => {
+      const existingUser = await UserRepository.findByEmail(tx, dto.email);
       if (existingUser) {
         throw new AppError(400, 'User with this email already exists', ErrorCodes.EMAIL_EXISTS);
       }
@@ -22,7 +23,7 @@ export class UserService {
       const generatedPassword = crypto.randomBytes(8).toString('hex');
       const hashedPassword = await argon2.hash(generatedPassword);
 
-      const user = await UserRepository.create(client, {
+      const user = await UserRepository.create(tx, {
         name: dto.name,
         email: dto.email,
         password: hashedPassword,
@@ -30,10 +31,10 @@ export class UserService {
         phone: dto.phone,
       });
 
-      const employee = await EmployeeRepository.create(client, user.id);
+      const employee = await EmployeeRepository.create(tx, user.id);
 
       if (dto.role === UserRole.SUPPORT_AGENT && (dto.issueCategories && dto.issueCategories.length > 0)) {
-        await EmployeeRepository.replaceCategoriesByName(client, employee.id, dto.issueCategories || []);
+        await EmployeeRepository.replaceCategoriesByName(tx, employee.id, dto.issueCategories || []);
       }
 
       return { user, employee, generatedPassword };
@@ -50,8 +51,8 @@ export class UserService {
   }
 
   static async createCustomer(dto: CreateCustomerDto) {
-    const result = await withTransaction(async (client) => {
-      const existingUser = await UserRepository.findByEmail(client, dto.email);
+    const result = await db.transaction(async (tx) => {
+      const existingUser = await UserRepository.findByEmail(tx, dto.email);
       if (existingUser) {
         throw new AppError(400, 'User with this email already exists', ErrorCodes.EMAIL_EXISTS);
       }
@@ -59,7 +60,7 @@ export class UserService {
       const generatedPassword = crypto.randomBytes(8).toString('hex');
       const hashedPassword = await argon2.hash(generatedPassword);
 
-      const user = await UserRepository.create(client, {
+      const user = await UserRepository.create(tx, {
         name: dto.name,
         email: dto.email,
         password: hashedPassword,
@@ -67,7 +68,7 @@ export class UserService {
         phone: dto.phone,
       });
 
-      const customer = await CustomerRepository.create(client, user.id);
+      const customer = await CustomerRepository.create(tx, user.id);
 
       return { user, customer, generatedPassword };
     });
@@ -82,7 +83,7 @@ export class UserService {
   }
 
   static async listAllEmployees(page: number, limit: number): Promise<PaginatedResponse<any>> {
-    const { employees, total } = await EmployeeRepository.findAllWithCategories(postgresPool, page, limit);
+    const { employees, total } = await EmployeeRepository.findAllWithCategories(db, page, limit);
     return {
       employees,
       pagination: {
@@ -95,11 +96,11 @@ export class UserService {
   }
 
   static async listAllAgents() {
-    return EmployeeRepository.findAllAgents(postgresPool);
+    return EmployeeRepository.findAllAgents(db);
   }
 
   static async listAllCustomers(page: number, limit: number, search?: string): Promise<PaginatedResponse<any>> {
-    const { customers, total } = await CustomerRepository.findAll(postgresPool, page, limit, search);
+    const { customers, total } = await CustomerRepository.findAll(db, page, limit, search);
     return {
       customers,
       pagination: {
@@ -112,134 +113,133 @@ export class UserService {
   }
 
   static async updateEmployee(employeeRowId: string, dto: any) {
-    return withTransaction(async (client) => {
-      const empInfo = await EmployeeRepository.findByRowId(client, employeeRowId);
+    return db.transaction(async (tx) => {
+      const empInfo = await EmployeeRepository.findByRowId(tx, employeeRowId);
       if (!empInfo) throw new AppError(404, 'Employee not found', ErrorCodes.EMPLOYEE_NOT_FOUND);
 
       const userId = empInfo.user_id;
 
       if (dto.name || dto.email || dto.phone) {
         if (dto.email) {
-          const userCheck = await UserRepository.findByEmail(client, dto.email);
+          const userCheck = await UserRepository.findByEmail(tx, dto.email);
           if (userCheck && userCheck.id !== userId) {
             throw new AppError(400, 'Email already in use', ErrorCodes.EMAIL_EXISTS);
           }
         }
-        await UserRepository.update(client, userId, dto);
+        await UserRepository.update(tx, userId, dto);
       }
 
       if (dto.issueCategories !== undefined) {
-        await EmployeeRepository.replaceCategoriesByName(client, employeeRowId, dto.issueCategories);
+        await EmployeeRepository.replaceCategoriesByName(tx, employeeRowId, dto.issueCategories);
       }
 
-      return UserRepository.findById(client, userId);
+      return UserRepository.findById(tx, userId);
     });
   }
 
   static async deleteEmployee(employeeRowId: string) {
-    return withTransaction(async (client) => {
-      const empInfo = await EmployeeRepository.findByRowId(client, employeeRowId);
+    return db.transaction(async (tx) => {
+      const empInfo = await EmployeeRepository.findByRowId(tx, employeeRowId);
       if (!empInfo) throw new AppError(404, 'Employee not found', ErrorCodes.EMPLOYEE_NOT_FOUND);
       
-      await UserRepository.deleteById(client, empInfo.user_id);
+      await UserRepository.deleteById(tx, empInfo.user_id);
       disconnectUser(empInfo.user_id);
     });
   }
 
   static async updateCustomer(customerRowId: string, dto: any) {
-    return withTransaction(async (client) => {
-      const custInfo = await CustomerRepository.findByRowId(client, customerRowId);
+    return db.transaction(async (tx) => {
+      const custInfo = await CustomerRepository.findByRowId(tx, customerRowId);
       if (!custInfo) throw new AppError(404, 'Customer not found', ErrorCodes.CUSTOMER_NOT_FOUND);
 
       const userId = custInfo.user_id;
 
       if (dto.name || dto.email || dto.phone) {
         if (dto.email) {
-          const userCheck = await UserRepository.findByEmail(client, dto.email);
+          const userCheck = await UserRepository.findByEmail(tx, dto.email);
           if (userCheck && userCheck.id !== userId) {
             throw new AppError(400, 'Email already in use', ErrorCodes.EMAIL_EXISTS);
           }
         }
-        await UserRepository.update(client, userId, dto);
+        await UserRepository.update(tx, userId, dto);
       }
 
-      return UserRepository.findById(client, userId);
+      return UserRepository.findById(tx, userId);
     });
   }
 
   static async deleteCustomer(customerRowId: string) {
-    return withTransaction(async (client) => {
-      const custInfo = await CustomerRepository.findByRowId(client, customerRowId);
+    return db.transaction(async (tx) => {
+      const custInfo = await CustomerRepository.findByRowId(tx, customerRowId);
       if (!custInfo) throw new AppError(404, 'Customer not found', ErrorCodes.CUSTOMER_NOT_FOUND);
       
-      await UserRepository.deleteById(client, custInfo.user_id);
+      await UserRepository.deleteById(tx, custInfo.user_id);
       disconnectUser(custInfo.user_id);
     });
   }
 
   static async updatePassword(userId: string, dto: ChangePasswordDto) {
-    return withTransaction(async (client) => {
-      const user = await UserRepository.findById(client, userId);
+    return db.transaction(async (tx) => {
+      const user = await UserRepository.findById(tx, userId);
       if (!user) throw new AppError(404, 'User not found', ErrorCodes.USER_NOT_FOUND);
       
-      const userWithPass = await client.query('SELECT password FROM users WHERE id = $1', [userId]);
+      const userWithPass = await tx.execute(sql`SELECT password FROM users WHERE id = ${userId}`);
 
       if (!user.must_change_password) {
         if (!dto.currentPassword) {
           throw new AppError(400, 'Current password is required', ErrorCodes.VALIDATION_ERROR);
         }
-        const validPassword = await argon2.verify(userWithPass.rows[0].password, dto.currentPassword);
+        const validPassword = await argon2.verify(userWithPass.rows[0].password as string, dto.currentPassword);
         if (!validPassword) {
           throw new AppError(401, 'Invalid current password', ErrorCodes.INVALID_CREDENTIALS);
         }
       }
 
       const hashedPassword = await argon2.hash(dto.newPassword || '');
-      await UserRepository.updatePassword(client, userId, hashedPassword);
-      await UserRepository.clearMustChangePassword(client, userId);
+      await UserRepository.updatePassword(tx, userId, hashedPassword);
+      await UserRepository.clearMustChangePassword(tx, userId);
 
       // Invalidate other sessions
-      await client.query(`UPDATE sessions SET revoked = TRUE, revoked_at = NOW() WHERE user_id = $1`, [userId]);
+      await tx.execute(sql`UPDATE sessions SET revoked = TRUE, revoked_at = NOW() WHERE user_id = ${userId}`);
       disconnectUser(userId);
     });
   }
 
   static async updateUserProfile(userId: string, dto: UpdateProfileDto) {
-    return withTransaction(async (client) => {
+    return db.transaction(async (tx) => {
       if (dto.email) {
-        const userCheck = await UserRepository.findByEmail(client, dto.email);
+        const userCheck = await UserRepository.findByEmail(tx, dto.email);
         if (userCheck && userCheck.id !== userId) {
           throw new AppError(400, 'Email already in use', ErrorCodes.EMAIL_EXISTS);
         }
       }
 
-      await UserRepository.update(client, userId, dto);
-      return UserRepository.findById(client, userId);
+      await UserRepository.update(tx, userId, dto);
+      return UserRepository.findById(tx, userId);
     });
   }
 
   static async getCurrentUserDetails(userId: string) {
-    const client = await postgresPool.connect();
+    const tx = db;
     try {
-      const user = await UserRepository.findById(client, userId);
+      const user = await UserRepository.findById(tx, userId);
       if (!user) throw new AppError(404, 'User not found', ErrorCodes.USER_NOT_FOUND);
 
       let employeeCategories = [];
       let relatedId = null;
 
       if (user.role === UserRole.USER) {
-        const cust = await CustomerRepository.findByUserId(client, userId);
+        const cust = await CustomerRepository.findByUserId(tx, userId);
         relatedId = cust?.id;
       } else {
-        const emp = await EmployeeRepository.findByUserId(client, userId);
+        const emp = await EmployeeRepository.findByUserId(tx, userId);
         relatedId = emp?.id;
 
         if (user.role === UserRole.SUPPORT_AGENT && emp) {
-          const catRes = await client.query(
-            `SELECT ic.name FROM employee_issue_categories eic 
+          const catRes = await tx.execute(
+            sql`SELECT ic.name FROM employee_issue_categories eic 
              JOIN issue_categories ic ON eic.issue_category_id = ic.id 
-             WHERE eic.employee_id = $1`,
-            [emp.id]
+             WHERE eic.employee_id = ${emp.id}`
           );
           employeeCategories = catRes.rows.map(row => row.name);
         }
@@ -251,7 +251,7 @@ export class UserService {
         issueCategories: employeeCategories,
       };
     } finally {
-      client.release();
+      // client.release();
     }
   }
 }

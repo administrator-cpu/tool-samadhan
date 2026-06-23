@@ -6,7 +6,9 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, Calendar, UserCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { getVisiblePages } from "@/lib/pagination";
+import { useCursorPagination } from "@/hooks/useCursorPagination";
+import CursorPagination from "@/components/CursorPagination";
+import { useRef } from "react";
 
 interface Ticket {
   id: number;
@@ -42,26 +44,53 @@ const statusOrder: Record<string, number> = {
 export default function SalesTicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ total: 0, pages: 0, currentPage: 1, limit: 10 });
-  const [page, setPage] = useState(1);
 
   // Search and Sort states
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<"status" | "date">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [ownershipFilter, setOwnershipFilter] = useState<"ALL" | "ASSIGNED" | "UNASSIGNED">("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
-  const fetchTickets = async () => {
+  const queryParams = useMemo(() => {
+    const params: Record<string, string> = {
+      sortField,
+      sortOrder
+    };
+    if (ownershipFilter !== "ALL") params.ownership = ownershipFilter;
+    if (statusFilter !== "ALL") params.status = statusFilter;
+    if (searchQuery.trim()) params.searchQuery = searchQuery.trim();
+    return params;
+  }, [ownershipFilter, statusFilter, searchQuery, sortField, sortOrder]);
+
+  const {
+    currentPage,
+    setCurrentPage,
+    pageMap,
+    resetPagination,
+    handlePageResponse,
+  } = useCursorPagination({
+    fetchUrl: "/tickets",
+    limit: 10,
+    queryParams
+  });
+
+  const fetchTickets = async (page: number) => {
     try {
       setLoading(true);
-      const queryParams = new URLSearchParams();
-      if (ownershipFilter !== "ALL") queryParams.append("ownership", ownershipFilter);
-      queryParams.append("page", page.toString());
-      queryParams.append("limit", "10");
+      const cursor = pageMap[page]?.cursor;
+      
+      const params = new URLSearchParams();
+      Object.entries(queryParams).forEach(([k, v]) => params.append(k, v));
+      if (cursor) params.append("cursor", cursor);
+      params.append("limit", "10");
 
-      const res = await api.get(`/tickets?${queryParams.toString()}`);
+      const res = await api.get(`/tickets?${params.toString()}`);
       setTickets(res.data.tickets || []);
-      setPagination(res.data.pagination || { total: 0, pages: 0, currentPage: 1, limit: 10 });
+      
+      const { nextCursor, hasNext } = res.data.pagination;
+      handlePageResponse(page, nextCursor, hasNext);
     } catch (err: any) {
       toast.error(err.message || "Failed to fetch tickets");
     } finally {
@@ -69,38 +98,22 @@ export default function SalesTicketsPage() {
     }
   };
 
+  const prevParamsRef = useRef(JSON.stringify(queryParams));
+
   useEffect(() => {
-    fetchTickets();
-  }, [ownershipFilter, page]);
-
-  const filteredAndSortedTickets = useMemo(() => {
-    let result = [...tickets];
-
-    // Search Logic
-    if (searchQuery.trim()) {
-      let q = searchQuery.trim().toUpperCase();
-      // Auto-prefix if numeric and not already prefixed
-      if (/^\d+$/.test(q)) {
-        q = `TCK-${q}`;
-      }
-      result = result.filter(t => t.ticket_no.toUpperCase().includes(q));
+    const currentParamsStr = JSON.stringify(queryParams);
+    if (prevParamsRef.current !== currentParamsStr) {
+      resetPagination();
+      prevParamsRef.current = currentParamsStr;
+      return;
     }
+    fetchTickets(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, queryParams]);
 
-    // Sort Logic
-    result.sort((a, b) => {
-      let comparison = 0;
-      if (sortField === "status") {
-        comparison = (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
-      } else {
-        comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      }
-      return sortOrder === "desc" ? -comparison : comparison;
-    });
+  const filteredAndSortedTickets = tickets;
 
-    return result;
-  }, [tickets, searchQuery, sortField, sortOrder]);
-
-  const activeCount = tickets.filter(t => ["OPEN", "IN_PROGRESS", "ON_HOLD", "ESCALATED"].includes(t.status)).length;
+  const activeCount = tickets.filter(t => ["OPEN", "IN_PROGRESS", "ESCALATED"].includes(t.status)).length;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] antialiased">
@@ -128,24 +141,47 @@ export default function SalesTicketsPage() {
               />
             </div>
 
-            <div className="flex h-12 items-center rounded-lg border border-slate-200 bg-white px-2 py-1">
-              <button
-                onClick={() => {
-                  if (sortField === "status") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  else { setSortField("status"); setSortOrder("desc"); }
-                }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "status" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
-              >
-                <Filter size={14} />
-                Status
-                {sortField === "status" && <ArrowUpDown size={12} className="opacity-70" />}
-              </button>
+            <div className="flex h-12 items-center rounded-lg border border-slate-200 bg-white px-2 py-1 gap-1">
+              <div className="relative">
+                <button
+                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${statusFilter !== "ALL" ? "bg-emerald-600 text-white shadow-lg " : "text-slate-500 hover:bg-slate-50"}`}
+                >
+                  <Filter size={14} />
+                  {statusFilter === "ALL" ? "Status" : statusFilter.replace("_", " ")}
+                  <ChevronDown size={14} className={`opacity-70 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isStatusDropdownOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsStatusDropdownOpen(false)}
+                    />
+                    <div className="absolute top-full left-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-xl z-50 overflow-hidden">
+                      {["ALL", "OPEN", "IN_PROGRESS", "ESCALATED", "RESOLVED", "CLOSED"].map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => {
+                            setStatusFilter(status);
+                            setIsStatusDropdownOpen(false);
+                          }}
+                          className={`block w-full text-left px-4 py-2 text-xs font-bold transition-colors ${statusFilter === status ? "bg-slate-50 text-emerald-600" : "text-slate-600 hover:bg-emerald-50 hover:text-slate-900"}`}
+                        >
+                          {status === "ALL" ? "All Statuses" : status.replace("_", " ")}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
               <button
                 onClick={() => {
                   if (sortField === "date") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
                   else { setSortField("date"); setSortOrder("desc"); }
                 }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
+                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-emerald-600 text-white shadow-lg " : "text-slate-500 hover:bg-slate-50"}`}
               >
                 <Calendar size={14} />
                 Date
@@ -202,8 +238,8 @@ export default function SalesTicketsPage() {
                 <tbody className="divide-y divide-slate-50">
                   {filteredAndSortedTickets.map((ticket) => (
                     <tr key={ticket.id} className="group transition-all hover:bg-slate-50/80">
-                      <td className="px-8 py-6 font-black text-[#2a14b4]">
-                        #{ticket.ticket_no}
+                      <td className="px-8 py-6 font-bold text-sm text-emerald-700">
+                        {ticket.ticket_no}
                       </td>
                       <td className="px-8 py-6 text-xs font-bold text-slate-600">
                         {ticket.circuit_description || "N/A"}
@@ -241,49 +277,12 @@ export default function SalesTicketsPage() {
           </div>
 
           {/* Pagination Controls */}
-          {!loading && pagination.pages > 1 && (
-            <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-50 bg-slate-50/30 px-8 py-5 sm:flex-row">
-              <p className="text-sm font-bold text-slate-500">
-                Showing <span className="text-slate-900">{((page - 1) * 10) + 1}</span> to <span className="text-slate-900">{Math.min(page * 10, pagination.total)}</span> of <span className="text-slate-900">{pagination.total}</span> tickets
-              </p>
-              
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
-                >
-                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                  Previous
-                </button>
-                
-                <div className="flex items-center gap-1">
-                  {getVisiblePages(page, pagination.pages).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl text-xs font-black transition-all ${
-                        page === p 
-                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" 
-                          : "text-slate-500 hover:bg-slate-50"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
-                  disabled={page === pagination.pages}
-                  className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
-                >
-                  Next
-                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                </button>
-              </div>
-            </div>
-          )}
+          <CursorPagination
+            currentPage={currentPage}
+            pageMap={pageMap}
+            onPageChange={setCurrentPage}
+            loading={loading}
+          />
         </section>
       </main>
     </div>

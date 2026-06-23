@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useCategoryStore } from "@/store/useCategoryStore";
+import Image from "next/image";
+import { Paperclip, X } from "lucide-react";
 
 export default function CreateTicketPage() {
   const router = useRouter();
@@ -17,6 +19,41 @@ export default function CreateTicketPage() {
     circuitDescription: "",
     alternateEmail: "",
   });
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      const validFiles: File[] = [];
+
+      for (const file of selectedFiles) {
+        if (!file.type.startsWith("image/")) {
+          toast.error(`${file.name} is not a valid image format.`);
+          continue;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name} exceeds the 5MB size limit.`);
+          continue;
+        }
+        validFiles.push(file);
+      }
+
+      if (attachments.length + validFiles.length > 10) {
+        toast.error("You can only upload up to 10 images.");
+        setAttachments((prev) => [...prev, ...validFiles].slice(0, 10));
+      } else {
+        setAttachments((prev) => [...prev, ...validFiles]);
+      }
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -55,12 +92,27 @@ export default function CreateTicketPage() {
         return;
       }
 
-      await api.post("/tickets", {
-        message: formData.description,
-        circuitDescription: formData.circuitDescription,
-        issueCategoryId: selectedCategory.id,
-        alternateEmail: formData.alternateEmail.trim() || undefined,
-      });
+      if (attachments.length > 0) {
+        const formDataPayload = new FormData();
+        formDataPayload.append("message", formData.description);
+        formDataPayload.append("circuitDescription", formData.circuitDescription);
+        formDataPayload.append("issueCategoryId", String(selectedCategory.id));
+        if (formData.alternateEmail.trim()) {
+          formDataPayload.append("alternateEmail", formData.alternateEmail.trim());
+        }
+        attachments.forEach((file) => {
+          formDataPayload.append("files", file);
+        });
+
+        await api.post("/tickets", formDataPayload);
+      } else {
+        await api.post("/tickets", {
+          message: formData.description,
+          circuitDescription: formData.circuitDescription,
+          issueCategoryId: selectedCategory.id,
+          alternateEmail: formData.alternateEmail.trim() || undefined,
+        });
+      }
       
       toast.success("Ticket raised successfully!");
       router.push("/customer/tickets");
@@ -185,6 +237,55 @@ export default function CreateTicketPage() {
                 placeholder="Tell us exactly what's happening..."
                 className="h-[160px] w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
               />
+            </div>
+
+            {/* Attachments */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-slate-700">
+                  Attachments <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={loading || attachments.length >= 10}
+                  className="flex items-center gap-1.5 text-sm font-medium text-[#2513ec] hover:text-[#2513ec]/80 disabled:opacity-50 transition-colors"
+                >
+                  <Paperclip size={16} />
+                  Add Images
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/jpeg, image/png, image/webp, image/heic, image/heif"
+                  multiple
+                  className="hidden"
+                />
+              </div>
+              
+              {attachments.length > 0 && (
+                <div className="flex flex-wrap gap-3 mt-2">
+                  {attachments.map((file, idx) => (
+                    <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200 w-20 h-20 shadow-xs">
+                      <Image
+                        src={URL.createObjectURL(file)}
+                        alt="Preview"
+                        fill
+                        className="object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(idx)}
+                        disabled={loading}
+                        className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full hover:bg-red-500 transition-colors"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Submit */}
