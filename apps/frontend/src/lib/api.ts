@@ -37,7 +37,7 @@ export const refreshToken = async () => {
             console.log("[API] Attempting background token refresh...");
             const res = await fetch(`${API_URL}/refresh`, {
               method: "POST",
-              headers: { 
+              headers: {
                 "Content-Type": "application/json",
                 ...(storedRefreshToken ? { "X-Refresh-Token": storedRefreshToken } : {})
               },
@@ -96,7 +96,7 @@ export const refreshToken = async () => {
 
 async function apiFetch(endpoint: string, options: ApiOptions = {}) {
   const { setAuth, clearAuth } = useAuthStore.getState();
-  
+
   // 1. Helper to perform a refresh
   const performRefresh = refreshToken;
 
@@ -161,7 +161,7 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
   if (response.status === 401 && !["/refresh", "/login", "/register"].includes(endpoint)) {
     console.log(`[API] 401 Unauthorized for ${endpoint}. Attempting refresh...`);
     const freshAccessToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-    
+
     // Check if another concurrent request already refreshed it
     if (freshAccessToken && freshAccessToken !== accessToken) {
       console.log(`[API] Using fresh token from concurrent refresh for ${endpoint}`);
@@ -175,14 +175,14 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
       // Cooldown check: if we just refreshed < 2s ago, don't refresh again immediately
       const now = Date.now();
       const lastRefresh = (window as any)._lastRefreshAt || 0;
-      
+
       if (now - lastRefresh < 2000) {
         console.log(`[API] Refresh cooldown active for ${endpoint}. Waiting...`);
         await new Promise(r => setTimeout(r, 500));
         const retryToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
         if (retryToken && retryToken !== accessToken) {
-           headers.set("Authorization", `Bearer ${retryToken}`);
-           return fetch(`${API_URL}${endpoint}`, { ...options, headers, credentials: "include" }).then(r => r.json());
+          headers.set("Authorization", `Bearer ${retryToken}`);
+          return fetch(`${API_URL}${endpoint}`, { ...options, headers, credentials: "include" }).then(r => r.json());
         }
       }
 
@@ -195,7 +195,7 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
           setAuth(refreshData.data.user, newAccessToken, refreshData.data.refreshToken);
           accessToken = newAccessToken; // Update current accessToken for the retry
         }
-        
+
         headers.set("Authorization", `Bearer ${newAccessToken}`);
         response = await fetch(`${API_URL}${endpoint}`, {
           ...options,
@@ -204,11 +204,11 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
         });
       } else {
         console.log(`[API] Refresh failed for ${endpoint}.`);
-        
+
         const stillAuthenticated = useAuthStore.getState().isAuthenticated;
-        
+
         clearAuth();
-        
+
         // Only trigger session expired event if the user was supposedly logged in
         if (stillAuthenticated && typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("auth-session-expired"));
