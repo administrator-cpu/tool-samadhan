@@ -143,17 +143,44 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
     options.body = JSON.stringify(options.body);
   }
 
-  // 4. First attempt
+  // 4. Fetch with retry logic for startup race conditions
   let response;
-  try {
-    console.log(`[API] Fetching ${endpoint}`);
-    response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers,
-      credentials: "include",
-    });
-  } catch (error) {
-    console.log(error);
+  let lastNetworkError: unknown = null;
+  const MAX_RETRIES = 5;
+  let delay = 500;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      if (attempt === 0) {
+        console.log(`[API] Fetching ${endpoint}`);
+      } else {
+        console.log(`[API] Fetching ${endpoint} (Retry ${attempt}/${MAX_RETRIES})...`);
+      }
+      
+      response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers,
+        credentials: "include",
+      });
+      break; // Success, exit retry loop
+    } catch (error: any) {
+      lastNetworkError = error;
+      
+      // TypeError is thrown by fetch on network failure (like ERR_CONNECTION_REFUSED)
+      if (error.name === 'TypeError' && attempt < MAX_RETRIES) {
+        console.warn(`[API] Network error for ${endpoint}. Backend might be starting. Retrying in ${delay}ms...`);
+        await wait(delay);
+        delay = Math.min(delay * 2, 4000); // Exponential backoff up to 4s
+        continue;
+      }
+      
+      // If we've exhausted retries or it's not a standard network TypeError
+      console.error(`[API] Fetch failed for ${endpoint}:`, error);
+      throw new ApiError("Network error. Please check your connection or wait for the backend to start.", 0, "NETWORK_ERROR");
+    }
+  }
+
+  if (!response) {
     throw new ApiError("Network error. Please check your connection.", 0, "NETWORK_ERROR");
   }
 
