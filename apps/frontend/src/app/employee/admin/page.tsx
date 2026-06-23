@@ -79,6 +79,8 @@ export default function AdminDashboard() {
     );
   }
 
+  if (!dashboardStats) return null;
+
   const stats = (dashboardStats.stats ? dashboardStats.stats : dashboardStats) as AdminStats;
   if (!stats || !stats.summary) return null;
 
