@@ -18,25 +18,45 @@ interface SocketState {
   markEventSeen: (ticketId: number, eventId: number) => void;
 }
 
+let isConnecting = false;
+
 export const useSocketStore = create<SocketState>((set, get) => ({
   socket: null,
   isConnected: false,
   joinedRooms: new Set(),
   lastSeenEventIdMap: {},
 
-  connect: (token: string) => {
+  connect: async (token: string) => {
     const { socket } = get();
-    if (socket) return;
+    if (socket || isConnecting) return;
 
-    console.log("[SOCKET-STORE] Initializing global singleton connection...");
-    const s = io(SOCKET_URL, {
-      auth: { token },
-      reconnection: true,
-      reconnectionAttempts: Infinity, // Never give up
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 30000, // Max 30s backoff
-      randomizationFactor: 0.5,
-    });
+    isConnecting = true;
+
+    try {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:4000";
+      const MAX_ATTEMPTS = 15;
+      let delay = 500;
+
+      for (let i = 0; i < MAX_ATTEMPTS; i++) {
+        try {
+          const res = await fetch(`${BACKEND_URL}/health`);
+          if (res.ok) break;
+        } catch {
+          // Backend not ready yet
+        }
+        await new Promise((r) => setTimeout(r, delay));
+        delay = Math.min(delay * 2, 4000);
+      }
+
+      console.log("[SOCKET-STORE] Initializing global singleton connection...");
+      const s = io(SOCKET_URL, {
+        auth: { token },
+        reconnection: true,
+        reconnectionAttempts: Infinity, // Never give up
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 30000, // Max 30s backoff
+        randomizationFactor: 0.5,
+      });
 
     s.on("connect", () => {
       console.log("[SOCKET-STORE] Global socket connected");
@@ -122,7 +142,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         return;
       }
 
-      console.error("[SOCKET-STORE] Connection error:", err.message);
+      console.warn("[SOCKET-STORE] Connection error:", err.message);
     });
 
     s.on("reconnect_attempt", (attempt) => {
@@ -134,6 +154,10 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     });
 
     set({ socket: s });
+
+    } finally {
+      isConnecting = false;
+    }
   },
 
   disconnect: () => {
