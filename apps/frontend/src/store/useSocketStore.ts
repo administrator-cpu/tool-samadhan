@@ -18,37 +18,57 @@ interface SocketState {
   markEventSeen: (ticketId: number, eventId: number) => void;
 }
 
+let isConnecting = false;
+
 export const useSocketStore = create<SocketState>((set, get) => ({
   socket: null,
   isConnected: false,
   joinedRooms: new Set(),
   lastSeenEventIdMap: {},
 
-  connect: (token: string) => {
+  connect: async (token: string) => {
     const { socket } = get();
-    if (socket) return;
+    if (socket || isConnecting) return;
 
-    console.log("[SOCKET-STORE] Initializing global singleton connection...");
-    const s = io(SOCKET_URL, {
-      auth: { token },
-      reconnection: true,
-      reconnectionAttempts: Infinity, // Never give up
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 30000, // Max 30s backoff
-      randomizationFactor: 0.5,
-    });
+    isConnecting = true;
+
+    try {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:4000";
+      const MAX_ATTEMPTS = 15;
+      let delay = 500;
+
+      for (let i = 0; i < MAX_ATTEMPTS; i++) {
+        try {
+          const res = await fetch(`${BACKEND_URL}/health`);
+          if (res.ok) break;
+        } catch {
+          // Backend not ready yet
+        }
+        await new Promise((r) => setTimeout(r, delay));
+        delay = Math.min(delay * 2, 4000);
+      }
+
+      console.log("[SOCKET-STORE] Initializing global singleton connection...");
+      const s = io(SOCKET_URL, {
+        auth: { token },
+        reconnection: true,
+        reconnectionAttempts: Infinity, // Never give up
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 30000, // Max 30s backoff
+        randomizationFactor: 0.5,
+      });
 
     s.on("connect", () => {
       console.log("[SOCKET-STORE] Global socket connected");
       set({ isConnected: true });
-      
+
       // Automatic Re-join Logic
       const { joinedRooms } = get();
       if (joinedRooms.size > 0) {
         console.log(`[SOCKET-STORE] Re-joining ${joinedRooms.size} rooms after reconnect`);
         joinedRooms.forEach((id) => {
           s.emit("join_ticket", id);
-          
+
           // Trigger initial sync if we have a last seen ID
           const lastId = get().lastSeenEventIdMap[id];
           if (lastId) {
@@ -63,13 +83,13 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       if (!events || events.length === 0) return;
 
       console.log(`[SOCKET-STORE] Sync received ${events.length} events for ticket ${ticketId}. hasMore: ${hasMore}`);
-      
+
       // We don't update the UI state directly here (components listen for missed_events)
       // but we update our lastSeen tracking to ensure continuity
       const lastEvent = events[events.length - 1];
       if (lastEvent) {
         get().markEventSeen(ticketId, lastEvent.id);
-        
+
         // Continuation Sync: Fetch the next batch if hasMore is true
         if (hasMore) {
           console.log(`[SOCKET-STORE] Continuation sync triggered for ticket ${ticketId}...`);
@@ -85,7 +105,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     s.on("connect_error", async (err) => {
       set({ isConnected: false });
-      
+
       if (err.message.includes("Authentication error")) {
         console.warn("[SOCKET-STORE] Socket auth expired. Refreshing token...");
 
@@ -122,7 +142,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         return;
       }
 
-      console.error("[SOCKET-STORE] Connection error:", err.message);
+      console.warn("[SOCKET-STORE] Connection error:", err.message);
     });
 
     s.on("reconnect_attempt", (attempt) => {
@@ -134,6 +154,10 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     });
 
     set({ socket: s });
+
+    } finally {
+      isConnecting = false;
+    }
   },
 
   disconnect: () => {
@@ -150,7 +174,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     if (socket) {
       console.log("[SOCKET-STORE] Updating global auth token");
       socket.auth = { token };
-      
+
       // During socket auth recovery, the connect_error handler owns reconnecting.
       if (!isConnected && !socketTokenRefresh) {
         console.log("[SOCKET-STORE] Socket disconnected, attempting to connect with new token...");
@@ -170,7 +194,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     console.log(`[SOCKET-STORE] Joining ticket room: ${ticketId}`);
     socket.emit("join_ticket", ticketId);
-    
+
     // Also sync missed events immediately on join if we have history
     const lastId = lastSeenEventIdMap[ticketId];
     if (lastId) {
@@ -199,7 +223,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
   markEventSeen: (ticketId: number, eventId: number) => {
     const { lastSeenEventIdMap } = get();
     const currentMax = lastSeenEventIdMap[ticketId] || 0;
-    
+
     if (eventId > currentMax) {
       set({
         lastSeenEventIdMap: {
