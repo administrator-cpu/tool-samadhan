@@ -110,6 +110,9 @@ export default function AgentTicketsPage() {
     if (prevParamsRef.current !== currentParamsStr) {
       resetPagination();
       prevParamsRef.current = currentParamsStr;
+      if (currentPage === 1) {
+        fetchTickets(1);
+      }
       return;
     }
     fetchTickets(currentPage);
