@@ -7,13 +7,14 @@ import { toast } from "sonner";
 import Image from "next/image";
 
 interface TicketReplyFormProps {
-  onSendReply: (message: string, sendEmail: boolean, attachments: File[]) => Promise<void>;
+  onSendReply: (message: string, sendEmail: boolean, sendSms: boolean, attachments: File[]) => Promise<void>;
   sending: boolean;
 }
 
 export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFormProps) {
   const [replyMessage, setReplyMessage] = useState("");
   const [sendEmail, setSendEmail] = useState(true);
+  const [sendSms, setSendSms] = useState(true);
   const [attachments, setAttachments] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +54,7 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
 
   const handleSend = async () => {
     if ((replyMessage.trim() || attachments.length > 0) && !sending) {
-      await onSendReply(replyMessage, sendEmail, attachments);
+      await onSendReply(replyMessage, sendEmail, sendSms, attachments);
       setReplyMessage("");
       setAttachments([]);
     }
@@ -123,24 +124,32 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
 
           <div className="flex items-center justify-between px-4 pb-2 pt-2 border-t border-slate-50">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only peer" 
-                    checked={sendEmail} 
-                    onChange={(e) => setSendEmail(e.target.checked)} 
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={sendEmail}
+                    onChange={(e) => setSendEmail(e.target.checked)}
                     disabled={sending}
+                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded-sm focus:ring-emerald-600 cursor-pointer disabled:opacity-50"
                   />
-                  <div className="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+                  <span className={`text-[11px] font-black uppercase tracking-wider transition-colors ${sendEmail ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                    Email {sendEmail ? 'ON' : 'OFF'}
+                  </span>
                 </label>
-                <span className={`text-[10px] font-black uppercase tracking-wider ${sendEmail ? 'text-emerald-600' : 'text-slate-400'}`}>
-                  {sendEmail ? 'Email ON' : 'Email OFF'}
-                </span>
+                {/* <label className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={sendSms}
+                    onChange={(e) => setSendSms(e.target.checked)}
+                    disabled={sending}
+                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded-sm focus:ring-emerald-600 cursor-pointer disabled:opacity-50"
+                  />
+                  <span className={`text-[11px] font-black uppercase tracking-wider transition-colors ${sendSms ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                    SMS {sendSms ? 'ON' : 'OFF'}
+                  </span>
+                </label> */}
               </div>
-              <p className="text-[10px] font-bold text-slate-400 hidden sm:block">
-                {sendEmail ? "Pressing Send will email the customer immediately." : "Pressing Send will only update the ticket timeline."}
-              </p>
             </div>
             <div className="flex items-center gap-2">
               <input 

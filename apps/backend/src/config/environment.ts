@@ -63,6 +63,13 @@ export const env = {
     publicKey: getEnvStr('EMAILJS_PUBLIC_KEY', ''),
     privateKey: getEnvStr('EMAILJS_PRIVATE_KEY', ''),
     helpdeskEmail: getEnvStr('HELPDESK_EMAIL', 'helpdesk@fab5network.com'),
+  },
+
+  sms: {
+    baseUrl: getEnvStr('SMS_BASE_URL', ''),
+    apiKey: getEnvStr('SMS_API_KEY', ''),
+    route: getEnvStr('SMS_ROUTE', ''),
+    sender: getEnvStr('SMS_SENDER', ''),
   }
 };
 
