@@ -66,6 +66,9 @@ export class TicketService {
       });
 
       const assignedAgentId = await AssignmentService.assignAgentAutomatically(tx, ticket.id, dto.issueCategoryId);
+      if (assignedAgentId && ticket.status === 'OPEN') {
+        ticket.status = 'IN_PROGRESS' as any;
+      }
 
       let assignedAgentName = 'Agent';
       let agent = null;
@@ -276,13 +279,13 @@ export class TicketService {
       const actor = await UserRepository.findById(tx, actorUserId);
       const event = { ...rawEvent, actor_name: actor?.name || null };
 
+      if (ticket.status === 'OPEN') {
+        await TicketRepository.updateStatus(tx, ticketId, 'IN_PROGRESS');
+      }
+
       const isStaffReply = eventType === 'AGENT_REPLY' || eventType === 'ADMIN_REPLY';
       
       if (isStaffReply) {
-        if (ticket.status === 'OPEN') {
-          await TicketRepository.updateStatus(tx, ticketId, 'IN_PROGRESS');
-        }
-
         const info = await TicketRepository.getCustomerContactInfo(tx, ticketId);
         const shouldSendEmail = dto.send_email !== false; // Default to true if undefined
         // const shouldSendSms = dto.send_sms !== false; // Default to true if undefined
@@ -517,10 +520,15 @@ export class TicketService {
       const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
-      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
+      const updates: any = {
         problem_side: dto.problemSide,
         telco_sr_number: dto.externalTicketNo
-      });
+      };
+      if (ticket.status === 'OPEN') {
+        updates.status = 'IN_PROGRESS';
+      }
+
+      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, updates);
 
       // Outage event creation removed
 
@@ -538,9 +546,14 @@ export class TicketService {
       const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
-      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
+      const updates: any = {
         current_assigned_employee_id: employeeId
-      });
+      };
+      if (ticket.status === 'OPEN') {
+        updates.status = 'IN_PROGRESS';
+      }
+
+      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, updates);
 
       let agentName = 'Agent';
       let agentEmail = '';

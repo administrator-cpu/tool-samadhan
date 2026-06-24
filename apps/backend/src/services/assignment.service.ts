@@ -23,9 +23,13 @@ export class AssignmentService {
       assignedEmployeeId = bestAgent.employee_id;
       
       // 3. Assign the ticket
-      await TicketRepository.updateFields(tx, ticketId, {
+      const updates: any = {
         current_assigned_employee_id: assignedEmployeeId
-      });
+      };
+      if (ticket.status === 'OPEN') {
+        updates.status = 'IN_PROGRESS';
+      }
+      await TicketRepository.updateFields(tx, ticketId, updates);
 
       logger.info(`Assigned Ticket ${ticketId} to Employee ${assignedEmployeeId}`);
     } else {
