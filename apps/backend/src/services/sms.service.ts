@@ -79,7 +79,7 @@ export const sendTicketResolvedSms = async (phone: string, ticketNo: string) => 
   await sendSms(phone, text);
 };
 
-export const sendRootCauseAnalysisSms = async (phone: string, message: string) => {
-  const text = rootCauseAnalysisSmsTemplate(message);
+export const sendRootCauseAnalysisSms = async (phone: string, ticketNo: string) => {
+  const text = rootCauseAnalysisSmsTemplate(ticketNo);
   await sendSms(phone, text);
 };
