@@ -105,6 +105,9 @@ export const ticketAutomationWorker = new Worker(
             // }
 
             if (success) {
+              if (ticket.status === 'OPEN') {
+                await TicketRepository.updateStatus(db, ticketId, 'IN_PROGRESS');
+              }
               await TicketEventRepository.insertEvent(db, {
                 ticket_id: ticketId,
                 actor_user_id: null,
@@ -141,6 +144,9 @@ export const ticketAutomationWorker = new Worker(
             // }
 
             if (success) {
+              if (ticket.status === 'OPEN') {
+                await TicketRepository.updateStatus(db, ticketId, 'IN_PROGRESS');
+              }
               await TicketEventRepository.insertEvent(db, {
                 ticket_id: ticketId,
                 actor_user_id: null,
