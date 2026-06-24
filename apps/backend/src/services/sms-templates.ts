@@ -22,6 +22,6 @@ export const ticketResolvedSmsTemplate = (ticketNo: string) => {
   return `Dear Customer, your complaint (Ticket ID ${ticketNo}) has been resolved. If you require further assistance, please reopen within 24 hours. - Fab5 Network`;
 };
 
-export const rootCauseAnalysisSmsTemplate = (message: string) => {
-  return message;
+export const rootCauseAnalysisSmsTemplate = (ticketNo: string) => {
+  return `RCA for Ticket No. ${ticketNo} has been updated in Samadhan Portal. -Fab5 Network`;
 };

@@ -505,7 +505,7 @@ export class TicketService {
       }).catch(err => logger.error('[EMAIL] Failed to send ticket RCA email', err));
 
       // if (result.info.phone) {
-      //   sendRootCauseAnalysisSms(result.info.phone, rca).catch(err => logger.error('[SMS] Failed to send RCA SMS', err));
+      //   sendRootCauseAnalysisSms(result.info.phone, result.info.ticket_no).catch(err => logger.error('[SMS] Failed to send RCA SMS', err));
       // }
     }
 
