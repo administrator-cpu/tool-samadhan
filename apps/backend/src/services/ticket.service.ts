@@ -6,6 +6,7 @@ import { CustomerRepository } from '../repositories/customer.repository.js';
 import { UserRepository } from '../repositories/user.repository.js';
 import { AssignmentService } from './assignment.service.js';
 import { sendTicketConfirmationEmail, sendTicketCreatedHelpdeskEmail, sendImmediateAgentAssignmentEmails, sendTicketUpdateEmail, sendTicketStatusUpdateEmail, sendTicketRcaEmail, sendAgentReassignmentEmail, sendTicketReopenedAgentEmail } from './email.service.js';
+import { sendTicketCreatedSms, sendStaffUpdateSms, sendTicketResolvedSms, sendTicketReopenedSms, sendRootCauseAnalysisSms } from './sms.service.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
@@ -65,6 +66,9 @@ export class TicketService {
       });
 
       const assignedAgentId = await AssignmentService.assignAgentAutomatically(tx, ticket.id, dto.issueCategoryId);
+      if (assignedAgentId && ticket.status === 'OPEN') {
+        ticket.status = 'IN_PROGRESS' as any;
+      }
 
       let assignedAgentName = 'Agent';
       let agent = null;
@@ -112,7 +116,7 @@ export class TicketService {
 
     if (result.info) {
       // ALWAYS send confirmation to customer and helpdesk upon registration FIRST
-      Promise.allSettled([
+      const emailPromises = [
         sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no, alternateEmail: result.info.alternate_email, circuitId: result.info.circuit_description, attachments: dto.metadata?.attachments }),
         sendTicketCreatedHelpdeskEmail({
           customerName: result.info.name,
@@ -121,7 +125,13 @@ export class TicketService {
           circuitId: result.info.circuit_description,
           attachments: dto.metadata?.attachments
         })
-      ])
+      ];
+      
+      // if (result.info.phone) {
+      //   emailPromises.push(sendTicketCreatedSms(result.info.phone, result.info.ticket_no) as any);
+      // }
+
+      Promise.allSettled(emailPromises)
       .then(() => {
         // If automatically assigned, send assignment notification AFTER registration emails complete
         if (result.assignedAgentId && result.agentUser) {
@@ -269,31 +279,40 @@ export class TicketService {
       const actor = await UserRepository.findById(tx, actorUserId);
       const event = { ...rawEvent, actor_name: actor?.name || null };
 
+      if (ticket.status === 'OPEN') {
+        await TicketRepository.updateStatus(tx, ticketId, 'IN_PROGRESS');
+      }
+
       const isStaffReply = eventType === 'AGENT_REPLY' || eventType === 'ADMIN_REPLY';
       
       if (isStaffReply) {
-        if (ticket.status === 'OPEN') {
-          await TicketRepository.updateStatus(tx, ticketId, 'IN_PROGRESS');
-        }
-
         const info = await TicketRepository.getCustomerContactInfo(tx, ticketId);
         const shouldSendEmail = dto.send_email !== false; // Default to true if undefined
+        // const shouldSendSms = dto.send_sms !== false; // Default to true if undefined
         
-        if (info && actor && visibleToCustomer && shouldSendEmail) {
-          // Fire-and-forget the email so it doesn't bottleneck the HTTP response
-          sendTicketUpdateEmail({
-             name: info.name,
-             email: info.email,
-             ticketNo: info.ticket_no,
-             agentName: actor.name,
-             message: dto.message,
-             attachments: dto.metadata?.attachments,
-             alternateEmail: info.alternate_email,
-             circuitId: info.circuit_description
-          }).catch(err => {
-             // We can just log it, no need to fail the entire ticket reply
-             logger.error('[EMAIL] Failed to send ticket update email', err);
-          });
+        if (info && actor && visibleToCustomer) {
+          if (shouldSendEmail) {
+            // Fire-and-forget the email so it doesn't bottleneck the HTTP response
+            sendTicketUpdateEmail({
+               name: info.name,
+               email: info.email,
+               ticketNo: info.ticket_no,
+               agentName: actor.name,
+               message: dto.message,
+               attachments: dto.metadata?.attachments,
+               alternateEmail: info.alternate_email,
+               circuitId: info.circuit_description
+            }).catch(err => {
+               // We can just log it, no need to fail the entire ticket reply
+               logger.error('[EMAIL] Failed to send ticket update email', err);
+            });
+          }
+
+          // if (shouldSendSms && info.phone) {
+          //   sendStaffUpdateSms(info.phone, dto.message).catch(err => {
+          //     logger.error('[SMS] Failed to send ticket update SMS', err);
+          //   });
+          // }
         }
       }
 
@@ -383,6 +402,14 @@ export class TicketService {
         circuitId: result.info.circuit_description
       }).catch(err => logger.error('[EMAIL] Failed to send status update email', err));
 
+      // if (result.info.phone) {
+      //   if (result.updatedStatus === 'RESOLVED') {
+      //     sendTicketResolvedSms(result.info.phone, result.info.ticket_no).catch(err => logger.error('[SMS] Failed to send resolved SMS', err));
+      //   } else if (result.newStatus === 'REOPENED') {
+      //     sendTicketReopenedSms(result.info.phone, result.info.ticket_no).catch(err => logger.error('[SMS] Failed to send reopened SMS', err));
+      //   }
+      // }
+
       if (result.newStatus === 'REOPENED') {
           sendTicketReopenedAgentEmail({
              customerName: result.info.name,
@@ -422,7 +449,7 @@ export class TicketService {
 
         if (hoursPassed >= 24) {
           fieldsToUpdate.status = 'CLOSED';
-          fieldsToUpdate.closed_at = new Date().toISOString();
+          fieldsToUpdate.closed_at = new Date();
           fieldsToUpdate.allow_customer_reply = false;
           autoClosed = true;
         }
@@ -479,6 +506,10 @@ export class TicketService {
         alternateEmail: result.info.alternate_email,
         circuitId: result.info.circuit_description
       }).catch(err => logger.error('[EMAIL] Failed to send ticket RCA email', err));
+
+      // if (result.info.phone) {
+      //   sendRootCauseAnalysisSms(result.info.phone, result.info.ticket_no).catch(err => logger.error('[SMS] Failed to send RCA SMS', err));
+      // }
     }
 
     return result.updatedTicket;
@@ -489,10 +520,15 @@ export class TicketService {
       const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
-      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
+      const updates: any = {
         problem_side: dto.problemSide,
         telco_sr_number: dto.externalTicketNo
-      });
+      };
+      if (ticket.status === 'OPEN') {
+        updates.status = 'IN_PROGRESS';
+      }
+
+      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, updates);
 
       // Outage event creation removed
 
@@ -510,9 +546,14 @@ export class TicketService {
       const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
-      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
+      const updates: any = {
         current_assigned_employee_id: employeeId
-      });
+      };
+      if (ticket.status === 'OPEN') {
+        updates.status = 'IN_PROGRESS';
+      }
+
+      const updatedTicket = await TicketRepository.updateFields(tx, ticketId, updates);
 
       let agentName = 'Agent';
       let agentEmail = '';

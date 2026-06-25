@@ -63,7 +63,7 @@ export class TicketRepository {
 
   static async getCustomerContactInfo(tx: any, ticketId: string) {
     const result = await tx.execute(sql`
-      SELECT u.name, u.email, t.ticket_no, c.customer_id, ic.name as category, te.message, t.circuit_description, t.alternate_email
+      SELECT u.name, u.email, u.phone, t.ticket_no, c.customer_id, ic.name as category, te.message, t.circuit_description, t.alternate_email
       FROM tickets t
       JOIN customers c ON c.id = t.customer_id
       JOIN users u ON u.id = c.user_id

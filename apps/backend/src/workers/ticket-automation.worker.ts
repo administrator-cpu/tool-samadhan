@@ -5,6 +5,7 @@ import { TicketRepository } from '../repositories/ticket.repository.js';
 import { AutomatedEmailLogRepository } from '../repositories/automated-email-log.repository.js';
 import { TicketEventRepository } from '../repositories/ticket-event.repository.js';
 import { sendCustomerAssignment2MinEmail, sendTroubleshootingUpdateEmail, sendLongDelayUpdateEmail } from '../services/email.service.js';
+import { sendTroubleshootingUpdateSms, sendMediaOutageAlertSms } from '../services/sms.service.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
 import { logger } from '../lib/logger.js';
 import { TicketEvent } from '../types/models.js';
@@ -98,7 +99,15 @@ export const ticketAutomationWorker = new Worker(
               ticketNo: ticketInfo.ticket_no,
               circuitId: ticketInfo.circuit_description
             });
+
+            // if (ticketInfo.phone) {
+            //   await sendTroubleshootingUpdateSms(ticketInfo.phone, ticketInfo.ticket_no);
+            // }
+
             if (success) {
+              if (ticket.status === 'OPEN') {
+                await TicketRepository.updateStatus(db, ticketId, 'IN_PROGRESS');
+              }
               await TicketEventRepository.insertEvent(db, {
                 ticket_id: ticketId,
                 actor_user_id: null,
@@ -129,7 +138,15 @@ export const ticketAutomationWorker = new Worker(
               ticketNo: ticketInfo.ticket_no,
               circuitId: ticketInfo.circuit_description
             });
+
+            // if (ticketInfo.phone) {
+            //   await sendMediaOutageAlertSms(ticketInfo.phone, "We are currently coordinating with our Network Tier 2 team for end-to-end media verification. Rest assured, we will keep you informed with the latest updates as soon as they become available. The tentative Estimated Resolution Time is 90 min. We appreciate your patience during this process.");
+            // }
+
             if (success) {
+              if (ticket.status === 'OPEN') {
+                await TicketRepository.updateStatus(db, ticketId, 'IN_PROGRESS');
+              }
               await TicketEventRepository.insertEvent(db, {
                 ticket_id: ticketId,
                 actor_user_id: null,

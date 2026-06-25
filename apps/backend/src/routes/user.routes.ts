@@ -11,6 +11,7 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/me', UserController.getCurrentUser);
+router.get('/my-connections', requireRole([UserRole.USER]), UserController.getMyConnections);
 router.put('/profile', validateUpdateProfile, UserController.updateProfile);
 router.post('/profile/image', parseProfileImageUpload(), UserController.uploadProfileImage);
 router.delete('/profile/image', UserController.removeProfileImage);
@@ -59,6 +60,12 @@ router.get(
   '/customers',
   requireRole([UserRole.SALES, UserRole.ADMIN]),
   UserController.getAllCustomers
+);
+
+router.get(
+  '/customers/:id/connections',
+  requireRole([UserRole.ADMIN, UserRole.SALES]),
+  UserController.getCustomerConnectionsById
 );
 
 router.put(
