@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/auth.service.js';
 import { UserService } from '../services/user.service.js';
 import { PasswordResetService } from '../services/password-reset.service.js';
-import { isProd } from '../config/environment.js';
+import { isProd, env } from '../config/environment.js';
 import { sendResponse } from '../utils/response.js';
 
 const cookieOptions = {
@@ -237,6 +237,62 @@ export class UserController {
     try {
       await PasswordResetService.completePasswordReset(req.body.email, req.body.otpCode, req.body.newPassword);
       return sendResponse({ res, message: 'Password has been reset successfully. You can now login.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getMyConnections(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await UserService.getCurrentUserDetails(req.user!.userId);
+      if (!user) {
+        return sendResponse({ res, statusCode: 404, success: false, message: 'User not found' });
+      }
+
+      const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(user.name)}&page=1&limit=1`;
+      const searchRes = await fetch(searchUrl, {
+        headers: { 'x-api-key': env.crmApiKey }
+      });
+
+      
+      if (!searchRes.ok) {
+        throw new Error(`CRM API error: ${searchRes.statusText}`);
+      }
+      const searchData = await searchRes.json();
+      
+      if (!searchData.customers || searchData.customers.length === 0) {
+        return sendResponse({ res, data: { connections: [] } });
+      }
+    
+
+      const crmCustomerId = searchData.customers[0].id || searchData.customers[0].id;
+
+      const connUrl = `${env.crmApiUrl}/customers/${crmCustomerId}/connections`;
+      const connRes = await fetch(connUrl, {
+        headers: { 'x-api-key': env.crmApiKey }
+      });
+      if (!connRes.ok) {
+        throw new Error(`CRM API error: ${connRes.statusText}`);
+      }
+      const connData = await connRes.json();
+
+      let connections = [];
+      if (connData.success && Array.isArray(connData.connections)) {
+        connections = connData.connections
+          .filter((c: any) => {
+             const status = c.workflowStatus?.toLowerCase() || '';
+             return status === 'active' || status === 'under termination' || status === 'generation';
+          })
+          .map((c: any) => ({
+             id: c.crmConnectionId || c._id,
+             fabCircuitId: c.fabCircuitId,
+             aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
+             bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A',
+             status: c.workflowStatus
+          }));
+      }
+
+      return sendResponse({ res, data: { connections } });
     } catch (error) {
       next(error);
     }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useCategoryStore } from "@/store/useCategoryStore";
@@ -13,10 +13,13 @@ export default function CreateTicketPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const { categories, fetchCategories } = useCategoryStore();
+  const searchParams = useSearchParams();
+  const circuitIdParam = searchParams.get("circuitId");
+
   const [formData, setFormData] = useState({
     categoryId: "",
     description: "",
-    circuitDescription: "",
+    circuitDescription: circuitIdParam || "",
     alternateEmail: "",
   });
   const [attachments, setAttachments] = useState<File[]>([]);

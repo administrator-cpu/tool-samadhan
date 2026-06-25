@@ -70,7 +70,10 @@ export const env = {
     apiKey: getEnvStr('SMS_API_KEY', ''),
     route: getEnvStr('SMS_ROUTE', ''),
     sender: getEnvStr('SMS_SENDER', ''),
-  }
+  },
+
+  crmApiUrl: getEnvStr('CRM_API_URL', ''),
+  crmApiKey: getEnvStr('CRM_API_KEY', ''),
 };
 
 export const isProd = env.nodeEnv === 'production';
