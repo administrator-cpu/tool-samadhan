@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AddCustomerModal from "@/components/AddCustomerModal";
 import EditCustomerModal from "@/components/EditCustomerModal";
+import CustomerConnectionsModal from "@/components/CustomerConnectionsModal";
 import StandardPagination from "@/components/StandardPagination";
 
 interface Customer {
@@ -36,6 +37,10 @@ export default function CustomersPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Connections Modal State
+  const [connectionsModalOpen, setConnectionsModalOpen] = useState(false);
+  const [customerForConnections, setCustomerForConnections] = useState<Customer | null>(null);
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -219,6 +224,13 @@ export default function CustomersPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button 
+                          onClick={() => { setCustomerForConnections(customer); setConnectionsModalOpen(true); }}
+                          className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-indigo-600 transition-all hover:bg-indigo-50 rounded-lg active:scale-95"
+                          title="View Connections"
+                        >
+                          <span className="material-symbols-outlined">cable</span>
+                        </button>
+                        <button 
                           onClick={() => { setCustomerToEdit(customer); setIsEditModalOpen(true); }}
                           className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-emerald-600 transition-all hover:bg-emerald-50 rounded-lg active:scale-95"
                           title="Edit Customer"
@@ -263,6 +275,13 @@ export default function CustomersPage() {
         onClose={() => { setIsEditModalOpen(false); setCustomerToEdit(null); }}
         onSuccess={() => fetchCustomers()}
         customer={customerToEdit}
+      />
+
+      <CustomerConnectionsModal
+        isOpen={connectionsModalOpen}
+        onClose={() => { setConnectionsModalOpen(false); setCustomerForConnections(null); }}
+        customerRowId={customerForConnections?.customer_row_id || null}
+        customerName={customerForConnections?.name}
       />
     </div>
   );

@@ -271,7 +271,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
     }
   };
 
-  const handleSendReply = async (message: string, sendEmail: boolean, attachments?: File[]) => {
+  const handleSendReply = async (message: string, sendEmail: boolean, sendSms: boolean, attachments?: File[]) => {
     if (!message.trim() && (!attachments || attachments.length === 0)) return;
     setSending(true);
     try {
@@ -280,6 +280,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
         formData.append("event_type", replyEventType);
         formData.append("message", message.trim());
         formData.append("send_email", String(sendEmail));
+        formData.append("send_sms", String(sendSms));
         
         attachments.forEach(file => {
           formData.append("files", file);
@@ -290,7 +291,8 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
         await api.post(`/tickets/${id}/events`, {
           event_type: replyEventType,
           message: message.trim(),
-          send_email: sendEmail
+          send_email: sendEmail,
+          send_sms: sendSms
         });
       }
 
