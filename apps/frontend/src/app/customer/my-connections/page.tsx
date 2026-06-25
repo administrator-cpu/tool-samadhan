@@ -7,9 +7,9 @@ import { api } from "@/lib/api";
 interface Connection {
   id: string;
   fabCircuitId: string;
+  opportunityId: string;
   aEndBtsId: string;
   bEndBtsId: string;
-  status: string;
 }
 
 export default function MyConnectionsPage() {
@@ -71,14 +71,15 @@ export default function MyConnectionsPage() {
                       S.no
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      FAB LSI
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       A END BTS ID
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       B END BTS ID
                     </th>
-                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Status
-                    </th>
+                    
                     <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Action
                     </th>
@@ -91,23 +92,20 @@ export default function MyConnectionsPage() {
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
                         {idx + 1}
                       </td>
+
+                      <td className="px-6 py-4 text-sm font-medium text-slate-600">
+                        {conn.opportunityId || "N/A"}
+                      </td>
+
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
                         {conn.aEndBtsId || "N/A"}
                       </td>
+
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
                         {conn.bEndBtsId || "N/A"}
                       </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
-                            conn.status?.toLowerCase() === "active"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}
-                        >
-                          {conn.status || "Unknown"}
-                        </span>
-                      </td>
+
+                      
                       <td className="px-6 py-4 text-right">
                         <Link
                           href={`/customer/raise-new-ticket?circuitId=${conn.fabCircuitId || conn.bEndBtsId}`}
