@@ -178,6 +178,14 @@ export class UserService {
     });
   }
 
+  static async getCustomerUserByRowId(customerRowId: string) {
+    return db.transaction(async (tx) => {
+      const custInfo = await CustomerRepository.findByRowId(tx, customerRowId);
+      if (!custInfo) return null;
+      return UserRepository.findById(tx, custInfo.user_id);
+    });
+  }
+
   static async updatePassword(userId: string, dto: ChangePasswordDto) {
     return db.transaction(async (tx) => {
       const user = await UserRepository.findById(tx, userId);

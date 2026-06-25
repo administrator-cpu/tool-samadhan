@@ -62,6 +62,12 @@ router.get(
   UserController.getAllCustomers
 );
 
+router.get(
+  '/customers/:id/connections',
+  requireRole([UserRole.ADMIN, UserRole.SALES]),
+  UserController.getCustomerConnectionsById
+);
+
 router.put(
   '/customers/:id',
   requireRole([UserRole.ADMIN]),

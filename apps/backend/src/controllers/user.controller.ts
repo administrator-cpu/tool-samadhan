@@ -297,4 +297,59 @@ export class UserController {
       next(error);
     }
   }
+
+  static async getCustomerConnectionsById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const customerRowId = req.params.id as string;
+      const user = await UserService.getCustomerUserByRowId(customerRowId);
+      if (!user) {
+        return sendResponse({ res, statusCode: 404, success: false, message: 'Customer or User not found' });
+      }
+
+      const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(user.name)}&page=1&limit=1`;
+      const searchRes = await fetch(searchUrl, {
+        headers: { 'x-api-key': env.crmApiKey }
+      });
+
+      if (!searchRes.ok) {
+        throw new Error(`CRM API error: ${searchRes.statusText}`);
+      }
+      const searchData = await searchRes.json();
+      
+      if (!searchData.customers || searchData.customers.length === 0) {
+        return sendResponse({ res, data: { connections: [] } });
+      }
+
+      const crmCustomerId = searchData.customers[0].id;
+
+      const connUrl = `${env.crmApiUrl}/customers/${crmCustomerId}/connections`;
+      const connRes = await fetch(connUrl, {
+        headers: { 'x-api-key': env.crmApiKey }
+      });
+      if (!connRes.ok) {
+        throw new Error(`CRM API error: ${connRes.statusText}`);
+      }
+      const connData = await connRes.json();
+
+      let connections = [];
+      if (connData.success && Array.isArray(connData.connections)) {
+        connections = connData.connections
+          .filter((c: any) => {
+             const status = c.workflowStatus?.toLowerCase() || '';
+             return status === 'active' || status === 'under termination' || status === 'generation';
+          })
+          .map((c: any) => ({
+             id: c.crmConnectionId || c._id,
+             fabCircuitId: c.fabCircuitId,
+             opportunityId: c.opportunityId,
+             aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
+             bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
+          }));
+      }
+
+      return sendResponse({ res, data: { connections } });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
