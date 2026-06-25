@@ -3,7 +3,7 @@ import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import { logger } from '../lib/logger.js';
 import { sendResponse } from '../utils/response.js';
-
+import { sendServerErrorEmail } from '../services/email.service.js';
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
     return sendResponse({
@@ -45,6 +45,20 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   logger.error('Unhandled error:', err);
 
   const statusCode = err.status || 500;
+  
+  // Fire-and-forget an email alert for unexpected server errors (500s)
+  if (statusCode >= 500) {
+    sendServerErrorEmail({
+      timestamp: new Date().toISOString(),
+      errorType: err.name || 'Unexpected Error',
+      errorMessage: err.message || 'Unknown error occurred',
+      stackTrace: err.stack,
+      path: req.originalUrl,
+      method: req.method,
+      payload: req.body,
+    }).catch(e => logger.error('[EMAIL-SERVICE] Failed to send server error email', e));
+  }
+
   return sendResponse({
     res,
     statusCode,
