@@ -286,9 +286,9 @@ export class UserController {
           .map((c: any) => ({
              id: c.crmConnectionId || c._id,
              fabCircuitId: c.fabCircuitId,
+             opportunityId: c.opportunityId,
              aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
-             bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A',
-             status: c.workflowStatus
+             bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
           }));
       }
 
