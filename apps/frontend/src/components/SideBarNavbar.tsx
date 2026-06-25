@@ -159,7 +159,7 @@ const SidebarNavbar = () => {
 
   const customerItems: NavItem[] = [
     { label: "Dashboard", icon: "home", href: "/customer" },
-    { label: "My connection", icon: "cable", href: "/customer/my-connections" },
+    // { label: "My connection", icon: "cable", href: "/customer/my-connections" },
     { label: "Raise Ticket", icon: "report", href: "/customer/raise-new-ticket" },
     { label: "My Tickets", icon: "confirmation_number", href: "/customer/tickets" },
     { label: "Profile", icon: "person", href: "/profile" },

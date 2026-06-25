@@ -7,6 +7,7 @@ import { initSocket } from './services/socket.service.js';
 import { applyMigrations } from './database/migrate.js';
 import { ticketAutomationWorker } from './workers/ticket-automation.worker.js';
 import { ticketAutomationQueue } from './config/redis.js';
+import { sendServerErrorEmail } from './services/email.service.js';
 
 const PORT = env.port;
 const server = http.createServer(app);
@@ -72,12 +73,33 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Catch unhandled rejections and uncaught exceptions
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason: any, promise) => {
   logger.error('[UNHANDLED-REJECTION] Unhandled Rejection at: promise, reason: ', reason);
+  
+  sendServerErrorEmail({
+    timestamp: new Date().toISOString(),
+    errorType: 'Unhandled Rejection',
+    errorMessage: reason instanceof Error ? reason.message : String(reason),
+    stackTrace: reason instanceof Error ? reason.stack : undefined,
+    path: 'Process Level',
+  }).catch(e => logger.error('[EMAIL-SERVICE] Failed to send server error email', e));
+  
   // Optional: gracefulShutdown('UNHANDLED_REJECTION');
 });
 
 process.on('uncaughtException', (error) => {
   logger.error('[UNCAUGHT-EXCEPTION] Uncaught Exception thrown:', error);
-  gracefulShutdown('UNCAUGHT_EXCEPTION');
+  
+  sendServerErrorEmail({
+    timestamp: new Date().toISOString(),
+    errorType: 'Uncaught Exception',
+    errorMessage: error.message,
+    stackTrace: error.stack,
+    path: 'Process Level',
+  })
+    .catch(e => logger.error('[EMAIL-SERVICE] Failed to send server error email', e))
+    .finally(() => {
+      // Graceful shutdown after attempting to send the email
+      gracefulShutdown('UNCAUGHT_EXCEPTION');
+    });
 });
