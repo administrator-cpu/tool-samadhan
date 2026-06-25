@@ -449,7 +449,7 @@ export class TicketService {
 
         if (hoursPassed >= 24) {
           fieldsToUpdate.status = 'CLOSED';
-          fieldsToUpdate.closed_at = new Date().toISOString();
+          fieldsToUpdate.closed_at = new Date();
           fieldsToUpdate.allow_customer_reply = false;
           autoClosed = true;
         }
