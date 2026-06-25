@@ -17,6 +17,7 @@ import {
   ticketRcaTemplate,
   
   passwordResetOtpTemplate,
+  serverErrorTemplate,
 } from './email-templates.js';
 
 const sendEmail = async ({ toEmail, toName, subject, htmlContent, ccEmail }: { toEmail: string; toName: string; subject: string; htmlContent: string; ccEmail?: string; }): Promise<boolean> => {
@@ -190,5 +191,44 @@ export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca, rcaImages
 export const sendPasswordResetEmail = async ({ name, email, otpCode }: any) => {
   const { subject, html } = passwordResetOtpTemplate({ name, otpCode });
   await sendEmail({ toEmail: email, toName: name, subject, htmlContent: html });
+};
+
+// --- System Alert Email ---
+// In-memory throttling map to prevent email spam for the same error.
+// Key: error hash/message, Value: timestamp of last sent email
+const errorThrottleMap = new Map<string, number>();
+const THROTTLE_DURATION_MS = 10 * 60 * 1000; // 10 minutes
+
+export const sendServerErrorEmail = async (errorDetails: {
+  timestamp: string;
+  errorType: string;
+  errorMessage: string;
+  stackTrace?: string;
+  path?: string;
+  method?: string;
+  payload?: any;
+}) => {
+  const adminEmail = 'ajaynegi3345@gmail.com';
+  
+  // Throttle by error message and path
+  const throttleKey = `${errorDetails.errorMessage}-${errorDetails.path || 'no-path'}`;
+  const now = Date.now();
+  const lastSent = errorThrottleMap.get(throttleKey);
+
+  if (lastSent && now - lastSent < THROTTLE_DURATION_MS) {
+    logger.debug(`[EMAIL-SERVICE] Throttled server error email for: ${throttleKey}`);
+    return;
+  }
+
+  // Update throttle map
+  errorThrottleMap.set(throttleKey, now);
+
+  const { subject, html } = serverErrorTemplate(errorDetails);
+  await sendEmail({ 
+    toEmail: adminEmail, 
+    toName: 'Admin', 
+    subject, 
+    htmlContent: html 
+  });
 };
 
