@@ -504,3 +504,55 @@ export const passwordResetOtpTemplate = ( { name, otpCode }: any) => ( {
   )
 });
 
+
+export const serverErrorTemplate = ( { timestamp, errorType, errorMessage, stackTrace, path, method, payload }: any) => ({
+  subject: `[ALERT] Server Error: ${errorType} - ${errorMessage.substring(0, 50)}...`,
+  html: emeraldLayout(
+    "Critical Server Error Detected",
+    `
+      <p style="color: #dc2626; font-weight: 700;">An unexpected server error has occurred.</p>
+      
+      <div style="background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600; width: 30%;">Timestamp:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700;">${timestamp}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Error Type:</td>
+            <td style="padding: 6px 0; color: #dc2626; font-weight: 700;">${errorType}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Request Path:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700;">${method || 'N/A'} ${path || 'N/A'}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <p style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Error Message:</p>
+        <div style="background-color: #f3f4f6; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px; color: #1f2937; word-break: break-word;">
+          ${errorMessage}
+        </div>
+      </div>
+
+      ${stackTrace ? `
+      <div style="margin-top: 20px;">
+        <p style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Stack Trace:</p>
+        <div style="background-color: #1f2937; color: #e5e7eb; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; overflow-x: auto;">${stackTrace}</div>
+      </div>
+      ` : ''}
+
+      ${payload ? `
+      <div style="margin-top: 20px;">
+        <p style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Request Payload:</p>
+        <div style="background-color: #f3f4f6; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; overflow-x: auto;">${typeof payload === 'object' ? JSON.stringify(payload, null, 2) : payload}</div>
+      </div>
+      ` : ''}
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
+        <p style="margin: 0; font-size: 14px;">Automated Alert System<br/><strong>Fab5 Network Pvt. Ltd.</strong></p>
+      </div>
+    `
+  )
+});
