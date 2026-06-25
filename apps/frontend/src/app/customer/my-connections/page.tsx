@@ -110,11 +110,11 @@ export default function MyConnectionsPage() {
                         <Link
                           href={`/customer/raise-new-ticket?circuitId=${conn.fabCircuitId || conn.bEndBtsId}`}
                           className="
-                            group inline-flex items-center gap-1.5 rounded-lg
-                            border border-[#2513ec] bg-white px-3 py-1.5
-                            text-sm font-medium text-[#2513ec]
+                            group inline-flex items-center gap-1.5 rounded-md
+                            border border-indigo-300 bg-indigo-50 px-3 py-1.5
+                            text-sm font-medium text-indigo-800
                             shadow-sm transition-all duration-200
-                            hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-800 hover:shadow
+                            hover:-translate-y-0.5 hover:border-[#2513ec] hover:bg-white hover:text-[#2513ec] hover:shadow
                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2
                             active:translate-y-0
                           "
