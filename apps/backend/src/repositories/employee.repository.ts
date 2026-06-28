@@ -59,6 +59,7 @@ export class EmployeeRepository {
         u.email,
         u.phone,
         u.role,
+        u.profile_image,
         COALESCE(
           json_agg(
             json_build_object('id', ic.id, 'name', ic.name)
