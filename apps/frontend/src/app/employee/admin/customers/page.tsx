@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AddCustomerModal from "@/components/AddCustomerModal";
@@ -17,6 +18,7 @@ interface Customer {
   email: string;
   phone: string;
   role: string;
+  profile_image?: string | null;
 }
 
 export default function CustomersPage() {
@@ -197,8 +199,12 @@ export default function CustomersPage() {
                   <tr key={customer.customer_row_id} className="group transition-colors hover:bg-slate-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold">
-                          {customer.name.charAt(0)}
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold overflow-hidden relative">
+                          {customer.profile_image ? (
+                            <Image src={customer.profile_image} alt={customer.name} fill className="object-cover" />
+                          ) : (
+                            customer.name.charAt(0).toUpperCase()
+                          )}
                         </div>
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-900 uppercase">{customer.name}</span>
