@@ -285,7 +285,11 @@ export class UserController {
         connections = connData.connections
           .filter((c: any) => {
              const status = c.workflowStatus?.toLowerCase() || '';
-             return status === 'active' || status === 'under termination' || status === 'generation';
+             if (status === 'active' || status === 'termination' || status === 'under termination') return true;
+             if (status === 'generation') {
+               return c.history?.some((h: any) => h.action?.toUpperCase() === 'APPROVED');
+             }
+             return false;
           })
           .map((c: any) => ({
              id: c.crmConnectionId || c._id,
@@ -340,7 +344,11 @@ export class UserController {
         connections = connData.connections
           .filter((c: any) => {
              const status = c.workflowStatus?.toLowerCase() || '';
-             return status === 'active' || status === 'under termination' || status === 'generation';
+             if (status === 'active' || status === 'termination' || status === 'under termination') return true;
+             if (status === 'generation') {
+               return c.history?.some((h: any) => h.action?.toUpperCase() === 'APPROVED');
+             }
+             return false;
           })
           .map((c: any) => ({
              id: c.crmConnectionId || c._id,
