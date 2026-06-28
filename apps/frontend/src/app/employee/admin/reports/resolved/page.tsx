@@ -190,7 +190,7 @@ export default function ResolvedTicketsPage() {
 
       <main className="max-w-(--break-2xl) mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         {/* Table Section */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -235,9 +235,9 @@ export default function ResolvedTicketsPage() {
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                          {/* <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
                             <User size={14} />
-                          </div>
+                          </div> */}
                           <div className="flex flex-col">
                             <span className="text-xs font-black text-slate-700">{ticket.customer_name}</span>
                             <span className="text-[10px] font-bold text-slate-400 uppercase">{ticket.customer_id}</span>
@@ -246,14 +246,14 @@ export default function ResolvedTicketsPage() {
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-2">
-                          <div className={`h-2 w-2 rounded-full ${ticket.assigned_agent_name ? 'bg-indigo-500' : 'bg-slate-300'}`} />
+                          {/* <div className={`h-2 w-2 rounded-full ${ticket.assigned_agent_name ? 'bg-indigo-500' : 'bg-slate-300'}`} /> */}
                           <span className="text-xs font-bold text-slate-600">
                             {ticket.assigned_agent_name || "N/A"}
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-5">
-                        <span className="inline-flex items-center rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600 uppercase tracking-tight">
+                        <span className="inline-flex items-center rounded-sm bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600 uppercase tracking-tight">
                           {ticket.category_name || "Other"}
                         </span>
                       </td>
@@ -264,7 +264,7 @@ export default function ResolvedTicketsPage() {
                           </p>
                           <button
                             onClick={() => setSelectedRca(ticket)}
-                            className="text-[10px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest flex items-center gap-1 w-fit"
+                            className="text-[10px] font-black text-emerald-600 hover:text-emerald-800 uppercase tracking-widest flex items-center gap-1 w-fit"
                           >
                             <Eye size={12} />
                             View More
@@ -273,11 +273,7 @@ export default function ResolvedTicketsPage() {
                       </td>
                       <td className="px-6 py-5 text-right">
                         <div className="flex flex-col items-end">
-                          <div className="flex items-center gap-1.5 text-xs font-black text-emerald-600">
-                            <CheckCircle2 size={12} />
-                            {format(new Date(ticket.resolved_at || ticket.closed_at || ticket.updated_at), "MMM dd, yyyy · hh:mm a")}
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase">
+                          <span className="text-[10px] font-semibold text-slate-400 uppercase">
                             Resolved In {(() => {
                               const start = new Date(ticket.created_at).getTime();
                               const end = new Date(ticket.resolved_at || ticket.closed_at || ticket.updated_at).getTime();
@@ -287,6 +283,10 @@ export default function ResolvedTicketsPage() {
                               return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
                             })()}
                           </span>
+                          <div className="flex items-center gap-1.5 text-xs font-black text-emerald-600">
+                            {format(new Date(ticket.resolved_at || ticket.closed_at || ticket.updated_at), "MMM dd, yyyy · hh:mm a")}
+                          </div>
+                          
                         </div>
                       </td>
                     </tr>
@@ -344,7 +344,7 @@ export default function ResolvedTicketsPage() {
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
             onClick={() => setSelectedRca(null)}
           />
-          <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl shadow-slate-900/20 overflow-hidden animate-in fade-in zoom-in duration-300">
+          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl shadow-slate-900/20 overflow-hidden animate-in fade-in zoom-in duration-300">
             <div className="p-8 sm:p-10">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
@@ -368,14 +368,14 @@ export default function ResolvedTicketsPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="p-4 rounded-3xl bg-slate-50 border border-slate-100">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
                   <div className="flex items-center gap-2 mb-1">
                     <User size={12} className="text-slate-400" />
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Assigned Specialist</span>
                   </div>
                   <p className="text-sm font-bold text-slate-700">{selectedRca.assigned_agent_name || "System Automated"}</p>
                 </div>
-                <div className="p-4 rounded-3xl bg-slate-50 border border-slate-100">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar size={12} className="text-slate-400" />
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resolution Date</span>
@@ -391,7 +391,7 @@ export default function ResolvedTicketsPage() {
                   <Hash size={16} className="text-indigo-600" />
                   <h4 className="text-xs font-black uppercase tracking-[0.2em]">Investigation Report</h4>
                 </div>
-                <div className="p-8 rounded-[2rem] bg-indigo-50/50 border border-indigo-100/50">
+                <div className="p-8 rounded-xl bg-indigo-50/50 border border-indigo-100/50">
                   <p className="text-sm font-medium text-slate-700 leading-relaxed whitespace-pre-wrap italic">
                     "{selectedRca.rca || "No technical root cause has been documented for this ticket yet."}"
                   </p>
@@ -401,7 +401,7 @@ export default function ResolvedTicketsPage() {
               <div className="mt-10 flex justify-end">
                 <button
                   onClick={() => setSelectedRca(null)}
-                  className="px-8 py-3 rounded-2xl bg-slate-900 text-white text-sm font-black hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
+                  className="px-8 py-3 rounded-lg bg-slate-900 text-white text-sm font-black hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
                 >
                   Close Analysis
                 </button>
