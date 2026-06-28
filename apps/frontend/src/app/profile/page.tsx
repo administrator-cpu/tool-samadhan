@@ -187,6 +187,8 @@ export default function ProfilePage() {
   if (!profileData) return null;
 
   const { user, customer, employee } = profileData;
+  
+  const canEditImage = isEditing || user.role === 'USER';
 
   return (
     <div className="min-h-screen bg-white pb-20 antialiased flex justify-center flex-col items-center">
@@ -214,7 +216,7 @@ export default function ProfilePage() {
                 )}
 
                 {/* Hover Overlay */}
-                {isEditing && ( <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
+                {canEditImage && ( <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
                   <Camera size={24} />
                   <span className="mt-1 text-xs font-medium">Change</span>
                   <input 
@@ -228,7 +230,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Remove Image Button */}
-              {user.profile_image && !uploadingImage && isEditing && (
+              {user.profile_image && !uploadingImage && canEditImage && (
                 <button
                   onClick={handleRemoveImage}
                   className="absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-white shadow-lg transition-transform hover:scale-110 hover:bg-red-500"
