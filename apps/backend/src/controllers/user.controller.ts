@@ -4,6 +4,7 @@ import { UserService } from '../services/user.service.js';
 import { PasswordResetService } from '../services/password-reset.service.js';
 import { isProd, env } from '../config/environment.js';
 import { sendResponse } from '../utils/response.js';
+import { UserRole } from '../types/dto.js';
 
 const cookieOptions = {
   httpOnly: true,
@@ -174,6 +175,9 @@ export class UserController {
 
   static async updateProfile(req: Request, res: Response, next: NextFunction) {
     try {
+      if (req.user!.role === UserRole.USER) {
+        return sendResponse({ res, statusCode: 403, success: false, message: 'Customers are not allowed to update profile details' });
+      }
       const user = await UserService.updateUserProfile(req.user!.userId, req.body);
       return sendResponse({ res, message: 'Profile updated successfully', data: { user } });
     } catch (error) {
