@@ -366,7 +366,7 @@ export default function ProfilePage() {
  
             {/* Actions */}
             <div className="mt-12 flex w-full flex-col gap-4">
-              {!isEditing && (
+              {!isEditing && user.role !== 'USER' && (
                 <button 
                   onClick={() => setIsEditing(true)}
                   className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#4b8264] text-sm font-black text-white hover:bg-emerald-700 transition-all active:scale-[0.98]"
