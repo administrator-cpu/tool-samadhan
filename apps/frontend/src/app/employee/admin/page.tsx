@@ -104,8 +104,8 @@ export default function AdminDashboard() {
         <header className="mb-10 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-lg shadow-indigo-200">
-                <Activity size={18} />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-lg">
+                <Activity size={25} />
               </div>
               <h1 className="text-3xl font-black tracking-tight text-slate-900 font-heading">
                 Operational Intelligence
