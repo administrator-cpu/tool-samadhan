@@ -284,7 +284,7 @@ export class UserController {
       if (connData.success && Array.isArray(connData.connections)) {
         connections = connData.connections
           .filter((c: any) => {
-             const status = c.workflowStatus?.toLowerCase() || '';
+             const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
              if (status === 'active' || status === 'termination' || status === 'under termination') return true;
              if (status === 'generation') {
                return c.history?.some((h: any) => h.action?.toUpperCase() === 'APPROVED');
@@ -343,7 +343,7 @@ export class UserController {
       if (connData.success && Array.isArray(connData.connections)) {
         connections = connData.connections
           .filter((c: any) => {
-             const status = c.workflowStatus?.toLowerCase() || '';
+             const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
              if (status === 'active' || status === 'termination' || status === 'under termination') return true;
              if (status === 'generation') {
                return c.history?.some((h: any) => h.action?.toUpperCase() === 'APPROVED');
