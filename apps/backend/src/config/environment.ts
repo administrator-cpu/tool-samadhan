@@ -57,13 +57,9 @@ export const env = {
     origin: getEnvStr('CORS_ORIGIN', 'http://localhost:3000'),
   },
 
-  emailjs: {
-    serviceId: getEnvStr('EMAILJS_SERVICE_ID', ''),
-    templateId: getEnvStr('EMAILJS_TEMPLATE_ID', ''),
-    publicKey: getEnvStr('EMAILJS_PUBLIC_KEY', ''),
-    privateKey: getEnvStr('EMAILJS_PRIVATE_KEY', ''),
-    helpdeskEmail: getEnvStr('HELPDESK_EMAIL', 'helpdesk@fab5network.com'),
-  },
+  helpdeskEmail: getEnvStr('HELPDESK_EMAIL', 'helpdesk@fab5network.com'),
+  resendServiceApiKey: getEnvStr('EMAIL_SERVICE_API_KEY', ''),
+  resendServiceDomain: getEnvStr('EMAIL_SERVICE_DOMAIN', ''),
 
   sms: {
     baseUrl: getEnvStr('SMS_BASE_URL', ''),
