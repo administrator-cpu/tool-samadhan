@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AddStaffModal from "@/components/AddStaffModal";
@@ -16,6 +17,7 @@ interface Employee {
   email: string;
   phone: string | null;
   role: string;
+  profile_image?: string | null;
   categories: { id: number; name: string }[];
 }
 
@@ -166,10 +168,12 @@ export default function StaffPage() {
                   <tr key={emp.employee_row_id} className="group transition-colors hover:bg-slate-50/50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold">
-                          {emp.name.charAt(0).toUpperCase()}
-
-            
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold overflow-hidden relative">
+                          {emp.profile_image ? (
+                            <Image src={emp.profile_image} alt={emp.name} fill className="object-cover" />
+                          ) : (
+                            emp.name.charAt(0).toUpperCase()
+                          )}
                         </div>
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-900">{emp.name}</span>

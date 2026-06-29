@@ -4,6 +4,7 @@ import { UserService } from '../services/user.service.js';
 import { PasswordResetService } from '../services/password-reset.service.js';
 import { isProd, env } from '../config/environment.js';
 import { sendResponse } from '../utils/response.js';
+import { UserRole } from '../types/dto.js';
 
 const cookieOptions = {
   httpOnly: true,
@@ -174,6 +175,9 @@ export class UserController {
 
   static async updateProfile(req: Request, res: Response, next: NextFunction) {
     try {
+      if (req.user!.role === UserRole.USER) {
+        return sendResponse({ res, statusCode: 403, success: false, message: 'Customers are not allowed to update profile details' });
+      }
       const user = await UserService.updateUserProfile(req.user!.userId, req.body);
       return sendResponse({ res, message: 'Profile updated successfully', data: { user } });
     } catch (error) {
@@ -280,8 +284,12 @@ export class UserController {
       if (connData.success && Array.isArray(connData.connections)) {
         connections = connData.connections
           .filter((c: any) => {
-             const status = c.workflowStatus?.toLowerCase() || '';
-             return status === 'active' || status === 'under termination' || status === 'generation';
+             const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
+             if (status === 'active' || status === 'termination' || status === 'under termination') return true;
+             if (status === 'generation') {
+               return c.history?.some((h: any) => h.action?.toUpperCase() === 'APPROVED');
+             }
+             return false;
           })
           .map((c: any) => ({
              id: c.crmConnectionId || c._id,
@@ -335,8 +343,12 @@ export class UserController {
       if (connData.success && Array.isArray(connData.connections)) {
         connections = connData.connections
           .filter((c: any) => {
-             const status = c.workflowStatus?.toLowerCase() || '';
-             return status === 'active' || status === 'under termination' || status === 'generation';
+             const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
+             if (status === 'active' || status === 'termination' || status === 'under termination') return true;
+             if (status === 'generation') {
+               return c.history?.some((h: any) => h.action?.toUpperCase() === 'APPROVED');
+             }
+             return false;
           })
           .map((c: any) => ({
              id: c.crmConnectionId || c._id,

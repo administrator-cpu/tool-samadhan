@@ -146,3 +146,9 @@ button:hover {
 /* .flow-gradient-btn:hover {
     transform: translateY(-1px);
 } */
+
+
+.font-hand {
+    font-family: var(--font-caveat), cursive;
+    font-weight: 550;
+}
