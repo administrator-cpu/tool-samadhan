@@ -165,7 +165,7 @@ export default function CustomersPage() {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex h-12 items-center justify-center rounded-lg bg-emerald-700 px-8 text-sm font-bold tracking-wide text-white shadow-lg shadow-emerald-700/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 shrink-0"
+            className="flex h-12 items-center justify-center rounded-lg bg-emerald-700 px-8 text-sm font-bold tracking-wide text-white shadow transition-all hover:-translate-y-0.5 hover:bg-emerald-800 shrink-0"
           >
             Add Customer
           </button>

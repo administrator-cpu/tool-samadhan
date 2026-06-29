@@ -159,7 +159,7 @@ export default function ResolvedTicketsPage() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-(--break-2xl) mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-lg ">
               <History size={24} />
             </div>
             <div>
@@ -171,7 +171,7 @@ export default function ResolvedTicketsPage() {
           <button
             onClick={fetchEarliestYearAndOpenModal}
             disabled={exporting || tickets.length === 0}
-            className="flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-5 py-2.5 text-sm font-black text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-5 py-2.5 text-sm font-black text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm disabled:opacity-50"
           >
             {exporting ? (
               <span className="flex items-center gap-2">
@@ -418,7 +418,7 @@ export default function ResolvedTicketsPage() {
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
             onClick={() => setIsExportModalOpen(false)}
           />
-          <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl shadow-slate-900/20 overflow-hidden animate-in fade-in zoom-in duration-300">
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl shadow-slate-900/20 overflow-hidden animate-in fade-in zoom-in duration-300">
             <div className="p-8">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -490,13 +490,13 @@ export default function ResolvedTicketsPage() {
               <div className="mt-8 flex justify-end gap-3">
                 <button
                   onClick={() => setIsExportModalOpen(false)}
-                  className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-all"
+                  className="px-6 py-2.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDownloadCSV}
-                  className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-black hover:bg-emerald-800 transition-all shadow flex items-center gap-2"
                 >
                   <Download size={16} />
                   Download CSV

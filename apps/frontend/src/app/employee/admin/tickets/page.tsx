@@ -262,31 +262,31 @@ export default function AdminTicketsPage() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/50">
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[120px] break-words whitespace-normal">Reference</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[150px] break-words whitespace-normal">Circuit / BTS Id</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[250px] break-words whitespace-normal">Ticket & Customer</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[150px] break-words whitespace-normal">Ownership</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[120px] break-words whitespace-normal">Status</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[120px] break-words whitespace-normal">Last Updated</th>
-                    <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">View</th>
+                    <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[120px] break-words whitespace-normal">Reference</th>
+                    <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[150px] break-words whitespace-normal">Circuit / BTS Id</th>
+                    <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[250px] break-words whitespace-normal">Ticket & Customer</th>
+                    <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[150px] break-words whitespace-normal">Ownership</th>
+                    <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 min-w-[100px] break-words whitespace-normal text-center">Status</th>
+                    <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[130px] break-words whitespace-normal">Last Updated</th>
+                    <th className="px-4 py-5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">View</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {filteredAndSortedTickets.map((ticket) => (
                     <tr key={ticket.id} className="group transition-all hover:bg-slate-50/80">
-                      <td className="px-8 py-6 font-bold text-sm text-emerald-700 max-w-[120px] break-words whitespace-normal">
+                      <td className="px-4 py-6 font-bold text-sm text-emerald-700 min-w-[120px] break-words whitespace-normal">
                         {ticket.ticket_no}
                       </td>
-                      <td className="px-8 py-6 text-xs font-bold text-slate-600 max-w-[150px] break-words whitespace-normal">
+                      <td className="px-4 py-6 text-xs font-bold text-slate-600 max-w-[150px] break-words whitespace-normal">
                         {ticket.circuit_description || "N/A"}
                       </td>
-                      <td className="px-8 py-6 max-w-[250px] break-words whitespace-normal">
+                      <td className="px-4 py-6 max-w-[250px] break-words whitespace-normal">
                         <div className="flex flex-col">
                           <span className="text-sm font-black text-slate-900 break-words whitespace-normal">{ticket.subject}</span>
                           <span className="text-[11px] font-bold text-slate-400 break-words whitespace-normal">{ticket.customer_name}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-6 max-w-[150px] break-words whitespace-normal">
+                      <td className="px-4 py-6 max-w-[150px] break-words whitespace-normal">
                         <button
                           onClick={() => openReassign(ticket)}
                           className={`flex items-center gap-2 group/btn rounded-sm px-3 py-2 -ml-3 transition-all hover:bg-white hover:shadow-sm ring-1 ring-transparent hover:ring-slate-100 ${!ticket.assigned_employee_name ? 'text-amber-600' : 'text-slate-700'}`}
@@ -297,12 +297,12 @@ export default function AdminTicketsPage() {
                           <ChevronDown size={14} className="opacity-40 group-hover/btn:opacity-100 shrink-0" />
                         </button>
                       </td>
-                      <td className="px-2 py-6 max-w-[120px] break-words whitespace-normal">
+                      <td className="px-4 py-6 min-w-[100px] break-words whitespace-normal text-center">
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tight text-center break-words whitespace-normal ${statusColors[ticket.status] || "bg-slate-100"}`}>
                           {ticket.status.replace("_", " ")}
                         </span>
                       </td>
-                      <td className="px-8 py-6 text-xs font-bold text-slate-500 max-w-[120px] break-words whitespace-normal">
+                      <td className="px-4 py-6 text-xs font-bold text-slate-500 max-w-[120px] break-words whitespace-normal text-center">
                         {formatDistanceToNow(new Date(ticket.updated_at), { addSuffix: true })}
                       </td>
                       <td className="pl-0 pr-6 py-6 text-right">
