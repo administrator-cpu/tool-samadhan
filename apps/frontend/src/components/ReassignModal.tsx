@@ -80,7 +80,7 @@ export default function ReassignModal({ isOpen, ticketId, currentAgentId, onClos
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-300">
-        <div className="bg-indigo-700 px-6 py-4 flex items-center justify-between">
+        <div className="bg-emerald-700 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white">Re-assign Ticket</h2>
           <button onClick={onClose} className="text-white/80 hover:text-white">
             <span className="material-symbols-outlined">close</span>
@@ -93,7 +93,7 @@ export default function ReassignModal({ isOpen, ticketId, currentAgentId, onClos
             <select
               value={selectedAgentId}
               onChange={(e) => setSelectedAgentId(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-indigo-500 outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 outline-hidden"
             >
               <option value="" disabled>Select an agent</option>
               {agents.map((agent: Agent) => (
@@ -107,14 +107,14 @@ export default function ReassignModal({ isOpen, ticketId, currentAgentId, onClos
           <div className="flex gap-3 pt-2">
             <button
               onClick={onClose}
-              className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50"
+              className="flex-1 rounded-lg border border-slate-200 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50"
             >
               Cancel
             </button>
             <button
               onClick={handleReassign}
               disabled={loading}
-              className="flex-1 rounded-xl bg-indigo-700 py-3 text-sm font-bold text-white shadow-lg hover:bg-indigo-800 disabled:opacity-50"
+              className="flex-1 rounded-lg bg-emerald-700 py-3 text-sm font-bold text-white shadow-lg hover:bg-emerald-800 disabled:opacity-50"
             >
               {loading ? "Assigning..." : "Assign Agent"}
             </button>

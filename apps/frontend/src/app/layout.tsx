@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Outfit } from "next/font/google";
+import {Caveat, Plus_Jakarta_Sans, Outfit } from "next/font/google";
+
 import { Toaster } from "sonner";
 import AppShell from "@/components/AppShell";
 import GlobalAuthHandler from "@/components/GlobalAuthHandler";
@@ -19,6 +20,11 @@ const outfit = Outfit({
   variable: "--font-outfit",
 });
 
+const caveat = Caveat({
+    subsets: ["latin"],
+    variable: "--font-caveat",
+});
+
 export const metadata: Metadata = {
   title: "Samadhan",
   description: "Support System Dashboard",
@@ -35,7 +41,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakarta.variable} ${outfit.variable} h-full antialiased`}
+      className={`${plusJakarta.variable} ${outfit.variable} ${caveat.variable} h-full antialiased`}
     >
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet"/>

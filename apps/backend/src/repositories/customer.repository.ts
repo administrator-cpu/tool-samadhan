@@ -80,7 +80,8 @@ export class CustomerRepository {
         name: users.name,
         email: users.email,
         phone: users.phone,
-        role: users.role
+        role: users.role,
+        profile_image: users.profile_image
       })
       .from(customers)
       .innerJoin(users, eq(customers.user_id, users.id))
