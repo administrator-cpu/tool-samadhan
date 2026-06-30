@@ -115,38 +115,43 @@ export class TicketService {
     });
 
     if (result.info) {
-      // ALWAYS send confirmation to customer and helpdesk upon registration FIRST
-      const emailPromises = [
-        sendTicketConfirmationEmail({ name: result.info.name, email: result.info.email, ticketNo: result.info.ticket_no, alternateEmail: result.info.alternate_email, circuitId: result.info.circuit_description, attachments: dto.metadata?.attachments }),
-        sendTicketCreatedHelpdeskEmail({
-          customerName: result.info.name,
-          ticketNo: result.info.ticket_no,
-          category: result.info.category,
-          circuitId: result.info.circuit_description,
-          attachments: dto.metadata?.attachments
-        })
-      ];
-      
-      // if (result.info.phone) {
-      //   emailPromises.push(sendTicketCreatedSms(result.info.phone, result.info.ticket_no) as any);
-      // }
+      // Execute emails sequentially in the background to prevent rate limiting / concurrency issues on the custom email server
+      (async () => {
+        try {
+          // 1. Send confirmation to customer
+          await sendTicketConfirmationEmail({ 
+            name: result.info.name, 
+            email: result.info.email, 
+            ticketNo: result.info.ticket_no, 
+            alternateEmail: result.info.alternate_email, 
+            circuitId: result.info.circuit_description, 
+            attachments: dto.metadata?.attachments 
+          });
 
-      // If automatically assigned, send assignment notification concurrently
-      if (result.assignedAgentId && result.agentUser) {
-        emailPromises.push(
-          sendImmediateAgentAssignmentEmails({
+          // 2. Send notification to helpdesk
+          await sendTicketCreatedHelpdeskEmail({
             customerName: result.info.name,
-            agentName: result.agentUser.name,
-            agentEmail: result.agentUser.email,
             ticketNo: result.info.ticket_no,
             category: result.info.category,
-            circuitId: result.info.circuit_description
-          }) as any
-        );
-      }
+            circuitId: result.info.circuit_description,
+            attachments: dto.metadata?.attachments
+          });
 
-      Promise.allSettled(emailPromises)
-      .catch(err => logger.error('[EMAIL] Failed to send ticket creation emails', err));
+          // 3. Send assignment notification to agent (if automatically assigned)
+          if (result.assignedAgentId && result.agentUser) {
+            await sendImmediateAgentAssignmentEmails({
+              customerName: result.info.name,
+              agentName: result.agentUser.name,
+              agentEmail: result.agentUser.email,
+              ticketNo: result.info.ticket_no,
+              category: result.info.category,
+              circuitId: result.info.circuit_description
+            });
+          }
+        } catch (err) {
+          logger.error('[EMAIL] Failed to send ticket creation emails sequentially', err);
+        }
+      })();
     }
 
     return { ticket: result.ticket, assignedAgentId: result.assignedAgentId };
@@ -155,7 +160,7 @@ export class TicketService {
   static async listUserTickets(userId: string, role: string, cursor: string | undefined, limit: number, filters: any) {
     const tx = db; const client = db;
     try {
-            const queryFilters: any = { 
+      const queryFilters: any = { 
         statusGroup: filters.statusGroup,
         status: filters.status,
         searchQuery: filters.searchQuery,
