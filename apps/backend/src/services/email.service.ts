@@ -77,28 +77,30 @@ export const sendTicketCreatedHelpdeskEmail = async ({ customerName, ticketNo, c
 
 export const sendImmediateAgentAssignmentEmails = async ({ customerName, agentName, agentEmail, ticketNo, category, circuitId }: any) => {
   const { subject, html } = ticketAssignedToAgentTemplate({ ticketNo, customerName, agentName, category, circuitId });
+  const ccEmail = agentEmail !== env.helpdeskEmail ? env.helpdeskEmail : undefined;
   await sendEmail({
     toEmail: agentEmail,
     subject,
     htmlContent: html,
-    ccEmail: env.helpdeskEmail,
+    ccEmail,
   });
 };
 
 export const sendAgentReassignmentEmail = async ({ customerName, agentName, agentEmail, ticketNo, category, circuitId }: any) => {
   const { subject, html } = ticketReassignedToAgentTemplate({ ticketNo, customerName, agentName, category, circuitId });
+  const ccEmail = agentEmail !== env.helpdeskEmail ? env.helpdeskEmail : undefined;
   await sendEmail({
     toEmail: agentEmail,
     subject,
     htmlContent: html,
-    ccEmail: env.helpdeskEmail,
+    ccEmail,
   });
 };
 
 export const sendTicketReopenedAgentEmail = async ({ customerName, agentName, agentEmail, ticketNo, category, circuitId }: any) => {
   const { subject, html } = ticketReopenedAgentTemplate({ ticketNo, customerName, agentName, category, circuitId });
   const toEmail = agentEmail || env.helpdeskEmail;
-  const ccEmail = agentEmail ? env.helpdeskEmail : undefined;
+  const ccEmail = agentEmail && agentEmail !== env.helpdeskEmail ? env.helpdeskEmail : undefined;
 
   await sendEmail({
     toEmail,
