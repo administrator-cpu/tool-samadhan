@@ -131,10 +131,9 @@ export class TicketService {
       //   emailPromises.push(sendTicketCreatedSms(result.info.phone, result.info.ticket_no) as any);
       // }
 
-      Promise.allSettled(emailPromises)
-      .then(() => {
-        // If automatically assigned, send assignment notification AFTER registration emails complete
-        if (result.assignedAgentId && result.agentUser) {
+      // If automatically assigned, send assignment notification concurrently
+      if (result.assignedAgentId && result.agentUser) {
+        emailPromises.push(
           sendImmediateAgentAssignmentEmails({
             customerName: result.info.name,
             agentName: result.agentUser.name,
@@ -142,9 +141,11 @@ export class TicketService {
             ticketNo: result.info.ticket_no,
             category: result.info.category,
             circuitId: result.info.circuit_description
-          }).catch(err => logger.error('[EMAIL] Failed to send agent assignment email', err));
-        }
-      })
+          }) as any
+        );
+      }
+
+      Promise.allSettled(emailPromises)
       .catch(err => logger.error('[EMAIL] Failed to send ticket creation emails', err));
     }
 
