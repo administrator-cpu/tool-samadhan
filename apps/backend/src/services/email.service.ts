@@ -97,7 +97,7 @@ export const sendAgentReassignmentEmail = async ({ customerName, agentName, agen
     ccEmail,
   });
 };
-
+  
 export const sendTicketReopenedAgentEmail = async ({ customerName, agentName, agentEmail, ticketNo, category, circuitId }: any) => {
   const { subject, html } = ticketReopenedAgentTemplate({ ticketNo, customerName, agentName, category, circuitId });
   const toEmail = agentEmail || env.helpdeskEmail;
