@@ -44,6 +44,7 @@ const sendEmail = async ({ toEmail, subject, htmlContent, ccEmail }: { toEmail: 
         cc: ccEmail || undefined,
         subject,
         html: htmlContent,
+        fromName:"FAB5 Connect"
       }),
     });
 
