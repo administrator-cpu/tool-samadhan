@@ -60,7 +60,7 @@ export class UserController {
 
   static async logout(req: Request, res: Response, next: NextFunction) {
     try {
-      const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+      const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
       if (refreshToken) {
         await AuthService.logoutSession(refreshToken);
       }
