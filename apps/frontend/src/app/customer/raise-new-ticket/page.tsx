@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
@@ -171,6 +170,7 @@ export default function CreateTicketPage() {
                 value={formData.circuitDescription}
                 onChange={handleChange}
                 placeholder="Circuit or B END ID"
+                maxLength={20}
                 required
                 className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
               />
