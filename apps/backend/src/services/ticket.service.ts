@@ -354,7 +354,7 @@ export class TicketService {
          }
       }
       
-      const updatedStatus = newStatus === 'REOPENED' ? 'OPEN' : newStatus;
+      const updatedStatus = newStatus === 'REOPENED' ? 'IN_PROGRESS' : newStatus;
       const updatedTicket = await TicketRepository.updateStatus(tx, ticketId, updatedStatus);
       
       const event = await TicketEventRepository.insertEvent(tx, {
@@ -380,6 +380,13 @@ export class TicketService {
         ticketId,
         data: { type: 'TICKET_STATUS_UPDATED', ticket: updatedTicket, event }
       });
+
+      if (newStatus === 'REOPENED') {
+
+        await ticketAutomationQueue.add('REOPENED_TROUBLESHOOTING_UPDATE', { ticketId: ticket.id }, { delay: 15 * 60 * 1000, jobId: `reopened-troubleshoot-${ticket.id}-${Date.now()}` });
+        
+        await ticketAutomationQueue.add('REOPENED_FINAL_ACTIVITY_CHECK', { ticketId: ticket.id }, { delay: 45 * 60 * 1000, jobId: `reopened-final-activity-${ticket.id}-${Date.now()}` });
+      }
 
       let agentName = null;
       let agentEmail = null;
