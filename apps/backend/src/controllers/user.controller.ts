@@ -123,6 +123,16 @@ export class UserController {
     }
   }
 
+  static async getAllNotLinkedCustomers(req: Request, res: Response, next: NextFunction) {
+    try {
+      
+      const data = await UserService.listAllNotLinkedCustomers();
+      return sendResponse({ res, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async updateEmployee(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await UserService.updateEmployee((req.params.id as string), req.body);
@@ -285,7 +295,7 @@ export class UserController {
         connections = connData.connections
           .filter((c: any) => {
              const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
-             if (status === 'active' || status === 'termination' || status === 'under termination') return true;
+             if (status === 'active' || status === 'termination' || status === 'under termination'|| status === 'notice period') return true;
              if (status === 'generation') {
                return c.history?.some((h: any) => h.action?.toUpperCase() === 'APPROVED');
              }
@@ -295,7 +305,6 @@ export class UserController {
              id: c.crmConnectionId || c._id,
              fabCircuitId: c.fabCircuitId,
              opportunityId: c.opportunityId,
-             aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
              bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
           }));
       }
@@ -314,7 +323,7 @@ export class UserController {
         return sendResponse({ res, statusCode: 404, success: false, message: 'Customer or User not found' });
       }
 
-      const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(user.name)}&page=1&limit=1`;
+      const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(user.name.trim().toUpperCase())}&page=1&limit=1`;
       const searchRes = await fetch(searchUrl, {
         headers: { 'x-api-key': env.crmApiKey }
       });
@@ -339,14 +348,17 @@ export class UserController {
       }
       const connData = await connRes.json();
 
+      console.log("Connection Data is present: ", connData)
+
       let connections = [];
       if (connData.success && Array.isArray(connData.connections)) {
         connections = connData.connections
           .filter((c: any) => {
+            console.log("Inside the Connection Filter");
              const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
-             if (status === 'active' || status === 'termination' || status === 'under termination') return true;
+             if (status === 'active' || status === 'termination' || status === 'under termination' || status === 'notice period') return true;
              if (status === 'generation') {
-               return c.history?.some((h: any) => h.action?.toUpperCase() === 'APPROVED');
+               return c.history?.some((h: any) => h.action?.toUpperCase() === 'ACTIVATED');
              }
              return false;
           })

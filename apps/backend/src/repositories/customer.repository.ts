@@ -4,6 +4,7 @@ import { eq, ilike, or, desc, count } from 'drizzle-orm';
 import { Customer } from '../types/models.js';
 
 export class CustomerRepository {
+  
   static async create(tx: any, userId: string): Promise<Customer> {
     const result = await tx.insert(customers)
       .values({ user_id: parseInt(userId, 10) })
@@ -92,4 +93,18 @@ export class CustomerRepository {
 
     return { customers: dataRes, total };
   }
+
+
+  static async customerList(tx: any): Promise<{  customers: { id: number; name: string }[] }> {
+    const dataRes = await tx
+      .select({
+        id: customers.id,
+        name: users.name,
+      })
+      .from(customers)
+      .innerJoin(users, eq(customers.user_id, users.id));
+  
+    return {  customers: dataRes };
+  }
+  
 }
