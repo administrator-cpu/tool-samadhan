@@ -178,7 +178,7 @@ export class UserService {
       let score = 0;
 
       if (search.length > 0) {
-        crmName = search[0].item.name;
+        crmName = (search[0].item as any).name;
         score = Math.round((1 - (search[0].score ?? 1)) * 100);
 
         if (score < 70) {
