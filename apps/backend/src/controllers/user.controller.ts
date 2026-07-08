@@ -297,7 +297,7 @@ export class UserController {
              const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
              if (status === 'active' || status === 'termination' || status === 'under termination'|| status === 'notice period') return true;
              if (status === 'generation') {
-               return c.history?.some((h: any) => h.action?.toUpperCase() === 'APPROVED');
+               return c.history?.some((h: any) => h.action?.toUpperCase() === 'ACTIVATED');
              }
              return false;
           })
