@@ -11,6 +11,16 @@ import { CreateEmployeeDto, CreateCustomerDto, UpdateProfileDto, ChangePasswordD
 import { sendStaffWelcomeEmail, sendCustomerWelcomeEmail } from './email.service.js';
 import { disconnectUser } from './socket.service.js';
 import { logger } from '../lib/logger.js';
+import { env } from '../config/environment.js';
+import Fuse from "fuse.js";
+
+interface SuggestedCustomer {
+  samadhanId: number;
+  samadhanName: string;
+  crmName: string | null;
+  score: number;
+}
+
 
 export class UserService {
   static async createEmployee(dto: CreateEmployeeDto) {
@@ -111,6 +121,140 @@ export class UserService {
       },
     };
   }
+
+
+  private static cache: SuggestedCustomer[] | null = null;
+  private static cacheExpiry = 0;
+
+  private static readonly CACHE_TIME = 24 * 60 * 60 * 1000;
+  static async listAllNotLinkedCustomers(): Promise<SuggestedCustomer[]> {
+
+    if (
+      this.cache &&
+      Date.now() < this.cacheExpiry
+    ) {
+      return this.cache;
+    }
+
+    const [samadhanCustomers, crmRes] = await Promise.all([
+      CustomerRepository.customerList(db),
+      fetch(`${env.crmApiUrl}/customers?limit=10000`, {
+        headers: {
+          "x-api-key": env.crmApiKey,
+        },
+      }),
+    ]);
+
+    if (!crmRes.ok) {
+      throw new Error("Unable to fetch CRM customers");
+    }
+
+    const crmData = await crmRes.json();
+
+    const fuse = new Fuse(crmData.customers, {
+      keys: ["name"],
+      includeScore: true,
+      threshold: 0.35,
+      ignoreLocation: true,
+      findAllMatches: true,
+      minMatchCharLength: 3,
+    });
+
+    const result: SuggestedCustomer[] = [];
+
+    for (const customer of samadhanCustomers.customers) {
+      const exact = crmData.customers.find(
+        (crm: any) => crm.name === customer.name
+      );
+
+      if (exact) {
+        continue;
+      }
+      const search = fuse.search(customer.name, {
+        limit: 1,
+      });
+
+      let crmName: string | null = null;
+      let score = 0;
+
+      if (search.length > 0) {
+        crmName = (search[0].item as any).name;
+        score = Math.round((1 - (search[0].score ?? 1)) * 100);
+
+        if (score < 70) {
+          crmName = null;
+        }
+      }
+      result.push({
+        samadhanId: customer.id,
+        samadhanName: customer.name,
+        crmName,
+        score,
+      });
+    }
+    result.sort((a, b) => b.score - a.score);
+
+    this.cache = result;
+    this.cacheExpiry = Date.now() + this.CACHE_TIME;
+
+    return result;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+  //   const notLinkedCustomers: string[] = [];
+    
+  //   const [samadhanCustomers, crmRes] = await Promise.all([
+  //     CustomerRepository.customerList(db),
+  //     fetch(`${env.crmApiUrl}/customers?limit=10000`, {
+  //       headers: { "x-api-key": env.crmApiKey },
+  //     }),
+  //   ]);
+
+  //   if (!crmRes.ok) logger.error(`CRM API failed with status ${crmRes.status}`)
+  //   const crmData = await crmRes.json();
+
+  //   // Create a lookup Set of CRM customer names
+  //   const crmCustomerNames = new Set<string> (
+  //     crmData.customers.map((customer: any) =>
+  //       customer.name.trim().toLowerCase()
+  //     )
+  //   );
+
+  //   for (const customer of samadhanCustomers.customers) {
+  //     const customerName = customer.name.trim().toLowerCase();
+    
+  //     if (!crmCustomerNames.has(customerName)) {
+  //       notLinkedCustomers.push(customer.name);
+  //     }
+  //   }
+  //   return notLinkedCustomers;
+  // }
+
 
   static async updateEmployee(employeeRowId: string, dto: any) {
     return db.transaction(async (tx) => {
