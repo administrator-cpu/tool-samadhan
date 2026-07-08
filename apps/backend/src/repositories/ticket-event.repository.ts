@@ -1,6 +1,8 @@
 import { db } from '../config/database.js';
 import { ticketEvents, users } from '../database/drizzle/schema.js';
-import { eq, and, gt, inArray, asc } from 'drizzle-orm';
+import { desc, sql, eq, and, gt, inArray, asc } from 'drizzle-orm';
+
+
 import { TicketEvent } from '../types/models.js';
 
 export class TicketEventRepository {
@@ -109,5 +111,32 @@ export class TicketEventRepository {
       columns: { id: true }
     });
     return !!res;
+  }
+
+  
+  static async hasAgentRepliedOnReopenedTicket( tx: any, ticketId: string ): Promise<boolean> {
+  
+    const lastReopen = await tx.query.ticketEvents.findFirst({
+        where: and(
+            eq(ticketEvents.ticket_id, Number(ticketId)),
+            eq(ticketEvents.event_type, "STATUS_CHANGED"),
+            sql`${ticketEvents.metadata}->>'newStatus' = 'REOPENED'`
+        ),
+        orderBy: [desc(ticketEvents.id)],
+        columns: { id: true }
+    });
+    
+    if (!lastReopen) return false;
+    
+    const reply = await tx.query.ticketEvents.findFirst({
+        where: and(
+            eq(ticketEvents.ticket_id, Number(ticketId)),
+            gt(ticketEvents.id, lastReopen.id),
+            inArray(ticketEvents.event_type, [ "AGENT_REPLY", "ADMIN_REPLY"])
+        ),
+        columns: { id: true }
+    });
+    
+    return !!reply;
   }
 }

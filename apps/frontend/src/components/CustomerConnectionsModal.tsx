@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import Link from "next/link";
 
 interface Connection {
   id: string;
@@ -20,12 +19,7 @@ interface CustomerConnectionsModalProps {
   customerName?: string;
 }
 
-export default function CustomerConnectionsModal({
-  isOpen,
-  onClose,
-  customerRowId,
-  customerName,
-}: CustomerConnectionsModalProps) {
+export default function CustomerConnectionsModal({ isOpen, onClose, customerRowId, customerName } : CustomerConnectionsModalProps) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +31,7 @@ export default function CustomerConnectionsModal({
       try {
         setLoading(true);
         setError(null);
+        console.log("Customer Row Id: ",customerRowId)
         const response = await api.get(`/users/customers/${customerRowId}/connections`);
         setConnections(response.data.connections || []);
       } catch (err: any) {

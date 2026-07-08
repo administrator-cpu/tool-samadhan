@@ -1,12 +1,17 @@
 import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 import { env } from './environment.js';
+import { logger } from '../lib/logger.js';
 
 export const redisConnection = new Redis({
   host: env.redis.host,
   port: env.redis.port,
   password: env.redis.password,
   maxRetriesPerRequest: null,
+});
+
+redisConnection.on('error', (err) => {
+  logger.error('[REDIS] Connection error:', err);
 });
 
 export const ticketAutomationQueue = new Queue('ticket-automation', {
@@ -24,4 +29,8 @@ export const ticketAutomationQueue = new Queue('ticket-automation', {
       age: 604800, // 7 days
     },
   },
+});
+
+ticketAutomationQueue.on('error', (err) => {
+  logger.error('[BULLMQ QUEUE] Error:', err);
 });

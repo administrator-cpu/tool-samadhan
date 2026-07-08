@@ -85,7 +85,7 @@ export default function CustomersPage() {
   }, [fetchCustomers]);
 
   return (
-    <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
+    <div className="mx-auto flex max-w-350 flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
       {/* Custom Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -185,6 +185,7 @@ export default function CustomersPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
+                  
               <thead>
                 <tr className="bg-slate-50/50 border-b border-slate-100">
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Customer Name & ID</th>
@@ -194,10 +195,11 @@ export default function CustomersPage() {
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
                 </tr>
               </thead>
+                  
               <tbody className="divide-y divide-slate-50">
                 {customers.map((customer) => (
                   <tr key={customer.customer_row_id} className="group transition-colors hover:bg-slate-50">
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 max-w-125">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold overflow-hidden relative">
                           {customer.profile_image ? (
@@ -212,19 +214,19 @@ export default function CustomersPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 max-w-70 min-w-25 wrap-break-word">
                       <div className="flex flex-col gap-1">
                         <span className="text-sm font-medium text-slate-700">{customer.email}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 w-25">
                       <div className="flex flex-col gap-1">
-                        <span className="text-sm font-medium text-slate-500">
+                        <span className="text-sm font-medium text-slate-500 text-center">
                           {customer.phone ? customer.phone : "N/A"}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-500 font-medium">
+                    <td className="px-4 py-4 text-sm text-slate-500 font-medium w-25">
                       {new Date(customer.joined_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">

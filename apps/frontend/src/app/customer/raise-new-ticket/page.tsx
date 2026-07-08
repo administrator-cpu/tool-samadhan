@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
@@ -76,6 +75,11 @@ export default function CreateTicketPage() {
 
     if (!formData.circuitDescription.trim()) {
       toast.error("Circuit description is required");
+      return;
+    }
+
+    if (formData.circuitDescription.trim().length > 20) {
+      toast.error("Circuit description cannot exceed 20 characters");
       return;
     }
 

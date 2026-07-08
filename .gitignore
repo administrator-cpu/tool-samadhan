@@ -49,3 +49,6 @@ next-env.d.ts
 .idea
 
 FABFIV-SMS.json
+
+docs
+docs/**

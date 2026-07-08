@@ -71,13 +71,11 @@ export default function MyConnectionsPage() {
                       S.no
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      FAB LSI
+                      Circuit ID
                     </th>
+
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      A END BTS ID
-                    </th>
-                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      B END BTS ID
+                      B END ID
                     </th>
                     
                     <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -95,10 +93,6 @@ export default function MyConnectionsPage() {
 
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
                         {conn.opportunityId || "N/A"}
-                      </td>
-
-                      <td className="px-6 py-4 text-sm font-medium text-slate-600">
-                        {conn.aEndBtsId || "N/A"}
                       </td>
 
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
