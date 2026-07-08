@@ -313,3 +313,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
   },
   { connection: redisConnection }
 );
+
+ticketAutomationWorker.on('error', (err) => {
+  logger.error('[BULLMQ WORKER] Error:', err);
+});
