@@ -29,7 +29,7 @@ function getEnvNum(key: string, defaultValue?: number): number {
 
 export const env = {
   port: getEnvNum('PORT', 4000),
-  nodeEnv: getEnvStr('NODE_ENV', 'development'),
+  nodeEnv: getEnvStr('NODE_ENV', 'production'),
   
   postgres: {
     user: getEnvStr('POSTGRES_USER', 'admin'),
