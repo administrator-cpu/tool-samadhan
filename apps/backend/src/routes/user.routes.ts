@@ -11,7 +11,8 @@ const router = Router();
 router.use(requireAuth);
 
 router.get(   '/me',                                                                                      UserController.getCurrentUser);
-router.get(   '/my-connections',            requireRole([UserRole.USER]),                                 UserController.getMyConnections);
+router.get(   '/my-connections',                     requireRole([UserRole.USER]),                        UserController.getMyConnections);
+router.get(   '/outstanding-balance',   requireRole([UserRole.USER]),                                     UserController.getOutstandingBalance);
 router.put(   '/profile',                   validateUpdateProfile,                                        UserController.updateProfile);
 router.post(  '/profile/image',             parseProfileImageUpload(),                                    UserController.uploadProfileImage);
 router.delete('/profile/image',                                                                           UserController.removeProfileImage);

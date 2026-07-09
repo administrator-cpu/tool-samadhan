@@ -315,6 +315,24 @@ export class UserController {
     }
   }
 
+
+
+  static async getOutstandingBalance(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await UserService.getCurrentUserDetails(req.user!.userId);
+      if (!user) return sendResponse({ res, statusCode: 404, success: false, message: 'User not found' });
+      
+      const customerName = user.name as string;
+      
+      if (!customerName) return sendResponse({ res, statusCode: 400, message: 'Customer name is required' });
+
+      const outstandingBalance = await UserService.getOutstandingBalance(customerName);
+      return sendResponse({ res, data: { outstandingBalance } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getCustomerConnectionsById(req: Request, res: Response, next: NextFunction) {
     try {
       const customerRowId = req.params.id as string;

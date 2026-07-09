@@ -8,6 +8,8 @@ import AddCustomerModal from "@/components/AddCustomerModal";
 import EditCustomerModal from "@/components/EditCustomerModal";
 import CustomerConnectionsModal from "@/components/CustomerConnectionsModal";
 import StandardPagination from "@/components/StandardPagination";
+import { formatINR } from "@/lib/formatINR";
+
 
 interface Customer {
   customer_row_id: number;
@@ -19,6 +21,7 @@ interface Customer {
   phone: string;
   role: string;
   profile_image?: string | null;
+  outstanding: number;
 }
 
 export default function CustomersPage() {
@@ -189,10 +192,12 @@ export default function CustomersPage() {
               <thead>
                 <tr className="bg-slate-50/50 border-b border-slate-100">
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Customer Name & ID</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Email</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Phone</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Joined At</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+                  <th className="px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Outstanding</th>
+
+                  <th className="px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Email</th>
+                  <th className="px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Phone</th>
+                  <th className="px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Joined At</th>
+                  <th className="px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Actions</th>
                 </tr>
               </thead>
                   
@@ -212,6 +217,11 @@ export default function CustomersPage() {
                           <span className="font-semibold text-slate-900 uppercase">{customer.name}</span>
                           <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">{customer.customer_id}</span>
                         </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 max-w-70 min-w-25 wrap-break-word">
+                      <div className="flex flex-col gap-1">
+                        {customer.outstanding >= 0 ? <span className="text-sm font-medium text-slate-700 text-center">{formatINR(customer.outstanding)}</span> : <span className="text-sm font-medium text-red-500 text-center">N/A</span>} 
                       </div>
                     </td>
                     <td className="px-4 py-4 max-w-70 min-w-25 wrap-break-word">

@@ -81,6 +81,11 @@ export default function SalesCreateTicketPage() {
       return;
     }
 
+    if (formData.circuitDescription.trim().length > 20) {
+      toast.error("Circuit description cannot exceed 20 characters");
+      return;
+    }
+
     setLoading(true);
 
     try {
