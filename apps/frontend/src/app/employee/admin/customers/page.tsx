@@ -9,6 +9,7 @@ import EditCustomerModal from "@/components/EditCustomerModal";
 import CustomerConnectionsModal from "@/components/CustomerConnectionsModal";
 import StandardPagination from "@/components/StandardPagination";
 import { formatINR } from "@/lib/formatINR";
+import { useAuthStore } from "@/store/useAuthStore";
 
 
 interface Customer {
@@ -46,6 +47,10 @@ export default function CustomersPage() {
   // Connections Modal State
   const [connectionsModalOpen, setConnectionsModalOpen] = useState(false);
   const [customerForConnections, setCustomerForConnections] = useState<Customer | null>(null);
+
+  const { user } = useAuthStore();
+
+  const hideOutstandingBalanceAdmin = "abhishek@fab5network.com";
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -88,7 +93,7 @@ export default function CustomersPage() {
   }, [fetchCustomers]);
 
   return (
-    <div className="mx-auto flex max-w-350 flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
+    <div className="mx-auto flex max-w-350 flex-col gap-10 px-6 py-10 md:px-12 md:py-14">      
       {/* Custom Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -192,7 +197,8 @@ export default function CustomersPage() {
               <thead>
                 <tr className="bg-slate-50/50 border-b border-slate-100">
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Customer Name & ID</th>
-                  <th className="px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Outstanding</th>
+
+                  {user?.email !== hideOutstandingBalanceAdmin && <th className="px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Outstanding</th>}
 
                   <th className="px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Email</th>
                   <th className="px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Phone</th>
@@ -219,16 +225,21 @@ export default function CustomersPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 max-w-70 min-w-25 wrap-break-word">
+                    
+
+                    {user?.email !== hideOutstandingBalanceAdmin && <td className="px-4 py-4 max-w-70 min-w-25 wrap-break-word">
                       <div className="flex flex-col gap-1">
                         {customer.outstanding !== null ? <span className="text-sm font-medium text-slate-700 text-center">{formatINR(customer.outstanding)}</span> : <span className="text-sm font-medium text-red-500 text-center">N/A</span>} 
                       </div>
-                    </td>
+                    </td>}
+
+                    
                     <td className="px-4 py-4 max-w-70 min-w-25 wrap-break-word">
                       <div className="flex flex-col gap-1">
                         <span className="text-sm font-medium text-slate-700">{customer.email}</span>
                       </div>
                     </td>
+          
                     <td className="px-4 py-4 w-25">
                       <div className="flex flex-col gap-1">
                         <span className="text-sm font-medium text-slate-500 text-center">
