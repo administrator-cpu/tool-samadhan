@@ -61,31 +61,40 @@ export default function ConnectionsPage() {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-                
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  S.no
+                </th>
+                      
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Samadhan Customer
                 </th>
             
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
                   CRM Suggestion
                 </th>
             
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500 text-center">
                   Match Score
                 </th>
               </tr>
             </thead>
                 
             <tbody className="divide-y divide-slate-50">
-              {customers.map((customer) => (
+              {customers.map((customer, idx) => (
                 <tr
                   key={customer.samadhanId}
                   className="transition-colors hover:bg-slate-50"
                 >
                   <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-slate-700">
+                    <span className="text-sm font-semibold text-slate-600">
+                      {idx + 1}
+                    </span>
+                  </td>
+            
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-semibold text-slate-600">
                       {customer.samadhanName}
                     </span>
                   </td>
