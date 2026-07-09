@@ -129,19 +129,12 @@ export class UserService {
   private static readonly CACHE_TIME = 24 * 60 * 60 * 1000;
   static async listAllNotLinkedCustomers(): Promise<SuggestedCustomer[]> {
 
-    if (
-      this.cache &&
-      Date.now() < this.cacheExpiry
-    ) {
-      return this.cache;
-    }
+    if ( this.cache && Date.now() < this.cacheExpiry ) return this.cache;
 
     const [samadhanCustomers, crmRes] = await Promise.all([
       CustomerRepository.customerList(db),
       fetch(`${env.crmApiUrl}/customers?limit=10000`, {
-        headers: {
-          "x-api-key": env.crmApiKey,
-        },
+        headers: { "x-api-key": env.crmApiKey },
       }),
     ]);
 
@@ -164,12 +157,11 @@ export class UserService {
 
     for (const customer of samadhanCustomers.customers) {
       const exact = crmData.customers.find(
-        (crm: any) => crm.name === customer.name
+        (crm: any) => crm.name === customer.name.trim().toUpperCase()
       );
 
-      if (exact) {
-        continue;
-      }
+      if (exact) continue;
+      
       const search = fuse.search(customer.name, {
         limit: 1,
       });
