@@ -33,14 +33,14 @@ const statusColors: Record<string, string> = {
 };
 
 
-const statusOrder: Record<string, number> = {
-  ESCALATED: 6,
-  OPEN: 5,
-  IN_PROGRESS: 4,
-  ON_HOLD: 3,
-  RESOLVED: 2,
-  CLOSED: 1,
-};
+// const statusOrder: Record<string, number> = {
+//   ESCALATED: 6,
+//   OPEN: 5,
+//   IN_PROGRESS: 4,
+//   ON_HOLD: 3,
+//   RESOLVED: 2,
+//   CLOSED: 1,
+// };
 
 export default function AdminTicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -67,15 +67,9 @@ export default function AdminTicketsPage() {
     return params;
   }, [ownershipFilter, statusFilter, searchQuery, sortField, sortOrder]);
 
-  const {
-    currentPage,
-    setCurrentPage,
-    pageMap,
-    resetPagination,
-    handlePageResponse,
-  } = useCursorPagination({
+  const { currentPage, setCurrentPage, pageMap, resetPagination, handlePageResponse } = useCursorPagination({
     fetchUrl: "/tickets",
-    limit: 10,
+    limit: 15,
     queryParams
   });
 
@@ -87,7 +81,7 @@ export default function AdminTicketsPage() {
       const params = new URLSearchParams();
       Object.entries(queryParams).forEach(([k, v]) => params.append(k, v));
       if (cursor) params.append("cursor", cursor);
-      params.append("limit", "10");
+      params.append("limit", "15");
 
       const res = await api.get(`/tickets?${params.toString()}`);
       setTickets(res.data.tickets);

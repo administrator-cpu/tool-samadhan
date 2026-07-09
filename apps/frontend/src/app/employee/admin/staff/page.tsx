@@ -85,7 +85,7 @@ export default function StaffPage() {
   const hideAdminEmail = ["ajay@finviatech.co", "administrator@fab5network.com"];
 
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
+    <div className="mx-auto flex max-w-350 flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
     
       {/* Custom Delete Confirmation Modal */}
       {deleteModalOpen && (

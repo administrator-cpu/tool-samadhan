@@ -111,6 +111,12 @@ export class UserService {
 
   static async listAllCustomers(page: number, limit: number, search?: string): Promise<PaginatedResponse<any>> {
     const { customers, total } = await CustomerRepository.findAll(db, page, limit, search);
+
+    const outstandingMap = await this.getAllOutstandingBalances();
+    for (const customer of customers) {
+       customer.outstanding = outstandingMap.get(customer.name.trim().toUpperCase()) ?? null;
+    }
+    
     return {
       customers,
       pagination: {
@@ -122,11 +128,65 @@ export class UserService {
     };
   }
 
+  private static readonly CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+  private static outstandingCache: Map<string, number> | null = null;
+  private static cacheExpiresAt = 0;
+  
+  static async getAllOutstandingBalances(): Promise < Map < string, number >> {
+    // Return cached data if still valid
+    if (this.outstandingCache && Date.now() < this.cacheExpiresAt) {
+      return this.outstandingCache;
+    }
+    const response = await fetch( `${env.bahiKhataApiUrl}/all?limit=10000`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+          "x-api-key": env.bahiKhataApiKey,
+        },
+      }
+    );
+  
+    // if (!response.ok) throw new Error(`BahiKhata API returned ${response.status}`);
+  
+    const result = await response.json();
+  
+    const outstandingMap = new Map<string, number>();
+    for (const customer of result.data) {
+      outstandingMap.set(
+        customer.companyName.trim().toUpperCase(),
+        customer.totalOutstanding
+      );
+    }
+
+    // Update cache
+    this.outstandingCache = outstandingMap;
+    this.cacheExpiresAt = Date.now() + this.CACHE_TTL;
+    
+    return this.outstandingCache;
+  }
+
+  static async getOutstandingBalance(customerName: string): Promise<number> {
+    const bahiKhataUrl = `${env.bahiKhataApiUrl}/search?name=${encodeURIComponent(customerName.trim().toUpperCase())}`;
+    const response = await fetch(bahiKhataUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": env.bahiKhataApiKey,
+      }
+    });
+
+    // if (!response.ok) throw new Error(`BahiKhata API returned ${response.status}`);
+
+    const outstandingBalance = await response.json();
+    if (outstandingBalance.matchFound) return outstandingBalance.data.totalOutstanding;
+    else return null;
+  }
+
 
   private static cache: SuggestedCustomer[] | null = null;
   private static cacheExpiry = 0;
-
-  private static readonly CACHE_TIME = 24 * 60 * 60 * 1000;
+  
+  private static readonly CACHE_TIME = 15 * 60 * 1000; // 15 minutes
   static async listAllNotLinkedCustomers(): Promise<SuggestedCustomer[]> {
 
     if ( this.cache && Date.now() < this.cacheExpiry ) return this.cache;
