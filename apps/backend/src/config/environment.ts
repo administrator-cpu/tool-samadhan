@@ -70,6 +70,9 @@ export const env = {
 
   crmApiUrl: getEnvStr('CRM_API_URL', ''),
   crmApiKey: getEnvStr('CRM_API_KEY', ''),
+
+  bahiKhataApiUrl: getEnvStr('BAHIKHATA_API_URL', ''),
+  bahiKhataApiKey: getEnvStr('BAHIKHATA_API_KEY', ''),
 };
 
 export const isProd = env.nodeEnv === 'production';

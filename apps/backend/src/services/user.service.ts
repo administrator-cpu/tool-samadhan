@@ -111,6 +111,12 @@ export class UserService {
 
   static async listAllCustomers(page: number, limit: number, search?: string): Promise<PaginatedResponse<any>> {
     const { customers, total } = await CustomerRepository.findAll(db, page, limit, search);
+    
+    for (const customer of customers) {
+      const outstanding = await this.getOutstandingBalance(customer.name);
+      customer.outstanding = outstanding;
+    }
+    
     return {
       customers,
       pagination: {
@@ -120,6 +126,20 @@ export class UserService {
         limit,
       },
     };
+  }
+
+  static async getOutstandingBalance(customerName: string): Promise<number> {
+    const bahiKhataUrl = `${env.bahiKhataApiUrl}?name=${encodeURIComponent(customerName.trim().toUpperCase())}`;
+    const response = await fetch(bahiKhataUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": env.bahiKhataApiKey,
+      }
+    });
+    const outstandingBalance = await response.json();
+    if (outstandingBalance.matchFound) return outstandingBalance.data.aging.total;
+    else return -333;
   }
 
 
