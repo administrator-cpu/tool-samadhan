@@ -137,9 +137,12 @@ export class UserService {
         "x-api-key": env.bahiKhataApiKey,
       }
     });
+
+    // if (!response.ok) throw new Error(`BahiKhata API returned ${response.status}`);
+
     const outstandingBalance = await response.json();
     if (outstandingBalance.matchFound) return outstandingBalance.data.aging.total;
-    else return -333;
+    else return null;
   }
 
 

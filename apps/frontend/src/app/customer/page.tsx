@@ -39,7 +39,7 @@ export default function Home() {
     const fetchOutstandingBalance = async () => {
       try {
         const response = await api.get( `/users/outstanding-balance`);
-        const outstandingBalance = response.data.outstandingBalance || -404;
+        const outstandingBalance = response.data.outstandingBalance ?? null;
         setOutstandingBalance(outstandingBalance);
       } catch (err) {
         console.error("Failed to fetch active tickets:", err);
