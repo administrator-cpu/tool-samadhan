@@ -128,7 +128,15 @@ export class UserService {
     };
   }
 
-  static async getAllOutstandingBalances(): Promise<Map<string, number>> {
+  private static readonly CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+  private static outstandingCache: Map<string, number> | null = null;
+  private static cacheExpiresAt = 0;
+  
+  static async getAllOutstandingBalances(): Promise < Map < string, number >> {
+    // Return cached data if still valid
+    if (this.outstandingCache && Date.now() < this.cacheExpiresAt) {
+      return this.outstandingCache;
+    }
     const response = await fetch( `${env.bahiKhataApiUrl}/all?limit=10000`, {
       method: "GET",
       headers: {
@@ -146,11 +154,15 @@ export class UserService {
     for (const customer of result.data) {
       outstandingMap.set(
         customer.companyName.trim().toUpperCase(),
-        customer.aging.total
+        customer.totalOutstanding
       );
     }
-  
-    return outstandingMap;
+
+    // Update cache
+    this.outstandingCache = outstandingMap;
+    this.cacheExpiresAt = Date.now() + this.CACHE_TTL;
+    
+    return this.outstandingCache;
   }
 
   static async getOutstandingBalance(customerName: string): Promise<number> {
@@ -166,15 +178,15 @@ export class UserService {
     // if (!response.ok) throw new Error(`BahiKhata API returned ${response.status}`);
 
     const outstandingBalance = await response.json();
-    if (outstandingBalance.matchFound) return outstandingBalance.data.aging.total;
+    if (outstandingBalance.matchFound) return outstandingBalance.data.totalOutstanding;
     else return null;
   }
 
 
   private static cache: SuggestedCustomer[] | null = null;
   private static cacheExpiry = 0;
-
-  private static readonly CACHE_TIME = 1 * 60 * 60 * 1000; // 1 hour
+  
+  private static readonly CACHE_TIME = 15 * 60 * 1000; // 15 minutes
   static async listAllNotLinkedCustomers(): Promise<SuggestedCustomer[]> {
 
     if ( this.cache && Date.now() < this.cacheExpiry ) return this.cache;
