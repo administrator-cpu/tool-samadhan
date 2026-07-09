@@ -4,6 +4,7 @@ import { ErrorCodes } from '../errors/error-codes.js';
 import { logger } from '../lib/logger.js';
 import { sendResponse } from '../utils/response.js';
 import { sendServerErrorEmail } from '../services/email.service.js';
+import { env } from '../config/environment.js';
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
     return sendResponse({
@@ -47,7 +48,8 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   const statusCode = err.status || 500;
   
   // Fire-and-forget an email alert for unexpected server errors (500s)
-  if (statusCode >= 500) {
+
+  if (statusCode >= 500 && env.nodeEnv === 'production') {
     sendServerErrorEmail({
       timestamp: new Date().toISOString(),
       errorType: err.name || 'Unexpected Error',

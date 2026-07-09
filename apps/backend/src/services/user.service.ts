@@ -111,10 +111,10 @@ export class UserService {
 
   static async listAllCustomers(page: number, limit: number, search?: string): Promise<PaginatedResponse<any>> {
     const { customers, total } = await CustomerRepository.findAll(db, page, limit, search);
-    
+
+    const outstandingMap = await this.getAllOutstandingBalances();
     for (const customer of customers) {
-      const outstanding = await this.getOutstandingBalance(customer.name);
-      customer.outstanding = outstanding;
+       customer.outstanding = outstandingMap.get(customer.name.trim().toUpperCase()) ?? null;
     }
     
     return {
@@ -128,8 +128,33 @@ export class UserService {
     };
   }
 
+  static async getAllOutstandingBalances(): Promise<Map<string, number>> {
+    const response = await fetch( `${env.bahiKhataApiUrl}/all?limit=10000`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+          "x-api-key": env.bahiKhataApiKey,
+        },
+      }
+    );
+  
+    // if (!response.ok) throw new Error(`BahiKhata API returned ${response.status}`);
+  
+    const result = await response.json();
+  
+    const outstandingMap = new Map<string, number>();
+    for (const customer of result.data) {
+      outstandingMap.set(
+        customer.companyName.trim().toUpperCase(),
+        customer.aging.total
+      );
+    }
+  
+    return outstandingMap;
+  }
+
   static async getOutstandingBalance(customerName: string): Promise<number> {
-    const bahiKhataUrl = `${env.bahiKhataApiUrl}?name=${encodeURIComponent(customerName.trim().toUpperCase())}`;
+    const bahiKhataUrl = `${env.bahiKhataApiUrl}/search?name=${encodeURIComponent(customerName.trim().toUpperCase())}`;
     const response = await fetch(bahiKhataUrl, {
       method: "GET",
       headers: {
@@ -149,7 +174,7 @@ export class UserService {
   private static cache: SuggestedCustomer[] | null = null;
   private static cacheExpiry = 0;
 
-  private static readonly CACHE_TIME = 24 * 60 * 60 * 1000;
+  private static readonly CACHE_TIME = 1 * 60 * 60 * 1000; // 1 hour
   static async listAllNotLinkedCustomers(): Promise<SuggestedCustomer[]> {
 
     if ( this.cache && Date.now() < this.cacheExpiry ) return this.cache;
