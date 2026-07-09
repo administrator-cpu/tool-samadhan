@@ -29,7 +29,7 @@ function getEnvNum(key: string, defaultValue?: number): number {
 
 export const env = {
   port: getEnvNum('PORT', 4000),
-  nodeEnv: getEnvStr('NODE_ENV', 'development'),
+  nodeEnv: getEnvStr('NODE_ENV', 'production'),
   
   postgres: {
     user: getEnvStr('POSTGRES_USER', 'admin'),
@@ -70,6 +70,9 @@ export const env = {
 
   crmApiUrl: getEnvStr('CRM_API_URL', ''),
   crmApiKey: getEnvStr('CRM_API_KEY', ''),
+
+  bahiKhataApiUrl: getEnvStr('BAHIKHATA_API_URL', ''),
+  bahiKhataApiKey: getEnvStr('BAHIKHATA_API_KEY', ''),
 };
 
 export const isProd = env.nodeEnv === 'production';

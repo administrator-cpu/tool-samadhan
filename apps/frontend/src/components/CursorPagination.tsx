@@ -7,17 +7,12 @@ interface CursorPaginationProps {
   loading: boolean;
 }
 
-export default function CursorPagination({
-  currentPage,
-  pageMap,
-  onPageChange,
-  loading,
-}: CursorPaginationProps) {
+export default function CursorPagination({ currentPage, pageMap, onPageChange, loading }: CursorPaginationProps) {
   const knownPages = Object.keys(pageMap).map(Number);
   const maxKnownPage = Math.max(...knownPages, 1);
   
-  const start = Math.max(1, currentPage - 2);
-  const end = Math.min(maxKnownPage, currentPage + 2);
+  const start = Math.max(1, currentPage - 4);
+  const end = Math.min(maxKnownPage, currentPage + 4);
 
   const visiblePages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
 

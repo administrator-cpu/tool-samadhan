@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
+import Marquee from "react-fast-marquee";
+import { formatINR } from "@/lib/formatINR";
 
 interface Ticket {
   id: number;
@@ -16,6 +18,8 @@ interface Ticket {
 export default function Home() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [outstandingBalance, setOutstandingBalance] = useState<number>(0);
+  
 
   useEffect(() => {
     const fetchActiveTickets = async () => {
@@ -32,14 +36,25 @@ export default function Home() {
       }
     };
 
+    const fetchOutstandingBalance = async () => {
+      try {
+        const response = await api.get( `/users/outstanding-balance`);
+        const outstandingBalance = response.data.outstandingBalance ?? null;
+        setOutstandingBalance(outstandingBalance);
+      } catch (err) {
+        console.error("Failed to fetch active tickets:", err);
+      }
+    };
+
+    fetchOutstandingBalance();
     fetchActiveTickets();
   }, []);
 
   return (
-    <div className="mx-auto flex max-w-[1000px] flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
+    <div className="mx-auto flex max-w-250 flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
       
       {/* Status Card */}
-      <section className="relative overflow-hidden rounded-[1rem] border border-slate-100/50 bg-white px-8 py-8 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] backdrop-blur-sm">
+      <section className="relative overflow-hidden rounded-2xl border border-slate-100/50 bg-white px-8 py-8 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] backdrop-blur-sm">
         <div className="absolute -right-10 -top-20 h-64 w-90 rounded-full bg-emerald-500/10 blur-3xl transition-colors duration-700" />
 
         <div className="relative z-10 flex flex-col gap-2">
@@ -75,6 +90,23 @@ export default function Home() {
           Pay Bill
         </button>
       </section>*/}
+
+      { outstandingBalance > 0 && (
+        <section className="mt-2 bg-amber-100 text-amber-700 py-3 rounded-md">
+          <Marquee
+            speed={50}
+            gradient={true}
+            gradientColor="#FEF3C6"
+            pauseOnHover
+            pauseOnClick
+          >
+            <span className="text-lg font-medium">
+              An outstanding amount of &nbsp;{formatINR(outstandingBalance)}&nbsp; is pending against your account.
+            </span>
+          </Marquee>
+        </section>
+      )}
+      
 
       {/* Active Tickets */}
       <section className="mt-4 flex flex-col gap-5">
