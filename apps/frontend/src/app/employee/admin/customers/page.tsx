@@ -221,7 +221,7 @@ export default function CustomersPage() {
                     </td>
                     <td className="px-4 py-4 max-w-70 min-w-25 wrap-break-word">
                       <div className="flex flex-col gap-1">
-                        {customer.outstanding >= 0 ? <span className="text-sm font-medium text-slate-700 text-center">{formatINR(customer.outstanding)}</span> : <span className="text-sm font-medium text-red-500 text-center">N/A</span>} 
+                        {customer.outstanding !== null ? <span className="text-sm font-medium text-slate-700 text-center">{formatINR(customer.outstanding)}</span> : <span className="text-sm font-medium text-red-500 text-center">N/A</span>} 
                       </div>
                     </td>
                     <td className="px-4 py-4 max-w-70 min-w-25 wrap-break-word">
