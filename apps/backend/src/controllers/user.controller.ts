@@ -302,10 +302,11 @@ export class UserController {
              return false;
           })
           .map((c: any) => ({
-             id: c.crmConnectionId || c._id,
-             fabCircuitId: c.fabCircuitId,
-             opportunityId: c.opportunityId,
-             bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
+            id: c.crmConnectionId || c._id,
+            fabCircuitId: c.fabCircuitId,
+            opportunityId: c.opportunityId,
+            aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
+            bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
           }));
       }
 
