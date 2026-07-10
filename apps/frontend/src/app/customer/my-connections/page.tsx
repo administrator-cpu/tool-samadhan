@@ -8,6 +8,7 @@ interface Connection {
   id: string;
   fabCircuitId: string;
   opportunityId: string;
+  serviceType: string;
   aEndBtsId: string;
   bEndBtsId: string;
 }
@@ -69,7 +70,11 @@ export default function MyConnectionsPage() {
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Circuit ID
-                    </th>
+                          </th>
+
+                          <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Service Type
+                          </th>
 
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Installation Code
@@ -90,6 +95,9 @@ export default function MyConnectionsPage() {
 
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
                         {conn.opportunityId || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-slate-600">
+                        {conn.serviceType || "N/A"}
                       </td>
 
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
