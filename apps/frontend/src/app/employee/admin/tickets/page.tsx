@@ -257,7 +257,7 @@ export default function AdminTicketsPage() {
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/50">
                     <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[120px] break-words whitespace-normal">Reference</th>
-                    <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[150px] break-words whitespace-normal">Circuit / BTS Id</th>
+                    <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-37.5 wrap-break-word whitespace-normal">Circuit / BTS Id</th>
                     <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[250px] break-words whitespace-normal">Ticket & Customer</th>
                     <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[150px] break-words whitespace-normal">Ownership</th>
                     <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 min-w-[100px] break-words whitespace-normal text-center">Status</th>
