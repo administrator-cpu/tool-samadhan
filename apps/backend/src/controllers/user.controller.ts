@@ -305,6 +305,7 @@ export class UserController {
             id: c.crmConnectionId || c._id,
             fabCircuitId: c.fabCircuitId,
             opportunityId: c.opportunityId,
+            serviceType: c.serviceType || 'N/A',
             aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
             bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
           }));
