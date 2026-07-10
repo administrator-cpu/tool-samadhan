@@ -4,21 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import {
-  History,
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  Eye,
-  X,
-  User,
-  Calendar,
-  CheckCircle2,
-  AlertCircle,
-  Hash,
-  ShieldCheck
-} from "lucide-react";
+import { History, Download, ChevronLeft, ChevronRight, ChevronDown, Eye, X, User, Calendar, CheckCircle2, AlertCircle, Hash, ShieldCheck} from "lucide-react";
 import { getVisiblePages } from "@/lib/pagination";
 
 interface Ticket {
@@ -31,6 +17,7 @@ interface Ticket {
   updated_at: string;
   resolved_at: string | null;
   closed_at: string | null;
+  circuit_description: string | null;
   customer_id: string;
   customer_name: string;
   assigned_agent_name: string | null;
@@ -112,6 +99,7 @@ export default function ResolvedTicketsPage() {
       const headers = [
         "Ticket No",
         "Customer ID",
+        "Circuit / BTS Id",
         "Customer Name",
         "Assigned Agent",
         "Category",
@@ -125,6 +113,7 @@ export default function ResolvedTicketsPage() {
       const csvRows = allTickets.map(t => [
         t.ticket_no,
         t.customer_id,
+        t.circuit_description,
         `"${t.customer_name.replace(/"/g, '""')}"`,
         `"${(t.assigned_agent_name || "Unassigned").replace(/"/g, '""')}"`,
         `"${(t.category_name || "N/A").replace(/"/g, '""')}"`,
@@ -180,7 +169,7 @@ export default function ResolvedTicketsPage() {
               </span>
             ) : (
               <>
-                <Download size={18} className="text-indigo-600" />
+                <Download size={18} className="text-emerald-600" />
                 Export Full Log
               </>
             )}
@@ -195,12 +184,13 @@ export default function ResolvedTicketsPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ticket Info</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Customer</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Assignee</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">RCA Summary</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Timeline</th>
+                  <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ticket Info</th>
+                  <th className="px-2 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Circuit / BTS Id</th>
+                  <th className="px-2 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Customer</th>
+                  <th className="px-2 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Assignee</th>
+                  <th className="px-2 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
+                  <th className="px-2 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">RCA Summary</th>
+                  <th className="px-4 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Timeline</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -226,25 +216,33 @@ export default function ResolvedTicketsPage() {
                 ) : (
                   tickets.map((ticket) => (
                     <tr key={ticket.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="px-6 py-5">
+                      <td className="pr-2 pl-4 py-5">
                         <div className="flex flex-col">
-                          <span className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                          <span className="text-[12px] font-black uppercase tracking-widest text-slate-900 transition-colors">
                             {ticket.ticket_no}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-5">
+
+                      <td className="px-2 py-5 w-33 wrap-break-word">
+                        <div className="flex flex-col">
+                          <span className="text-[12px] font-semibold text-slate-600 transition-colors">
+                            {ticket.circuit_description}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-2 py-5 w-40">
                         <div className="flex items-center gap-3">
                           {/* <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
                             <User size={14} />
                           </div> */}
-                          <div className="flex flex-col">
-                            <span className="text-xs font-black text-slate-700">{ticket.customer_name}</span>
+                          <div className="flex flex-col wrap-break-word">
+                            <span className="text-[12px] font-black text-slate-700">{ticket.customer_name}</span>
                             <span className="text-[10px] font-bold text-slate-400 uppercase">{ticket.customer_id}</span>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-2 py-5 w-32 wrap-break-word">
                         <div className="flex items-center gap-2">
                           {/* <div className={`h-2 w-2 rounded-full ${ticket.assigned_agent_name ? 'bg-indigo-500' : 'bg-slate-300'}`} /> */}
                           <span className="text-xs font-bold text-slate-600">
@@ -252,12 +250,12 @@ export default function ResolvedTicketsPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-2 py-5 w-43.5 wrap-break-word">
                         <span className="inline-flex items-center rounded-sm bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600 uppercase tracking-tight">
-                          {ticket.category_name || "Other"}
+                          {ticket.category_name || "N/A"}
                         </span>
                       </td>
-                      <td className="px-6 py-5 max-w-xs">
+                      <td className="px-2 py-5 max-w-70">
                         <div className="flex flex-col gap-2">
                           <p className="text-xs font-medium text-slate-600 line-clamp-2 leading-relaxed">
                             {ticket.rca || "No root cause analysis documented for this resolution."}
@@ -271,7 +269,8 @@ export default function ResolvedTicketsPage() {
                           </button>
                         </div>
                       </td>
-                      <td className="px-6 py-5 text-right">
+                      
+                      <td className="pr-4 pl-2 py-5 text-right w-43">
                         <div className="flex flex-col items-end">
                           <span className="text-[10px] font-semibold text-slate-400 uppercase">
                             Resolved In {(() => {
@@ -286,9 +285,10 @@ export default function ResolvedTicketsPage() {
                           <div className="flex items-center gap-1.5 text-xs font-black text-emerald-600">
                             {format(new Date(ticket.resolved_at || ticket.closed_at || ticket.updated_at), "MMM dd, yyyy · hh:mm a")}
                           </div>
-                          
                         </div>
                       </td>
+
+                      
                     </tr>
                   ))
                 )}

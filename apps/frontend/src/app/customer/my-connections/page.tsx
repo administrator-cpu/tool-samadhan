@@ -36,16 +36,13 @@ export default function MyConnectionsPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F8FAFC] text-slate-900">
-      <main className="mx-auto w-full max-w-[1400px] p-6 md:p-10">
+      <main className="mx-auto w-full max-w-350 p-6 md:p-10">
         {/* Page Header */}
         <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-[32px] font-bold tracking-tight text-slate-900">
               My Connections
             </h1>
-            <p className="text-base text-slate-500">
-              View your active and terminating links
-            </p>
           </div>
         </div>
 

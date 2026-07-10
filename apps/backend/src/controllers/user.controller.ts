@@ -341,7 +341,13 @@ export class UserController {
         return sendResponse({ res, statusCode: 404, success: false, message: 'Customer or User not found' });
       }
 
-      const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(user.name.trim().toUpperCase())}&page=1&limit=1`;
+
+      const searchName = user.name.trim().toUpperCase()
+        .replace(/\(/g, "\\(")
+        .replace(/\)/g, "\\)");
+        
+      const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(searchName)}&page=1&limit=1000`;
+      // const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(user.name.trim().toUpperCase())}&page=1&limit=1`;
       const searchRes = await fetch(searchUrl, {
         headers: { 'x-api-key': env.crmApiKey }
       });
@@ -355,39 +361,52 @@ export class UserController {
         return sendResponse({ res, data: { connections: [] } });
       }
 
-      const crmCustomerId = searchData.customers[0].id;
+      // const crmCustomerId = searchData.customers[0].id;
 
-      const connUrl = `${env.crmApiUrl}/customers/${crmCustomerId}/connections`;
-      const connRes = await fetch(connUrl, {
-        headers: { 'x-api-key': env.crmApiKey }
-      });
-      if (!connRes.ok) {
-        throw new Error(`CRM API error: ${connRes.statusText}`);
-      }
-      const connData = await connRes.json();
+      // Fetch connections for all matching customers
+      const connectionResponses = await Promise.all(
+        searchData.customers.map(async (customer: any) => {
+          const connUrl = `${env.crmApiUrl}/customers/${customer.id}/connections`;
+          const connRes = await fetch(connUrl, {
+            headers: { "x-api-key": env.crmApiKey }
+          });
+  
+          if (!connRes.ok) {
+            throw new Error(`CRM API error: ${connRes.statusText}`);
+          }
+  
+          return connRes.json();
+        })
+      );
 
-      console.log("Connection Data is present: ", connData)
-
-      let connections = [];
-      if (connData.success && Array.isArray(connData.connections)) {
-        connections = connData.connections
-          .filter((c: any) => {
-            console.log("Inside the Connection Filter");
-             const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
-             if (status === 'active' || status === 'termination' || status === 'under termination' || status === 'notice period') return true;
-             if (status === 'generation') {
-               return c.history?.some((h: any) => h.action?.toUpperCase() === 'ACTIVATED');
-             }
-             return false;
-          })
-          .map((c: any) => ({
+      let connections: any[] = [];
+      for (const connData of connectionResponses) {
+        if (connData.success && Array.isArray(connData.connections)) {
+          connections.push(
+            ...connData.connections
+              .filter((c: any) => {
+                 const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
+                 if (status === 'active' || status === 'termination' || status === 'under termination' || status === 'notice period') return true;
+                 if (status === 'generation') {
+                   return c.history?.some((h: any) => h.action?.toUpperCase() === 'ACTIVATED');
+                 }
+                 return false;
+              })
+              .map((c: any) => ({
              id: c.crmConnectionId || c._id,
              fabCircuitId: c.fabCircuitId,
              opportunityId: c.opportunityId,
              aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
              bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
-          }));
+              }))
+           );
+         }
       }
+
+      // Remove duplicate connections (optional)
+      connections = Array.from(
+        new Map(connections.map((c) => [c.id, c])).values()
+      );
 
       return sendResponse({ res, data: { connections } });
     } catch (error) {
