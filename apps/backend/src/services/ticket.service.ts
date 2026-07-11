@@ -52,8 +52,7 @@ export class TicketService {
         assignedEmployeeId: null,
         issueCategoryId: dto.issueCategoryId,
         circuitDescription: dto.circuitDescription ? String(dto.circuitDescription) : '',
-        // alternateEmail: dto.alternateEmail ? String(dto.alternateEmail).trim() : undefined,
-        alternateEmail: dto.alternateEmail?.join(",") || undefined,
+        alternateEmail: dto.alternateEmail ? String(dto.alternateEmail).trim() : undefined,
       });
 
       const initialMessage = dto.message && dto.message.trim() !== '' ? dto.message.trim() : null;
