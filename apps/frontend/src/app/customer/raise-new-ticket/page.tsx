@@ -99,13 +99,19 @@ export default function CreateTicketPage() {
         return;
       }
 
+      const alternateEmails = formData.alternateEmail.split(",").map((email) => email.trim()).filter(Boolean);
+      if (alternateEmails.length > 3) {
+        toast.error("You can enter a maximum of 3 alternate email addresses.");
+        return;
+      }
+
       if (attachments.length > 0) {
         const formDataPayload = new FormData();
         formDataPayload.append("message", formData.description);
         formDataPayload.append("circuitDescription", formData.circuitDescription);
         formDataPayload.append("issueCategoryId", String(selectedCategory.id));
-        if (formData.alternateEmail.trim()) {
-          formDataPayload.append("alternateEmail", formData.alternateEmail.trim());
+        if (alternateEmails.length > 0) {
+          formDataPayload.append( "alternateEmail", JSON.stringify(alternateEmails));
         }
         attachments.forEach((file) => {
           formDataPayload.append("files", file);
@@ -117,7 +123,7 @@ export default function CreateTicketPage() {
           message: formData.description,
           circuitDescription: formData.circuitDescription,
           issueCategoryId: selectedCategory.id,
-          alternateEmail: formData.alternateEmail.trim() || undefined,
+          alternateEmail: alternateEmails.length ? alternateEmails : undefined
         });
       }
       
@@ -148,7 +154,7 @@ export default function CreateTicketPage() {
 
       {/* Main */}
       <main className="flex flex-1 items-center justify-center w-full p-4 sm:p-6 md:p-6">
-        <div className="w-full max-w-[600px] rounded-xl bg-white p-6 sm:p-10 md:px-12 md:py-8 sm:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)]">
+        <div className="w-full max-w-150 rounded-xl bg-white p-6 sm:p-10 md:px-12 md:py-8 sm:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)]">
           
           {/* Heading */}
           <div className="mb-8">
@@ -176,7 +182,7 @@ export default function CreateTicketPage() {
                 onChange={handleChange}
                 placeholder="Circuit or B END ID"
                 required
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
+                className="h-14 w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
               />
             </div>
             
@@ -192,7 +198,7 @@ export default function CreateTicketPage() {
                   name="categoryId"
                   value={formData.categoryId}
                   onChange={handleChange}
-                  className="h-[56px] w-full appearance-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 transition-shadow cursor-pointer focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
+                  className="h-14 w-full appearance-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 transition-shadow cursor-pointer focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
                 >
                   <option value="" disabled>
                     Select an issue type
@@ -215,17 +221,26 @@ export default function CreateTicketPage() {
 
             {/* Alternate Email */}
             <div className="flex flex-col gap-2">
+              {/*<label htmlFor="alternateEmail" className="text-sm font-medium text-slate-700">
+                Alternate Email <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>*/}
+
               <label htmlFor="alternateEmail" className="text-sm font-medium text-slate-700">
                 Alternate Email <span className="text-slate-400 font-normal">(Optional)</span>
               </label>
+              
+              <p className="text-xs font-normal text-slate-400 -mt-1">
+                Enter up to 3 email addresses separated by commas.
+              </p>
               <input
                 type="email"
                 id="alternateEmail"
                 name="alternateEmail"
+                multiple
                 value={formData.alternateEmail}
                 onChange={handleChange}
-                placeholder="secondary@example.com"
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
+                placeholder="user1@eg.com, user2@eg.com, user3@eg.com"
+                className="h-14 w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
               />
             </div>
 
