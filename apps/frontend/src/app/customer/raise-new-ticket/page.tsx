@@ -99,10 +99,11 @@ export default function CreateTicketPage() {
         return;
       }
 
-      const alternateEmails = formData.alternateEmail
-        .split(",")
-        .map((email) => email.trim())
-        .filter(Boolean);
+      const alternateEmails = formData.alternateEmail.split(",").map((email) => email.trim()).filter(Boolean);
+      if (alternateEmails.length > 3) {
+        toast.error("You can enter a maximum of 3 alternate email addresses.");
+        return;
+      }
 
       if (attachments.length > 0) {
         const formDataPayload = new FormData();
@@ -229,7 +230,7 @@ export default function CreateTicketPage() {
               </label>
               
               <p className="text-xs font-normal text-slate-400 -mt-1">
-                Enter one or more email addresses separated by commas.
+                Enter up to 3 email addresses separated by commas.
               </p>
               <input
                 type="email"
