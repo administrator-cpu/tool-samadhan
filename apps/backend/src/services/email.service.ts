@@ -122,101 +122,45 @@ export const sendCustomerWelcomeEmail = async ({ name, email, password }: any) =
 export const sendTicketConfirmationEmail = async ({ name, email, ticketNo, alternateEmail, circuitId, attachments }: any) => {
   const { subject, html } = ticketCreatedTemplate({ ticketNo, circuitId, attachments });
   await sendEmail({ toEmail: email, subject, htmlContent: html });
-  // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
-  
-  // Alternate emails
-  const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
-  if (alternateEmails?.length) {
-    for (const email of alternateEmails) {
-      await sendEmail({ toEmail: email, subject, htmlContent: html });
-    }
-  }
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
 };
 
 export const sendCustomerAssignment2MinEmail = async ({ name, email, ticketNo, alternateEmail, circuitId }: any) => {
   const { subject, html } = ticketAssignedCustomer2MinTemplate({ ticketNo, circuitId });
   await sendEmail({ toEmail: email, subject, htmlContent: html });
-  // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
-
-  // Alternate emails
-  const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
-  if (alternateEmails?.length) {
-    for (const email of alternateEmails) {
-      await sendEmail({ toEmail: email, subject, htmlContent: html });
-    }
-  }
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
 };
 
 export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo, alternateEmail, circuitId }: any): Promise<boolean> => {
   const { subject, html } = ticketTroubleshootingCustomer15MinTemplate({ ticketNo, circuitId });
   const success = await sendEmail({ toEmail: email, subject, htmlContent: html });
-  // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
-
-  // Alternate emails
-  const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
-  if (alternateEmails?.length) {
-    for (const email of alternateEmails) {
-      await sendEmail({ toEmail: email, subject, htmlContent: html });
-    }
-  }
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
   return success;
 };
 
 export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo, alternateEmail, circuitId }: any): Promise<boolean> => {
   const { subject, html } = mediaOutage45MinTemplate({ ticketNo, circuitId });
   const success = await sendEmail({ toEmail: email, subject, htmlContent: html });
-  // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
-
-  // Alternate emails
-  const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
-  if (alternateEmails?.length) {
-    for (const email of alternateEmails) {
-      await sendEmail({ toEmail: email, subject, htmlContent: html });
-    }
-  }
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
   return success;
 };
 
 export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, message, attachments, alternateEmail, circuitId }: any) => {
   const { subject, html } = ticketUpdateByStaffTemplate({ ticketNo, agentName, message, attachments, circuitId });
   await sendEmail({ toEmail: email, subject, htmlContent: html });
-  // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
-
-  // Alternate emails
-  const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
-  if (alternateEmails?.length) {
-    for (const email of alternateEmails) {
-      await sendEmail({ toEmail: email, subject, htmlContent: html });
-    }
-  }
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
 };
 
 export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, status, updateType, alternateEmail, circuitId }: any) => {
   const { subject, html } = ticketStatusUpdateTemplate({ ticketNo, customerName: name, status, updateType, circuitId });
   await sendEmail({ toEmail: email, subject, htmlContent: html });
-  // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
-
-  // Alternate emails
-  const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
-  if (alternateEmails?.length) {
-    for (const email of alternateEmails) {
-      await sendEmail({ toEmail: email, subject, htmlContent: html });
-    }
-  }
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
 };
 
 export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca, rcaImages, alternateEmail, circuitId }: any) => {
   const { subject, html } = ticketRcaTemplate({ ticketNo, rca, rcaImages, circuitId });
   await sendEmail({ toEmail: email, subject, htmlContent: html });
-  // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
-
-  // Alternate emails
-  const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
-  if (alternateEmails?.length) {
-    for (const email of alternateEmails) {
-      await sendEmail({ toEmail: email, subject, htmlContent: html });
-    }
-  }
+  if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
 };
 
 
