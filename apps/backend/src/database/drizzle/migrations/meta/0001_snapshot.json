@@ -1,6 +1,6 @@
 {
-  "id": "b7414735-a707-4541-b0f0-c8c95c19fe54",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "b95f510c-8b7a-47b4-a6d8-f33b6dd41366",
+  "prevId": "b7414735-a707-4541-b0f0-c8c95c19fe54",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -809,7 +809,7 @@
         },
         "alternate_email": {
           "name": "alternate_email",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },

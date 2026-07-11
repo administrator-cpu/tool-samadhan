@@ -97,6 +97,12 @@ export default function SalesCreateTicketPage() {
         toast.error("Invalid category selected");
         return;
       }
+      
+      const alternateEmails = formData.alternateEmail.split(",").map((email) => email.trim()).filter(Boolean);
+      if (alternateEmails.length > 3) {
+        toast.error("You can enter a maximum of 3 alternate email addresses.");
+        return;
+      }
 
       if (attachments.length > 0) {
         const formDataPayload = new FormData();
@@ -104,8 +110,8 @@ export default function SalesCreateTicketPage() {
         formDataPayload.append("message", formData.description);
         formDataPayload.append("circuitDescription", formData.circuitDescription);
         formDataPayload.append("issueCategoryId", String(selectedCategory.id));
-        if (formData.alternateEmail.trim()) {
-          formDataPayload.append("alternateEmail", formData.alternateEmail.trim());
+        if (alternateEmails.length > 0) {
+          formDataPayload.append( "alternateEmail", JSON.stringify(alternateEmails));
         }
         attachments.forEach((file) => {
           formDataPayload.append("files", file);
@@ -118,7 +124,7 @@ export default function SalesCreateTicketPage() {
           message: formData.description,
           circuitDescription: formData.circuitDescription,
           issueCategoryId: selectedCategory.id,
-          alternateEmail: formData.alternateEmail.trim() || undefined,
+          alternateEmail: alternateEmails.length ? alternateEmails : undefined
         });
       }
       
@@ -135,7 +141,7 @@ export default function SalesCreateTicketPage() {
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-900 antialiased font-sans">
       {/* Main */}
       <main className="flex flex-1 items-center justify-center w-full p-4 sm:p-6 md:p-12">
-        <div className="w-full max-w-[600px] rounded-xl bg-white p-6 sm:p-10 md:p-12 border border-slate-100 shadow-2xl shadow-slate-200/40">
+        <div className="w-full max-w-150 rounded-xl bg-white p-6 sm:p-10 md:p-12 border border-slate-100 shadow-2xl shadow-slate-200/40">
           
           {/* Heading */}
           <div className="mb-8">
@@ -169,13 +175,18 @@ export default function SalesCreateTicketPage() {
 
             {/* Alternate Email */}
             <div className="flex flex-col gap-2">
-              <label htmlFor="alternateEmail" className="text-sm font-bold text-slate-700">
+              <label htmlFor="alternateEmail" className="text-sm font-medium text-slate-700">
                 Alternate Email <span className="text-slate-400 font-normal">(Optional)</span>
               </label>
+              
+              <p className="text-xs font-normal text-slate-400 -mt-1">
+                Enter up to 3 email addresses separated by commas.
+              </p>
               <input
                 type="email"
                 id="alternateEmail"
                 name="alternateEmail"
+                multiple
                 value={formData.alternateEmail}
                 onChange={handleChange}
                 placeholder="secondary@example.com"

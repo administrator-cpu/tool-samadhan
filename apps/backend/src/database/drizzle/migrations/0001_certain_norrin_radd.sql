@@ -1,0 +1,1 @@
+ALTER TABLE "tickets" ALTER COLUMN "alternate_email" SET DATA TYPE text;
