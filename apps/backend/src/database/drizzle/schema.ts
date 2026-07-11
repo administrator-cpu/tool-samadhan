@@ -105,7 +105,7 @@ export const tickets = pgTable('tickets', {
   telco_sr_number: varchar('telco_sr_number', { length: 100 }),
   rating: integer('rating'),
   rating_feedback: text('rating_feedback'),
-  alternate_email: varchar('alternate_email', { length: 255 }),
+  alternate_email: text("alternate_email"),
   allow_customer_reply: boolean('allow_customer_reply').default(false).notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
