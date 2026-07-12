@@ -528,28 +528,10 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                       {ticket.customer.email}
                     </span>
                   )}
-                 
-                  {/*{ticket.alternate_email && (
+                  {ticket.alternate_email && (
                     <span className="text-[11px] font-bold text-slate-400 lowercase block mt-0.5" title="Alternate Email">
                       alt: {ticket.alternate_email}
                     </span>
-                  )}*/}
-                  {ticket.alternate_email && (
-                    <div className="mt-1 text-[12px] font-bold text-slate-800">
-                        Alternate Email
-                        {ticket.alternate_email
-                          .split(",")
-                          .map((email) => email.trim())
-                          .filter(Boolean)
-                          .map((email) => (
-                            <span
-                              key={email}
-                              className="text-[11px] font-bold text-slate-400 lowercase block"
-                            >
-                              {email}
-                            </span>
-                          ))}
-                    </div>
                   )}
                 </div>
 
@@ -562,7 +544,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                 </div>
 
                 {/* Last Updated */}
-                <div className="-mt-2">
+                <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Last Updated</p>
                   <p className="text-[14px] font-bold text-slate-900">
                     {format(new Date(ticket.updated_at), "MMM d, yyyy, h:mm a")}
@@ -571,7 +553,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
 
                 {/* Circuit ID */}
                 {ticket.circuit_description && (
-                  <div className="-mt-2">
+                  <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Circuit ID</p>
                     <p className="text-[14px] font-bold text-slate-900">{ticket.circuit_description}</p>
                   </div>
