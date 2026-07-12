@@ -315,7 +315,7 @@ export default function CreateTicketPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-medium shadow-sm transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-medium shadow-sm transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer"
               >
                 {loading ? (
                   <span>Submitting...</span>
@@ -329,9 +329,9 @@ export default function CreateTicketPage() {
                 )}
               </button>
             </div>
-
           </form>
         </div>
+        
       </main>
     </div>
   );
