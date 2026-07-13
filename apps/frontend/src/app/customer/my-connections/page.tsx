@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useConnectionStore } from "@/store/useCircuitIDStore";
 
 export default function MyConnectionsPage() {
-  const { connections, loading, error, fetchConnections } = useConnectionStore();
+  const { connections, loadingConnection, connectionError, fetchConnections } = useConnectionStore();
 
   useEffect(() => {
      fetchConnections();
@@ -26,12 +26,12 @@ export default function MyConnectionsPage() {
         {/* Connections Table */}
         <section className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
           <div className="overflow-x-auto">
-            {loading ? (
+            {loadingConnection ? (
               <div className="flex justify-center items-center p-20">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2513ec]"></div>
               </div>
-            ) : error ? (
-              <div className="p-10 text-center text-red-500">{error}</div>
+            ) : connectionError ? (
+              <div className="p-10 text-center text-red-500">{connectionError}</div>
             ) : connections.length === 0 ? (
               <div className="p-20 text-center text-slate-500">
                 <span className="material-symbols-outlined text-6xl mb-4">cable</span>

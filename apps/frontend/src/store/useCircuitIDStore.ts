@@ -15,9 +15,11 @@ const CACHE_DURATION = 1 * 60 * 60 * 1000; // 1 hour
 
 interface ConnectionState {
   connections: Connection[];
-  loading: boolean; // Whether connections are currently being loaded
-  error: string | null; // Error message if loading fails
+  loadingConnection: boolean; // Whether connections are currently being loaded
+  connectionError: string | null; // Error message if loading fails
   lastFetched: number | null; // Timestamp of the last successful fetch
+  hasFetched: boolean;
+
 
   fetchConnections: () => Promise<void>; // Function to fetch connections
   clearConnections: () => void; // Function to clear connections
@@ -25,20 +27,24 @@ interface ConnectionState {
 
 export const useConnectionStore = create<ConnectionState>((set, get) => ({
   connections: [],
-  loading: false,
-  error: null,
+  loadingConnection: false,
+  connectionError: null,
   lastFetched: null,
+  hasFetched: false,
 
   fetchConnections: async () => {
-    const { loading, connections, lastFetched } = get();
+    const { loadingConnection, lastFetched, hasFetched } = get();
 
-    if (loading) return; // Already loading, return early
+    if (loadingConnection) return; // Already loading, return early
 
-    if (connections.length > 0 && lastFetched && Date.now() - lastFetched < CACHE_DURATION) {
+    if (lastFetched && Date.now() - lastFetched < CACHE_DURATION) {
+      if (!hasFetched) {
+        set({ hasFetched: true });
+      }
       return; // Cache hit, return early
     }
 
-    set({ loading: true, error: null });
+    set({ loadingConnection: true, connectionError: null });
 
     try {
       const response = await api.get("/users/my-connections");
@@ -50,17 +56,18 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
       
     } catch (err) {
       console.error("Failed to fetch connections:", err);
-      set({ error: "Failed to load your connections. Please try again later." });
+      set({ connectionError: "Failed to load your connections. Please try again later."});
       
     } finally {
-      set({ loading: false });
+      set({ loadingConnection: false,  hasFetched: true, });
     }
   },
 
   clearConnections: () => // Clear connections and reset state
     set({
       connections: [],
-      error: null,
+      connectionError: null,
       lastFetched: null,
+      hasFetched: false,
     }),
 }));

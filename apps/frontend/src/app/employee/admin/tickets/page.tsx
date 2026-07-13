@@ -108,7 +108,7 @@ export default function AdminTicketsPage() {
       return;
     }
     fetchTickets(currentPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [currentPage, queryParams]);
 
   const filteredAndSortedTickets = tickets;
