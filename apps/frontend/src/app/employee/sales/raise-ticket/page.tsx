@@ -234,7 +234,7 @@ export default function SalesCreateTicketPage() {
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Describe the problem details..."
-                className="h-[160px] w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+                className="h-40 w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
               />
             </div>
 
