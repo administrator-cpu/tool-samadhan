@@ -1,40 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
-
-interface Connection {
-  id: string;
-  fabCircuitId: string;
-  opportunityId: string;
-  serviceType: string;
-  aEndBtsId: string;
-  bEndBtsId: string;
-  bandwidth: number;
-}
+import { useEffect } from "react";
+import { useConnectionStore } from "@/store/useCircuitIDStore";
 
 export default function MyConnectionsPage() {
-  const [connections, setConnections] = useState<Connection[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { connections, loading, error, fetchConnections } = useConnectionStore();
 
   useEffect(() => {
-    const fetchConnections = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get("/users/my-connections");
-        setConnections(response.data.connections || []);
-      } catch (err: any) {
-        console.error("Failed to fetch connections:", err);
-        setError("Failed to load your connections. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchConnections();
-  }, []);
+     fetchConnections();
+   }, [fetchConnections]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F8FAFC] text-slate-900">
