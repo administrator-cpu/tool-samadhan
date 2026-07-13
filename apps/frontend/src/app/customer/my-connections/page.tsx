@@ -11,6 +11,7 @@ interface Connection {
   serviceType: string;
   aEndBtsId: string;
   bEndBtsId: string;
+  bandwidth: number;
 }
 
 export default function MyConnectionsPage() {
@@ -70,16 +71,16 @@ export default function MyConnectionsPage() {
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Circuit ID
-                          </th>
-
-                          <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            Service Type
-                          </th>
-
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Service Type
+                    </th>
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Installation Code
                     </th>
-                    
+                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      bandwidth
+                    </th>
                     <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Action
                     </th>
@@ -102,6 +103,9 @@ export default function MyConnectionsPage() {
 
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
                         {conn.bEndBtsId !== "N/A" ? conn.bEndBtsId : conn.aEndBtsId}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-slate-600">
+                        {conn.bandwidth || "N/A"}
                       </td>
 
                       
