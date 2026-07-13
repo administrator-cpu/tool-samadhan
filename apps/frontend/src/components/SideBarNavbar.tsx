@@ -8,7 +8,6 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import FAB5Logo from "@/assets/FAB5-logo.webp";
-import { useUICacheStore } from "@/store/useUICacheStore";
 interface SidebarContentProps {
   collapsed: boolean;
   mobile: boolean;
@@ -127,7 +126,6 @@ const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen
 );
 
 const SidebarNavbar = () => {
-  const { profileData } = useUICacheStore();
   const pathname = usePathname();
   const router = useRouter();
   const { user, clearAuth } = useAuthStore();
