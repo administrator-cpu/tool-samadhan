@@ -3,7 +3,7 @@ import { validateBody } from './validate.js';
 
 export const createTicketSchema = z.object({
   customerId: z.string().optional(),
-  customerEmail: z.email().optional(),
+  customerEmail: z.string().email().optional(),
   issueCategoryId: z.string(),
   circuitDescription: z.string(),
   message: z.string().optional(),
