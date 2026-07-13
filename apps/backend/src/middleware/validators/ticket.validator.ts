@@ -7,7 +7,7 @@ export const createTicketSchema = z.object({
   issueCategoryId: z.string(),
   circuitDescription: z.string(),
   message: z.string().optional(),
-  alternateEmail: z.string().email().optional(),
+  alternateEmail: z.array(z.email()).max(3, "You can provide at most 3 alternate email addresses.").optional(),
   metadata: z.record(z.string(), z.any()).optional(),
 });
 
