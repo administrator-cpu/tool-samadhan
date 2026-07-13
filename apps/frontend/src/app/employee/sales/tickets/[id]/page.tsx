@@ -266,28 +266,10 @@ export default function SalesTicketDetailPage() {
                       {ticket.customer.email}
                     </span>
                   )}
-                  {/*{ticket.alternate_email && (
+                  {ticket.alternate_email && (
                     <span className="text-[11px] font-bold text-slate-400 lowercase block mt-0.5" title="Alternate Email">
                       alt: {ticket.alternate_email}
                     </span>
-                  )}*/}
-
-                  {ticket.alternate_email && (
-                    <div className="mt-1 text-[12px] font-bold text-slate-800">
-                        Alternate Email
-                        {ticket.alternate_email
-                          .split(",")
-                          .map((email) => email.trim())
-                          .filter(Boolean)
-                          .map((email) => (
-                            <span
-                              key={email}
-                              className="text-[11px] font-bold text-slate-400 lowercase block"
-                            >
-                              {email}
-                            </span>
-                          ))}
-                    </div>
                   )}
                 </div>
 
