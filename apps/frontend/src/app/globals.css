@@ -69,8 +69,11 @@ h1, h2, h3, h4, h5, h6 {
 a:hover {
   cursor: pointer;
 }
-button:hover {
+button:enabled:hover {
   cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
 }
 
 .material-symbols-outlined.icon {
