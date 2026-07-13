@@ -307,7 +307,8 @@ export class UserController {
             opportunityId: c.opportunityId,
             serviceType: c.serviceType || 'N/A',
             aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
-            bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
+            bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A',
+            bandwidth: c.bandwidth || 'N/A'
           }));
       }
 
