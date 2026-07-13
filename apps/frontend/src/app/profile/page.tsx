@@ -57,6 +57,15 @@ export default function ProfilePage() {
         console.log("[PROFILE] Fetching from DB...");
         const response = await api.get("/users/me");
         setProfileData(response.data);
+
+        // Update auth store user details so the Sidebar Navbar also updates
+        const { setUser, user: currentUser } = useAuthStore.getState();
+        if (response.data.user && currentUser) {
+          setUser({
+            ...currentUser,
+            ...response.data.user,
+          });
+        }
       } catch (error: any) {
         if (error.code === "SESSION_CLEARED_SILENT") return;
         toast.error("Failed to load profile details.");
