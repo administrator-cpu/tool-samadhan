@@ -57,7 +57,8 @@ export const env = {
     origin: getEnvStr('CORS_ORIGIN', 'http://localhost:3000'),
   },
 
-  helpdeskEmail: getEnvStr('HELPDESK_EMAIL', 'helpdesk@fab5network.com'),
+  helpdeskEmail: getEnvStr('HELPDESK_EMAIL', ''),
+  ceoEmail: getEnvStr('CEO_EMAIL', ''),
   resendServiceApiKey: getEnvStr('EMAIL_SERVICE_API_KEY', ''),
   resendServiceDomain: getEnvStr('EMAIL_SERVICE_DOMAIN', ''),
 
