@@ -55,16 +55,21 @@ const getStatusBadgeConfig = (status: string) => {
   switch (status) {
     case "OPEN":
       return {
-        dotClass: "bg-red-500",
-        pingClass: "bg-red-400",
-        textClass: "text-red-600",
+        dotClass: "bg-slate-400",
+        pingClass: "bg-slate-600",
+        textClass: "text-slate-600",
       };
     case "IN_PROGRESS":
-    case "ESCALATED":
       return {
         dotClass: "bg-amber-500",
         pingClass: "bg-amber-400",
         textClass: "text-amber-600",
+      };
+    case "ESCALATED":
+      return {
+        dotClass: "bg-red-500",
+        pingClass: "bg-red-400",
+        textClass: "text-red-600",
       };
     case "RESOLVED":
       return {
@@ -540,7 +545,7 @@ export default function TicketDetailPage() {
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
                   style={{
-                    width: ticket.status === "OPEN" ? "33%" : ticket.status === "IN_PROGRESS" ? "50%" : "100%"
+                    width: ticket.status === "OPEN" ? "15%" : ticket.status === "IN_PROGRESS" || ticket.status === "ESCALATED" ? "50%" : "100%"
                   }}
                 />
               </div>
@@ -550,8 +555,8 @@ export default function TicketDetailPage() {
                 <div className="relative flex flex-col items-center">
                   {ticket.status === "OPEN" ? (
                     <div className="relative flex h-4 w-4 items-center justify-center">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-300 opacity-40" />
-                      <span className="relative inline-flex h-4 w-4 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-slate-500 opacity-40" />
+                      <span className="relative inline-flex h-4 w-4 rounded-full bg-slate-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
                     </div>
                   ) : (
                     <span className="h-4 w-4 rounded-full border-4 border-white shadow-sm bg-primary" />
@@ -565,9 +570,13 @@ export default function TicketDetailPage() {
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-40" />
                       <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
                     </div>
-                  ) : (
-                    <span className={`h-4 w-4 rounded-full border-4 border-white shadow-sm ${["RESOLVED", "CLOSED"].includes(ticket.status) ? "bg-primary" : "bg-slate-300"}`} />
-                  )}
+                  ) : ( ticket.status === "ESCALATED" ? (
+                    <div className="relative flex h-4 w-4 items-center justify-center">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-40" />
+                      <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(255,0,0,0.8)]" />
+                    </div>): (
+                  <span className={`h-4 w-4 rounded-full border-4 border-white shadow-sm ${["RESOLVED", "CLOSED"].includes(ticket.status) ? "bg-primary" : "bg-slate-300"}`} />
+                  ))}
                 </div>
 
                 {/* Resolved Point */}
@@ -586,9 +595,15 @@ export default function TicketDetailPage() {
             </div>
 
             <div className="flex justify-between text-xs font-medium">
-              <span className={ticket.status === "OPEN" ? "text-amber-500 font-bold" : "text-primary"}>Received</span>
-              <span className={ticket.status === "IN_PROGRESS" ? "text-amber-500 font-bold" : "text-slate-400"}>Investigating</span>
-              <span className={["RESOLVED", "CLOSED"].includes(ticket.status) ? "text-emerald-500 font-bold" : "text-slate-400"}>Resolved</span>
+              <span className={ticket.status === "OPEN" ? "text-amber-500 font-bold" : "text-slate-400"}>
+                Received
+              </span>
+              <span className={ticket.status === "ESCALATED" ? "text-red-500 font-bold" : ticket.status === "IN_PROGRESS" ? "text-amber-500 font-bold" : "text-slate-400"}>
+                Investigating
+              </span>
+              <span className={["RESOLVED", "CLOSED"].includes(ticket.status) ? "text-emerald-500 font-bold" : "text-slate-400"}>
+                Resolved
+              </span>
             </div>
           </div>
 

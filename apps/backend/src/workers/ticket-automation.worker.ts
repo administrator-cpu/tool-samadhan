@@ -4,7 +4,7 @@ import { db } from '../config/database.js';
 import { TicketRepository } from '../repositories/ticket.repository.js';
 import { AutomatedEmailLogRepository } from '../repositories/automated-email-log.repository.js';
 import { TicketEventRepository } from '../repositories/ticket-event.repository.js';
-import { sendCustomerAssignment2MinEmail, sendTroubleshootingUpdateEmail, sendLongDelayUpdateEmail } from '../services/email.service.js';
+import { sendCustomerAssignment2MinEmail, sendTroubleshootingUpdateEmail, sendLongDelayUpdateEmail, sendMttrEscalationEmail } from '../services/email.service.js';
 import { sendTroubleshootingUpdateSms, sendMediaOutageAlertSms } from '../services/sms.service.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
 import { logger } from '../lib/logger.js';
@@ -208,11 +208,6 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
         }
 
 
-
-
-
-
-          
         case 'FINAL_ACTIVITY_CHECK': {
           const createdAt = new Date(ticket.created_at);
           const now = new Date();
@@ -252,6 +247,55 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
           }
           break;
         }
+
+        case 'MTTR_BREACH_ESCALATION': {
+          if (!(await TicketEventRepository.hasAgentReplied(db, ticketId))) {
+            const updatedTicket = await TicketRepository.updateStatus(db, ticketId, 'ESCALATED');
+
+            await sendMttrEscalationEmail({
+              customerName: ticketInfo.name,
+              ticketNo: ticketInfo.ticket_no,
+              category: ticketInfo.category,
+              circuitId: ticketInfo.circuit_description
+            });
+
+            ticketEventEmitter.emit('ticket_updated', {
+              ticketId,
+              data: {
+                type: 'TICKET_STATUS_UPDATED',
+                ticket: updatedTicket
+              }
+            });
+
+            await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
+            logger.info(`[WORKER] MTTR breach escalation sent for Ticket #${ticketId}. Status updated to ESCALATED.`);
+        }
+        break;
+      }
+      case 'REOPENED_MTTR_BREACH_ESCALATION': {
+        if (!(await TicketEventRepository.hasAgentRepliedOnReopenedTicket(db, ticketId))) {
+          const updatedTicket = await TicketRepository.updateStatus(db, ticketId, 'ESCALATED');
+
+          await sendMttrEscalationEmail({
+            customerName: ticketInfo.name,
+            ticketNo: ticketInfo.ticket_no,
+            category: ticketInfo.category,
+            circuitId: ticketInfo.circuit_description
+          });
+
+          ticketEventEmitter.emit('ticket_updated', {
+            ticketId,
+              data: {
+                type: 'TICKET_STATUS_UPDATED',
+                ticket: updatedTicket
+              }
+            });
+
+          await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
+          logger.info(`[WORKER] MTTR breach escalation sent for Ticket #${ticketId}. Status updated to ESCALATED.`);
+        }
+        break;
+      }
 
 
           
