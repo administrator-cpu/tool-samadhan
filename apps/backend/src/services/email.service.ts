@@ -123,9 +123,10 @@ export const sendTicketConfirmationEmail = async ({ name, email, ticketNo, alter
   const { subject, html } = ticketCreatedTemplate({ ticketNo, circuitId, attachments });
   await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
-  
+
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
+  console.log("Alternate emails:", alternateEmails);
   if (alternateEmails?.length) {
     for (const email of alternateEmails) {
       await sendEmail({ toEmail: email, subject, htmlContent: html });
@@ -140,6 +141,7 @@ export const sendCustomerAssignment2MinEmail = async ({ name, email, ticketNo, a
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
+  console.log("Alternate emails:", alternateEmails);
   if (alternateEmails?.length) {
     for (const email of alternateEmails) {
       await sendEmail({ toEmail: email, subject, htmlContent: html });
@@ -154,6 +156,7 @@ export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo, al
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
+  console.log("Alternate emails:", alternateEmails);
   if (alternateEmails?.length) {
     for (const email of alternateEmails) {
       await sendEmail({ toEmail: email, subject, htmlContent: html });
@@ -169,6 +172,7 @@ export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo, alternat
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
+  console.log("Alternate emails:", alternateEmails);
   if (alternateEmails?.length) {
     for (const email of alternateEmails) {
       await sendEmail({ toEmail: email, subject, htmlContent: html });
@@ -184,6 +188,7 @@ export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, 
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
+  console.log("Alternate emails:", alternateEmails);
   if (alternateEmails?.length) {
     for (const email of alternateEmails) {
       await sendEmail({ toEmail: email, subject, htmlContent: html });
@@ -198,6 +203,7 @@ export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, statu
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
+  console.log("Alternate emails:", alternateEmails);
   if (alternateEmails?.length) {
     for (const email of alternateEmails) {
       await sendEmail({ toEmail: email, subject, htmlContent: html });
@@ -212,6 +218,7 @@ export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca, rcaImages
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
+  console.log("Alternate emails:", alternateEmails);
   if (alternateEmails?.length) {
     for (const email of alternateEmails) {
       await sendEmail({ toEmail: email, subject, htmlContent: html });
