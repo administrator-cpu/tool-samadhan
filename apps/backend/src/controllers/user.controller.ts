@@ -263,11 +263,11 @@ export class UserController {
         return sendResponse({ res, statusCode: 404, success: false, message: 'User not found' });
       }
 
-      const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(user.name)}&page=1&limit=1`;
+      const searchName = user.name.trim().toUpperCase().replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+      const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(searchName)}&page=1&limit=1`;
       const searchRes = await fetch(searchUrl, {
         headers: { 'x-api-key': env.crmApiKey }
       });
-
       
       if (!searchRes.ok) {
         throw new Error(`CRM API error: ${searchRes.statusText}`);
