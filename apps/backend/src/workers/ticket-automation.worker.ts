@@ -81,6 +81,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              alternateEmail: ticketInfo.alternate_email,
               circuitId: ticketInfo.circuit_description
             });
             await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
@@ -98,6 +99,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              alternateEmail: ticketInfo.alternate_email,
               circuitId: ticketInfo.circuit_description
             });
 
@@ -137,6 +139,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              alternateEmail: ticketInfo.alternate_email,
               circuitId: ticketInfo.circuit_description
             });
   
@@ -178,6 +181,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
                 name: ticketInfo.name,
                 email: ticketInfo.email,
                 ticketNo: ticketInfo.ticket_no,
+                alternateEmail: ticketInfo.alternate_email,
                 circuitId: ticketInfo.circuit_description
               });
   
@@ -207,11 +211,6 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
             break;
         }
 
-
-
-
-
-
           
         case 'FINAL_ACTIVITY_CHECK': {
           const createdAt = new Date(ticket.created_at);
@@ -224,6 +223,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              alternateEmail: ticketInfo.alternate_email,
               circuitId: ticketInfo.circuit_description
             });
 
