@@ -188,55 +188,84 @@ export class UserService {
   
   private static readonly CACHE_TIME = 15 * 60 * 1000; // 15 minutes
   static async listAllNotLinkedCustomers(): Promise<SuggestedCustomer[]> {
-
-    if ( this.cache && Date.now() < this.cacheExpiry ) return this.cache;
-
+    
+    if (this.cache && Date.now() < this.cacheExpiry) return this.cache;
+    
     const [samadhanCustomers, crmRes] = await Promise.all([
       CustomerRepository.customerList(db),
       fetch(`${env.crmApiUrl}/customers?limit=10000`, {
-        headers: { "x-api-key": env.crmApiKey },
+        headers: { "x-api-key": env.crmApiKey }
       }),
     ]);
-
-    if (!crmRes.ok) {
-      throw new Error("Unable to fetch CRM customers");
-    }
-
+  
+    if (!crmRes.ok) throw new Error("Unable to fetch CRM customers");
+    
     const crmData = await crmRes.json();
-
-    const fuse = new Fuse(crmData.customers, {
+  
+    type CrmCustomer = {
+      id: string;
+      name: string;
+    };
+  
+    const crmCustomers: CrmCustomer[] = crmData.customers;
+  
+    const fuse = new Fuse<CrmCustomer>(crmCustomers, {
       keys: ["name"],
       includeScore: true,
       threshold: 0.35,
       ignoreLocation: true,
       findAllMatches: true,
       minMatchCharLength: 3,
+      isCaseSensitive: false,
     });
+  
+    const crmMap = new Map<string, CrmCustomer>();
+    for (const crm of crmCustomers) {
+      crmMap.set(crm.name.trim().toUpperCase(), crm);
+    }
 
+    const unmatchedCustomers = [...samadhanCustomers.customers];
     const result: SuggestedCustomer[] = [];
 
-    for (const customer of samadhanCustomers.customers) {
-      const exact = crmData.customers.find(
-        (crm: any) => crm.name === customer.name.trim().toUpperCase()
-      );
+    // PASS 1 - Exact Matches
+    for (let i = unmatchedCustomers.length - 1; i >= 0; i--) {
+      const customer = unmatchedCustomers[i];
+      const key = customer.name.trim().toUpperCase();
+  
+      const exact = crmMap.get(key);
+  
+      if (!exact) continue;
+  
+      crmMap.delete(key);
+      fuse.remove(doc => doc.id === exact.id);
+  
+      // Remove exact matches from second pass
+      unmatchedCustomers.splice(i, 1);
+    }
+    
+    unmatchedCustomers.sort(
+      (a, b) => b.name.trim().length - a.name.trim().length
+    );
 
-      if (exact) continue;
-      
-      const search = fuse.search(customer.name, {
-        limit: 1,
-      });
-
+    // PASS 2 - Fuzzy Matches  
+    for (const customer of unmatchedCustomers) {
       let crmName: string | null = null;
       let score = 0;
-
+      
+      const search = fuse.search(customer.name, { limit: 1 });
+      
       if (search.length > 0) {
-        crmName = (search[0].item as any).name;
+        const matched = search[0].item;
         score = Math.round((1 - (search[0].score ?? 1)) * 100);
-
-        if (score < 70) {
-          crmName = null;
+  
+        if (score >= 50) {
+          crmName = matched.name;
+  
+          crmMap.delete(matched.name.trim().toUpperCase());
+          fuse.remove(doc => doc.id === matched.id);
         }
       }
+  
       result.push({
         samadhanId: customer.id,
         samadhanName: customer.name,
@@ -244,68 +273,17 @@ export class UserService {
         score,
       });
     }
+  
     result.sort((a, b) => b.score - a.score);
-
+  
     this.cache = result;
     this.cacheExpiry = Date.now() + this.CACHE_TIME;
-
+  
     return result;
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-  //   const notLinkedCustomers: string[] = [];
-    
-  //   const [samadhanCustomers, crmRes] = await Promise.all([
-  //     CustomerRepository.customerList(db),
-  //     fetch(`${env.crmApiUrl}/customers?limit=10000`, {
-  //       headers: { "x-api-key": env.crmApiKey },
-  //     }),
-  //   ]);
-
-  //   if (!crmRes.ok) logger.error(`CRM API failed with status ${crmRes.status}`)
-  //   const crmData = await crmRes.json();
-
-  //   // Create a lookup Set of CRM customer names
-  //   const crmCustomerNames = new Set<string> (
-  //     crmData.customers.map((customer: any) =>
-  //       customer.name.trim().toLowerCase()
-  //     )
-  //   );
-
-  //   for (const customer of samadhanCustomers.customers) {
-  //     const customerName = customer.name.trim().toLowerCase();
-    
-  //     if (!crmCustomerNames.has(customerName)) {
-  //       notLinkedCustomers.push(customer.name);
-  //     }
-  //   }
-  //   return notLinkedCustomers;
-  // }
+  
 
 
   static async updateEmployee(employeeRowId: string, dto: any) {
