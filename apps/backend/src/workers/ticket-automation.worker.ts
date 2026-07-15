@@ -81,6 +81,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              alternateEmail: ticketInfo.alternate_email,
               circuitId: ticketInfo.circuit_description
             });
             await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
@@ -98,6 +99,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              alternateEmail: ticketInfo.alternate_email,
               circuitId: ticketInfo.circuit_description
             });
 
@@ -137,6 +139,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              alternateEmail: ticketInfo.alternate_email,
               circuitId: ticketInfo.circuit_description
             });
   
@@ -178,6 +181,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
                 name: ticketInfo.name,
                 email: ticketInfo.email,
                 ticketNo: ticketInfo.ticket_no,
+                alternateEmail: ticketInfo.alternate_email,
                 circuitId: ticketInfo.circuit_description
               });
   
@@ -219,6 +223,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               name: ticketInfo.name,
               email: ticketInfo.email,
               ticketNo: ticketInfo.ticket_no,
+              alternateEmail: ticketInfo.alternate_email,
               circuitId: ticketInfo.circuit_description
             });
 
@@ -256,6 +261,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               customerName: ticketInfo.name,
               ticketNo: ticketInfo.ticket_no,
               category: ticketInfo.category,
+              alternateEmail: ticketInfo.alternate_email,
               circuitId: ticketInfo.circuit_description
             });
 
@@ -280,6 +286,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
             customerName: ticketInfo.name,
             ticketNo: ticketInfo.ticket_no,
             category: ticketInfo.category,
+            alternateEmail: ticketInfo.alternate_email,
             circuitId: ticketInfo.circuit_description
           });
 
@@ -297,20 +304,12 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
         break;
       }
 
-
-          
-
         case 'CLOSE_RESOLVED_TICKET': {
           try {
             await db.transaction(async (tx) => {
               const lockedTicket = await TicketRepository.findByIdForUpdate(tx, ticketId);
             
-            if (
-              lockedTicket &&
-              lockedTicket.status === 'RESOLVED' &&
-              lockedTicket.rca &&
-              lockedTicket.rca.trim()
-            ) {
+            if ( lockedTicket && lockedTicket.status === 'RESOLVED' && lockedTicket.rca && lockedTicket.rca.trim() ) {
               const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
                 status: 'CLOSED' as any,
                 closed_at: new Date(),
