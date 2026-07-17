@@ -172,4 +172,15 @@ export class TicketController {
       next(error);
     }
   }
+
+  static async getCustomerMetrics(req: Request, res: Response, next: NextFunction) {
+    try {
+      const circuitId = req.query.circuitId as string | undefined;
+      const { MetricService } = await import('../services/metric.service.js');
+      const metrics = await MetricService.getCustomerMetrics(req.user!.userId, circuitId || null);
+      return sendResponse({ res, data: metrics });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

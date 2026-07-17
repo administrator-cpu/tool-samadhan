@@ -17,6 +17,7 @@ router.get('/', TicketController.getTickets);
 // Dashboard Stats
 router.get('/stats', requireRole([UserRole.ADMIN, UserRole.SALES]), TicketController.getAdminStats);
 router.get('/agent-stats', requireRole([UserRole.SUPPORT_AGENT]), TicketController.getAgentStats);
+router.get('/customer-metrics', requireRole([UserRole.USER]), TicketController.getCustomerMetrics);
 
 // Resolved Export
 router.get('/resolved', requireRole([UserRole.ADMIN]), TicketController.getResolvedTicketsExport);
