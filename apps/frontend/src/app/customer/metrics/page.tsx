@@ -1,98 +1,295 @@
-"use client"
+"use client";
 
-import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import { useConnectionStore } from "@/store/useCircuitIDStore";
+import { 
+  AreaChart, 
+  Area, 
+  BarChart, 
+  Bar, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from "recharts";
+import { ChartContainer, ChartTooltipContent, ChartTooltip, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { motion } from "framer-motion";
 
+const COLORS = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#06b6d4", "#a855f7", "#f43f5e", "#0ea5e9", "#eab308", "#14b8a6"];
 
-// import { RechartsDevtools } from '@recharts/devtools';
+// Framer motion animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1,
+    },
+  },
+};
 
-// #region Sample data
-const data = [
-  {
-    name: 'Page A',
-    uv: 4000,
-    pv: 2400,
-    amt: 2400,
-  },
-  {
-    name: 'Page B',
-    uv: 3000,
-    pv: 1398,
-    amt: 2210,
-  },
-  {
-    name: 'Page C',
-    uv: 2000,
-    pv: 9800,
-    amt: 2290,
-  },
-  {
-    name: 'Page D',
-    uv: 2780,
-    pv: 3908,
-    amt: 2000,
-  },
-  {
-    name: 'Page E',
-    uv: 1890,
-    pv: 4800,
-    amt: 2181,
-  },
-  {
-    name: 'Page F',
-    uv: 2390,
-    pv: 3800,
-    amt: 2500,
-  },
-  {
-    name: 'Page G',
-    uv: 3490,
-    pv: 4300,
-    amt: 2100,
-  },
-];
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80, damping: 15 } },
+};
 
-// #endregion
-const AreaChartExample = ({ isAnimationActive = true }) => (
-  <AreaChart
-    style={{ width: '100%', maxWidth: '700px', maxHeight: '70vh', aspectRatio: 1.618 }}
-    responsive
-    data={data}
-    margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
-  >
-    <defs>
-      <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-        <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-      </linearGradient>
-      <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
-        <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
-      </linearGradient>
-    </defs>
-    <CartesianGrid strokeDasharray="3 3" />
-    <XAxis dataKey="name" />
-    <YAxis width="auto" />
-    <Tooltip />
-    <Area
-      type="monotone"
-      dataKey="uv"
-      stroke="#8884d8"
-      fillOpacity={1}
-      fill="url(#colorUv)"
-      isAnimationActive={isAnimationActive}
-      animationBegin={200}
-      animationDuration={1300}
-    />
-    <Area
-      type="monotone"
-      dataKey="pv"
-      stroke="#82ca9d"
-      fillOpacity={1}
-      fill="url(#colorPv)"
-      isAnimationActive={isAnimationActive}
-    />
-    {/*<RechartsDevtools />*/}
-  </AreaChart>
-);
+export default function CustomerMetricsPage() {
+  const { connections, fetchConnections } = useConnectionStore();
+  const [selectedCircuit, setSelectedCircuit] = useState<string>("ALL");
+  const [metrics, setMetrics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-export default AreaChartExample;
+  useEffect(() => {
+    fetchConnections();
+  }, [fetchConnections]);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get(
+          `/tickets/customer-metrics?circuitId=${selectedCircuit}`
+        );
+        setMetrics(response.data);
+      } catch (error) {
+        console.error("Failed to fetch metrics", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMetrics();
+  }, [selectedCircuit]);
+
+  return (
+    <div className="mx-auto flex max-w-[1200px] flex-col gap-8 px-6 py-10 md:px-12 md:py-14">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 font-outfit">
+            Network Analytics
+          </h1>
+          <p className="text-slate-500 mt-1">
+            Track performance and support metrics for your circuits.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <label htmlFor="circuit-select" className="text-sm font-semibold text-slate-700">
+            Circuit ID:
+          </label>
+          <select
+            id="circuit-select"
+            className="rounded-lg border border-slate-200 bg-white/70 backdrop-blur-md px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all hover:border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+            value={selectedCircuit}
+            onChange={(e) => setSelectedCircuit(e.target.value)}
+          >
+            <option value="ALL">ALL</option>
+            {connections.map((conn) => (
+              <option key={conn.id} value={conn.fabCircuitId}>
+                {conn.fabCircuitId}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+        </div>
+      ) : metrics ? (
+        <motion.div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {/* 1. Monthly Uptime Trend */}
+          <motion.div variants={itemVariants} className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-sm transition-shadow hover:shadow-md">
+            <h3 className="mb-4 text-lg font-semibold text-slate-800">Monthly Uptime Trend</h3>
+            <div className="h-[300px] w-full">
+              <ChartContainer config={{}} className="h-full w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={metrics.monthlyUptimeTrend}>
+                    <defs>
+                      <linearGradient id="colorUptime" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dy={10} />
+                    <YAxis domain={["auto", 100]} axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dx={-10} />
+                    <Tooltip content={<ChartTooltipContent />} cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="uptime" 
+                      stroke="#10b981" 
+                      strokeWidth={3} 
+                      fill="url(#colorUptime)" 
+                      animationDuration={1500} 
+                      animationEasing="ease-out"
+                      activeDot={{ r: 6, fill: "#10b981", stroke: "#fff", strokeWidth: 2 }} 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+          </motion.div>
+
+          {/* 2. Total Faults by Month */}
+          <motion.div variants={itemVariants} className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-sm transition-shadow hover:shadow-md">
+            <h3 className="mb-4 text-lg font-semibold text-slate-800">Total Faults by Month</h3>
+            <div className="h-[300px] w-full">
+              <ChartContainer config={{}} className="h-full w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={metrics.totalFaultsByMonth}>
+                    <defs>
+                      <linearGradient id="colorFaults" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9} />
+                        <stop offset="95%" stopColor="#818cf8" stopOpacity={0.9} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dx={-10} allowDecimals={false} />
+                    <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }} />
+                    <Bar 
+                      dataKey="count" 
+                      fill="url(#colorFaults)" 
+                      radius={[6, 6, 0, 0]} 
+                      maxBarSize={40} 
+                      animationDuration={1200}
+                      animationEasing="ease-out"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+          </motion.div>
+
+          {/* 3. Repeat Fault Comparison */}
+          <motion.div variants={itemVariants} className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-sm transition-shadow hover:shadow-md">
+            <h3 className="mb-4 text-lg font-semibold text-slate-800">Repeat Fault Comparison</h3>
+            <div className="h-[300px] w-full">
+              <ChartContainer config={{}} className="h-full w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={metrics.repeatFaultComparison}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dx={-10} allowDecimals={false} />
+                    <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'rgba(0, 0, 0, 0.03)' }} />
+                    <Legend wrapperStyle={{ paddingTop: "20px", fontSize: "12px" }} />
+                    <Bar dataKey="Link Down" fill="#f43f5e" radius={[4, 4, 0, 0]} maxBarSize={16} animationDuration={1000} />
+                    <Bar dataKey="Packet Drops" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={16} animationDuration={1100} />
+                    <Bar dataKey="Latency Very High" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={16} animationDuration={1200} />
+                    <Bar dataKey="Link Fluctuating" fill="#0ea5e9" radius={[4, 4, 0, 0]} maxBarSize={16} animationDuration={1300} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+          </motion.div>
+
+          {/* 4. Fault Category Distribution */}
+          <motion.div variants={itemVariants} className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-sm transition-shadow hover:shadow-md">
+            <h3 className="mb-4 text-lg font-semibold text-slate-800">Fault Category Distribution</h3>
+            <div className="h-[300px] w-full">
+              {metrics.faultCategoryDistribution.length === 0 ? (
+                <div className="flex h-full items-center justify-center text-slate-500">No data available</div>
+              ) : (
+                <ChartContainer config={{}} className="h-full w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={metrics.faultCategoryDistribution}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={100}
+                        paddingAngle={3}
+                        dataKey="value"
+                        stroke="none"
+                        animationDuration={1500}
+                        animationEasing="ease-out"
+                      >
+                        {metrics.faultCategoryDistribution.map((entry: any, index: number) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{ fontSize: "12px" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </div>
+          </motion.div>
+
+          {/* 5. MTTR Trend */}
+          <motion.div variants={itemVariants} className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-sm transition-shadow hover:shadow-md">
+            <h3 className="mb-4 text-lg font-semibold text-slate-800">MTTR Trend (Hours)</h3>
+            <div className="h-[300px] w-full">
+              <ChartContainer config={{}} className="h-full w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={metrics.mttrTrend}>
+                    <defs>
+                      <linearGradient id="colorMttr" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dx={-10} />
+                    <Tooltip content={<ChartTooltipContent />} cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="mttr" 
+                      stroke="#8b5cf6" 
+                      strokeWidth={3} 
+                      fill="url(#colorMttr)" 
+                      animationDuration={1500} 
+                      animationEasing="ease-out"
+                      activeDot={{ r: 6, fill: "#8b5cf6", stroke: "#fff", strokeWidth: 2 }} 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+          </motion.div>
+
+          {/* 6. Fault Severity */}
+          <motion.div variants={itemVariants} className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-sm transition-shadow hover:shadow-md">
+            <h3 className="mb-4 text-lg font-semibold text-slate-800">Fault Severity</h3>
+            <div className="h-[300px] w-full">
+              <ChartContainer config={{}} className="h-full w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={metrics.faultSeverity}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dx={-10} allowDecimals={false} />
+                    <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'rgba(0, 0, 0, 0.03)' }} />
+                    <Legend wrapperStyle={{ paddingTop: "20px", fontSize: "12px" }} />
+                    <Bar dataKey="Critical" stackId="a" fill="#ef4444" maxBarSize={50} animationDuration={1000} />
+                    <Bar dataKey="Medium" stackId="a" fill="#f59e0b" maxBarSize={50} animationDuration={1200} />
+                    <Bar dataKey="Low" stackId="a" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={50} animationDuration={1400} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500 bg-slate-50/50">
+          Failed to load metrics data.
+        </div>
+      )}
+    </div>
+  );
+}

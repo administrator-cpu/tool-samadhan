@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import {Caveat, Plus_Jakarta_Sans, Outfit } from "next/font/google";
+import {Caveat, Plus_Jakarta_Sans, Outfit, Geist } from "next/font/google";
 
 import { Toaster } from "sonner";
 import AppShell from "@/components/AppShell";
@@ -7,6 +7,9 @@ import GlobalAuthHandler from "@/components/GlobalAuthHandler";
 import { SocketInitializer } from "@/components/SocketInitializer";
 
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -41,7 +44,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakarta.variable} ${outfit.variable} ${caveat.variable} h-full antialiased`}
+      className={cn("h-full", "antialiased", plusJakarta.variable, outfit.variable, caveat.variable, "font-sans", geist.variable)}
     >
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet"/>
