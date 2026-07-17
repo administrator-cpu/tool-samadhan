@@ -229,8 +229,7 @@ export default function CustomerMetricsPage() {
                         animationBegin={1000}
                         animationDuration={1500}
                         animationEasing="ease-out"
-                        activeIndex={activeIndex}
-                        activeShape={renderActiveShape}
+                        {...({ activeIndex, activeShape: renderActiveShape } as any)}
                         onMouseEnter={(_, index) => setActiveIndex(index)}
                         onMouseLeave={() => setActiveIndex(undefined)}
                       >
