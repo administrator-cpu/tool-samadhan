@@ -32,7 +32,7 @@ export default function SupportGuidelinesPage() {
         {/* Severity Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Critical */}
-          <div className="group relative flex flex-col gap-3 rounded-2xl hover:border-t-[4px] hover:border-t-rose-500 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="group relative flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600">
                 <span className="material-symbols-outlined">error</span>
@@ -55,7 +55,7 @@ export default function SupportGuidelinesPage() {
           </div>
 
           {/* Medium */}
-          <div className="group relative flex flex-col gap-3 rounded-2xl hover:border-t-[4px] hover:border-t-orange-500 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="group relative flex flex-col gap-3 rounded-2xl  bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-50 text-orange-600">
                 <span className="material-symbols-outlined">warning</span>
@@ -78,7 +78,7 @@ export default function SupportGuidelinesPage() {
           </div>
 
           {/* Low */}
-          <div className="group relative flex flex-col gap-3 rounded-2xl hover:border-t-[4px] hover:border-t-amber-400 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="group relative flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-500">
                 <span className="material-symbols-outlined">info</span>
