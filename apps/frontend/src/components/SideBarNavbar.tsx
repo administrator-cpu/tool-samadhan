@@ -160,7 +160,7 @@ const SidebarNavbar = () => {
     { label: "Raise Ticket", icon: "report", href: "/customer/raise-new-ticket" },
     { label: "My Tickets", icon: "confirmation_number", href: "/customer/tickets" },
     { label: "My connection", icon: "cable", href: "/customer/my-connections" },
-    { label: "Metrics", icon: "analytics", href: "/customer/metrics" },
+    { label: "Drishti", icon: "analytics", href: "/customer/drishti" },
     { label: "Guidelines", icon: "policy", href: "/customer/support-guidelines" },
     { label: "Profile", icon: "person", href: "/profile" },
   ];
