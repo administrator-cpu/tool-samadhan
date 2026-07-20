@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
       await api.post("/forgot-password", { email });
       toast.success("Verification code sent to your email!");
       setStep("OTP");
-      setResendTimer(60); // 1 minute buffer
+      setResendTimer(120); // 2 minute buffer
     } catch (error: any) {
       toast.error(error.message || "Failed to send verification code");
     } finally {

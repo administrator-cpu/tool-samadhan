@@ -488,7 +488,7 @@ export const passwordResetOtpTemplate = ( { name, otpCode }: any) => ( {
     "Password Recovery",
     `
       <p>Dear Customer,</p>
-      <p>We received a request to reset your support account password. Use the verification code below to proceed. <strong style="color: #dc2626;">This code will expire in 5 minutes.</strong></p>
+      <p>We received a request to reset your support account password. Use the verification code below to proceed. <strong style="color: #dc2626;">This code will expire in 10 minutes.</strong></p>
       
       <div style="background-color: #f0fdf4; border: 2px dashed #059669; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
         <div style="color: #065f46; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Verification Code</div>
