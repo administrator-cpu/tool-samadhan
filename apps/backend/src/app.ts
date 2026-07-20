@@ -43,6 +43,7 @@ app.get('/health', (req, res) => {
 import { TicketController } from './controllers/ticket.controller.js';
 app.use('/api', authRoutes);
 app.get('/api/categories', TicketController.getCategories);
+app.get('/api/categories/unassigned', TicketController.getUnassignedCategories);
 app.use('/api/users', userRoutes);
 app.use('/api/tickets', ticketRoutes);
 
