@@ -254,7 +254,12 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
         }
 
         case 'MTTR_BREACH_ESCALATION': {
-          if (!(await TicketEventRepository.hasAgentReplied(db, ticketId))) {
+          const createdAt = new Date(ticket.created_at);
+          const now = new Date();
+          const diffMs = now.getTime() - createdAt.getTime();
+          const fourHoursMs = 4 * 60 * 60 * 1000 - 5000; // 5-second buffer
+
+          if (diffMs >= fourHoursMs) {
             const updatedTicket = await TicketRepository.updateStatus(db, ticketId, 'ESCALATED');
 
             await sendMttrEscalationEmail({
@@ -276,11 +281,17 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
 
             await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
             logger.info(`[WORKER] MTTR breach escalation sent for Ticket #${ticketId}. Status updated to ESCALATED.`);
+          }
+          break;
         }
-        break;
-      }
       case 'REOPENED_MTTR_BREACH_ESCALATION': {
-        if (!(await TicketEventRepository.hasAgentRepliedOnReopenedTicket(db, ticketId))) {
+        const lastReopen = await TicketEventRepository.getLastReopenedEvent(db, ticketId);
+        const referenceTime = lastReopen ? new Date(lastReopen.created_at) : new Date(ticket.created_at);
+        const now = new Date();
+        const diffMs = now.getTime() - referenceTime.getTime();
+        const fourHoursMs = 4 * 60 * 60 * 1000 - 5000; // 5-second buffer
+
+        if (diffMs >= fourHoursMs) {
           const updatedTicket = await TicketRepository.updateStatus(db, ticketId, 'ESCALATED');
 
           await sendMttrEscalationEmail({
@@ -300,7 +311,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
             });
 
           await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
-          logger.info(`[WORKER] MTTR breach escalation sent for Ticket #${ticketId}. Status updated to ESCALATED.`);
+          logger.info(`[WORKER] Reopened MTTR breach escalation sent for Ticket #${ticketId}. Status updated to ESCALATED.`);
         }
         break;
       }
