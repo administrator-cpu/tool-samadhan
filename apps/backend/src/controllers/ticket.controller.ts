@@ -16,6 +16,15 @@ export class TicketController {
       next(error);
     }
   }
+
+  static async getUnassignedCategories(req: Request, res: Response, next: NextFunction) {
+    try {
+      const categories = await IssueCategoryRepository.findUnassigned(db);
+      return sendResponse({ res, data: categories });
+    } catch (error) {
+      next(error);
+    }
+  }
   static async createTicket(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await TicketService.createTicket(req.body, req.user!.userId, req.user!.role);
