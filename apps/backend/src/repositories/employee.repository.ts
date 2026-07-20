@@ -34,8 +34,11 @@ export class EmployeeRepository {
   }
 
   static async findByRowId(tx: any, employeeRowId: string): Promise<{ user_id: string } | null> {
+    const id = parseInt(employeeRowId, 10);
+    if (isNaN(id)) return null;
+
     const result = await tx.query.employees.findFirst({
-      where: eq(employees.id, parseInt(employeeRowId, 10)),
+      where: eq(employees.id, id),
       columns: { user_id: true }
     });
     
