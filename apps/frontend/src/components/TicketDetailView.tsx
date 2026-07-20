@@ -90,6 +90,26 @@ const getStatusBadgeConfig = (status: string) => {
   }
 };
 
+const getSeverityConfig = (category: string) => {
+  const catLower = (category || "").toLowerCase();
+  if (
+    catLower.includes("link down") ||
+    catLower.includes("latency") ||
+    catLower.includes("packet drop") ||
+    catLower.includes("link fluctuating")
+  ) {
+    return { label: "CRITICAL", classes: "bg-red-100 text-red-700 border-red-200" };
+  }
+  if (
+    catLower.includes("bgp issue") ||
+    catLower.includes("bts access") ||
+    catLower.includes("slow browsing")
+  ) {
+    return { label: "MEDIUM", classes: "bg-orange-100 text-orange-700 border-orange-200" };
+  }
+  return { label: "LOW", classes: "bg-yellow-100 text-yellow-700 border-yellow-200" };
+};
+
 interface TicketDetailViewProps {
   userRole: "ADMIN" | "AGENT";
   basePath: string;
@@ -332,6 +352,8 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
 
   const { ticket, events } = data;
 
+  const severityConfig = getSeverityConfig(ticket.subject);
+
   return (
     <div className="h-screen flex flex-col bg-white text-slate-900 antialiased overflow-hidden">
       {/* Header */}
@@ -344,13 +366,16 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
         </Link>
 
         <div className="flex-1">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-xl font-bold tracking-tight text-slate-900 break-words">{ticket.subject}</h1>
             <span className="px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border border-slate-200">
               #{ticket.ticket_no}
             </span>
+            <span className={`px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest border ${severityConfig.classes}`}>
+              {severityConfig.label}
+            </span>
           </div>
-          <p className="text-sm font-medium text-slate-500">Opened by {ticket.customer.name}</p>
+          <p className="text-sm font-medium text-slate-500 mt-1">Opened by {ticket.customer.name}</p>
         </div>
 
         {/* Action Buttons */}

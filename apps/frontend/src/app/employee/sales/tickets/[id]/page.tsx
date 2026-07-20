@@ -85,6 +85,26 @@ const getStatusBadgeConfig = (status: string) => {
   }
 };
 
+const getSeverityConfig = (category: string) => {
+  const catLower = (category || "").toLowerCase();
+  if (
+    catLower.includes("link down") ||
+    catLower.includes("latency") ||
+    catLower.includes("packet drop") ||
+    catLower.includes("link fluctuating")
+  ) {
+    return { label: "CRITICAL", classes: "bg-red-100 text-red-700 border-red-200" };
+  }
+  if (
+    catLower.includes("bgp issue") ||
+    catLower.includes("bts access") ||
+    catLower.includes("slow browsing")
+  ) {
+    return { label: "MEDIUM", classes: "bg-orange-100 text-orange-700 border-orange-200" };
+  }
+  return { label: "LOW", classes: "bg-yellow-100 text-yellow-700 border-yellow-200" };
+};
+
 export default function SalesTicketDetailPage() {
   const { id } = useParams();
   const [data, setData] = useState<TicketData | null>(null);
@@ -160,7 +180,12 @@ export default function SalesTicketDetailPage() {
                 {ticket.status.replace("_", " ")}
               </span>
             </div>
-            <p className="text-xs font-bold text-slate-400 mt-0.5 uppercase tracking-wider">{ticket.subject}</p>
+            <div className="flex items-center gap-3 mt-1">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{ticket.subject}</p>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getSeverityConfig(ticket.subject).classes}`}>
+                {getSeverityConfig(ticket.subject).label}
+              </span>
+            </div>
           </div>
         </div>
 
