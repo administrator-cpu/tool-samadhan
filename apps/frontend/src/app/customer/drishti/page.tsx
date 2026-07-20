@@ -94,7 +94,7 @@ export default function CustomerMetricsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <label htmlFor="circuit-select" className="text-sm font-semibold text-slate-700">
             Circuit ID:
           </label>
@@ -111,7 +111,7 @@ export default function CustomerMetricsPage() {
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
       </div>
 
       {loading ? (
