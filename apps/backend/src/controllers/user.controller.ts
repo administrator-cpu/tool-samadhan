@@ -417,4 +417,16 @@ export class UserController {
       next(error);
     }
   }
+
+  static async getCustomerMetricsById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const customerRowId = parseInt(req.params.id as string, 10);
+      const circuitId = (req.query.circuitId as string) || undefined;
+      const { MetricService } = await import('../services/metric.service.js');
+      const metrics = await MetricService.getCustomerMetricsByCustomerId(customerRowId, circuitId || null);
+      return sendResponse({ res, data: metrics });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

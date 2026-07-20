@@ -45,7 +45,34 @@ export class MetricService {
     }
 
     const result = await db.execute(query);
-    const ticketsData = result.rows;
+    return this.processMetrics(result.rows as any[]);
+  }
+
+  static async getCustomerMetricsByCustomerId(customerRowId: number, circuitId: string | null) {
+    let query = sql`
+      SELECT 
+        t.id, 
+        t.ticket_no, 
+        t.status, 
+        t.created_at, 
+        t.resolved_at, 
+        t.circuit_description,
+        ic.name as category_name
+      FROM tickets t
+      JOIN customers c ON c.id = t.customer_id
+      LEFT JOIN issue_categories ic ON ic.id = t.primary_issue_category_id
+      WHERE c.id = ${customerRowId}
+    `;
+
+    if (circuitId && circuitId !== 'ALL') {
+      query = sql`${query} AND t.circuit_description = ${circuitId}`;
+    }
+
+    const result = await db.execute(query);
+    return this.processMetrics(result.rows as any[]);
+  }
+
+  private static processMetrics(ticketsData: any[]) {
 
     // Helper to get last 12 months in YYYY-MM format
     const last12Months: { year: number; month: number; label: string }[] = [];
