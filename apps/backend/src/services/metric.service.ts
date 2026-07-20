@@ -74,12 +74,32 @@ export class MetricService {
 
   private static processMetrics(ticketsData: any[]) {
 
-    // Helper to get last 12 months in YYYY-MM format
-    const last12Months: { year: number; month: number; label: string }[] = [];
+    // Determine start date from tickets or fallback to 6 months ago
+    let startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 5); // Default to 6 months (including current)
+
+    if (ticketsData.length > 0) {
+      // Find the absolute minimum created_at date
+      let minTimestamp = Number.MAX_SAFE_INTEGER;
+      for (const t of ticketsData) {
+        const ts = new Date(t.created_at).getTime();
+        if (ts < minTimestamp) minTimestamp = ts;
+      }
+      startDate = new Date(minTimestamp);
+    }
+
     const now = new Date();
-    for (let i = 11; i >= 0; i--) {
+    let monthDiff = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
+
+    // Safeguards
+    if (monthDiff < 2) monthDiff = 2; // Minimum 3 months (current + 2 previous)
+    if (monthDiff > 23) monthDiff = 23; // Maximum 24 months (current + 23 previous)
+
+    // Build dynamic timeline array
+    const timelineMonths: { year: number; month: number; label: string }[] = [];
+    for (let i = monthDiff; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      last12Months.push({
+      timelineMonths.push({
         year: d.getFullYear(),
         month: d.getMonth() + 1, // 1-12
         label: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
@@ -87,17 +107,17 @@ export class MetricService {
     }
 
     // Initialize data structures
-    const monthlyUptimeTrend = last12Months.map(m => ({ name: m.label, uptime: 100 }));
-    const totalFaultsByMonth = last12Months.map(m => ({ name: m.label, count: 0 }));
-    const repeatFaultComparison = last12Months.map(m => ({ 
+    const monthlyUptimeTrend = timelineMonths.map(m => ({ name: m.label, uptime: 100 }));
+    const totalFaultsByMonth = timelineMonths.map(m => ({ name: m.label, count: 0 }));
+    const repeatFaultComparison = timelineMonths.map(m => ({ 
       name: m.label, 
       "Link Down": 0, 
       "Packet Drops": 0, 
       "Latency Very High": 0, 
       "Link Fluctuating": 0 
     }));
-    const faultSeverity = last12Months.map(m => ({ name: m.label, Critical: 0, Medium: 0, Low: 0 }));
-    const mttrTrend = last12Months.map(m => ({ name: m.label, mttr: 0 }));
+    const faultSeverity = timelineMonths.map(m => ({ name: m.label, Critical: 0, Medium: 0, Low: 0 }));
+    const mttrTrend = timelineMonths.map(m => ({ name: m.label, mttr: 0 }));
     
     const faultCategoryDistributionMap = new Map<string, number>();
 
@@ -166,8 +186,8 @@ export class MetricService {
     }
 
     // Finalize Uptime and MTTR calculations
-    for (let i = 0; i < last12Months.length; i++) {
-      const monthData = last12Months[i];
+    for (let i = 0; i < timelineMonths.length; i++) {
+      const monthData = timelineMonths[i];
       const monthLabel = monthData.label;
 
       // Uptime = (Total Available - Downtime) / Total Available * 100
