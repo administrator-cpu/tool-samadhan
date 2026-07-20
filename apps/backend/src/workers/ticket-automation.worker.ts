@@ -212,6 +212,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
         }
 
 
+          
         case 'FINAL_ACTIVITY_CHECK': {
           const createdAt = new Date(ticket.created_at);
           const now = new Date();

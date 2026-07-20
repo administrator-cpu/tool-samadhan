@@ -171,6 +171,7 @@ export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo, al
   const success = await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
   
+
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
   if (alternateEmails?.length) {
@@ -186,6 +187,7 @@ export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo, alternat
   const success = await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
   
+
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
   if (alternateEmails?.length) {
@@ -201,6 +203,7 @@ export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, 
   await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
   
+
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
   if (alternateEmails?.length) {
@@ -215,6 +218,7 @@ export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, statu
   await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
   
+
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
   if (alternateEmails?.length) {
@@ -229,6 +233,7 @@ export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca, rcaImages
   await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
   
+
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
   if (alternateEmails?.length) {
