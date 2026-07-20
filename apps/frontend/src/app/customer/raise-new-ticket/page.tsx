@@ -189,7 +189,7 @@ export default function CreateTicketPage() {
            <div className="flex flex-col gap-2">
               <label htmlFor="circuitDescription" className="text-sm font-medium text-slate-700">
                 Circuit Description
-                </label>
+             </label>
 
               <div className="relative">
                 <select
@@ -265,6 +265,10 @@ export default function CreateTicketPage() {
 
             {/* Alternate Email */}
             <div className="flex flex-col gap-2">
+              {/*<label htmlFor="alternateEmail" className="text-sm font-medium text-slate-700">
+                Alternate Email <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>*/}
+
               <label htmlFor="alternateEmail" className="text-sm font-medium text-slate-700">
                 Alternate Email <span className="text-slate-400 font-normal">(Optional)</span>
               </label>

@@ -582,7 +582,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                 </div>
 
                 {/* Last Updated */}
-                <div>
+                <div className="-mt-2">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Last Updated</p>
                   <p className="text-[14px] font-bold text-slate-900">
                     {format(new Date(ticket.updated_at), "MMM d, yyyy, h:mm a")}
@@ -591,7 +591,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
 
                 {/* Circuit ID */}
                 {ticket.circuit_description && (
-                  <div>
+                  <div className="-mt-2">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Circuit ID</p>
                     <p className="text-[14px] font-bold text-slate-900">{ticket.circuit_description}</p>
                   </div>

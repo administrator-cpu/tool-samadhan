@@ -268,7 +268,6 @@ export class UserController {
       const searchRes = await fetch(searchUrl, {
         headers: { 'x-api-key': env.crmApiKey }
       });
-
       
       if (!searchRes.ok) {
         throw new Error(`CRM API error: ${searchRes.statusText}`);

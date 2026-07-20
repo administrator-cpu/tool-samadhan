@@ -286,6 +286,7 @@ export class UserService {
   
 
 
+
   static async updateEmployee(employeeRowId: string, dto: any) {
     return db.transaction(async (tx) => {
       const empInfo = await EmployeeRepository.findByRowId(tx, employeeRowId);
