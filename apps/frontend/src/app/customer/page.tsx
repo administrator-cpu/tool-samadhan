@@ -176,7 +176,7 @@ export default function Home() {
 
       {/* Support Guidelines Link */}
       <section className="mt-4 border-t border-slate-100 pt-8">
-        <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-slate-50 to-emerald-50/50 p-6 border border-slate-100">
+        <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-slate-50 to-emerald-50/50 p-6 border border-slate-200/70">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm text-emerald-600">
               <span className="material-symbols-outlined">policy</span>
