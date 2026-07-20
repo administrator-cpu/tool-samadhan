@@ -59,6 +59,7 @@ export const env = {
 
   helpdeskEmail: getEnvStr('HELPDESK_EMAIL', ''),
   ceoEmail: getEnvStr('CEO_EMAIL', ''),
+  arunavEmail: getEnvStr('ARUNAV_EMAIL', ''),
   resendServiceApiKey: getEnvStr('EMAIL_SERVICE_API_KEY', ''),
   resendServiceDomain: getEnvStr('EMAIL_SERVICE_DOMAIN', ''),
 
