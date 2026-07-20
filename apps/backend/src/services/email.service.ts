@@ -114,8 +114,16 @@ export const sendTicketReopenedAgentEmail = async ({ customerName, agentName, ag
 
 export const sendMttrEscalationEmail = async ({ customerName, ticketNo, category, circuitId }: any): Promise<boolean> => {
   const { subject, html } = mttrBreachEscalationTemplate({ customerName, ticketNo, category, circuitId });
+
+  const catLower = (category || '').toLowerCase();
+  
+  let toEmail = env.ceoEmail;
+  if ( catLower.includes('Link Down') || catLower.includes('Latency Very High') || catLower.includes('Packet Drops') || catLower.includes('Link Fluctuating') ) {
+    toEmail = env.arunavEmail || env.ceoEmail;
+  }
+
   return await sendEmail({
-    toEmail: env.ceoEmail,
+    toEmail,
     subject,
     htmlContent: html,
     ccEmail: env.helpdeskEmail,
