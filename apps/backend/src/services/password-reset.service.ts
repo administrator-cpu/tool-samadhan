@@ -20,16 +20,16 @@ export class PasswordResetService {
       const lastOtp = await PasswordResetRepository.findLastOtp(tx, user.id);
       if (lastOtp) {
         const diffInMs = new Date().getTime() - lastOtp.created_at.getTime();
-        const sixtySeconds = 60 * 1000;
-        if (diffInMs < sixtySeconds) {
-          throw new AppError(429, 'Please wait 60 seconds before requesting another OTP', ErrorCodes.RATE_LIMIT);
+        const twoMinutes = 120 * 1000;
+        if (diffInMs < twoMinutes) {
+          throw new AppError(429, 'Please wait 2 minutes before requesting another OTP', ErrorCodes.RATE_LIMIT);
         }
       }
 
       await PasswordResetRepository.deleteOtpsForUser(tx, user.id);
 
       const otpCode = crypto.randomInt(100000, 999999).toString();
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
       await PasswordResetRepository.createOtp(tx, user.id, otpCode, expiresAt);
 
