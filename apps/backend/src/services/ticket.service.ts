@@ -562,6 +562,10 @@ export class TicketService {
       const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
+      if (ticket.status === 'CLOSED' || ticket.status === 'RESOLVED') {
+         throw new AppError(400, 'Cannot reassign a resolved or closed ticket. Reopen it first.', ErrorCodes.VALIDATION_ERROR);
+      }
+
       const updates: any = {
         current_assigned_employee_id: employeeId
       };

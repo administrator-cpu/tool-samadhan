@@ -31,6 +31,21 @@ export class TicketRepository {
     return { ...result[0], id: String(result[0].id) } as any;
   }
 
+  static async findRecentAssignedAgentForCustomerAndCategory(tx: any, customerId: string, categoryId: string, excludeTicketId: string): Promise<string | null> {
+    const result = await tx.query.tickets.findFirst({
+      where: and(
+        eq(tickets.customer_id, parseInt(customerId, 10)),
+        eq(tickets.primary_issue_category_id, parseInt(categoryId, 10)),
+        isNotNull(tickets.current_assigned_employee_id),
+        sql`${tickets.id} != ${parseInt(excludeTicketId, 10)}`,
+        sql`${tickets.created_at} >= CURRENT_DATE`
+      ),
+      columns: { current_assigned_employee_id: true },
+      orderBy: [desc(tickets.created_at)]
+    });
+    return result && result.current_assigned_employee_id ? String(result.current_assigned_employee_id) : null;
+  }
+
   static async findActiveTicketByCircuit(tx: any, circuit: string): Promise<Ticket | null> {
     const result = await tx.query.tickets.findFirst({
       where: and(
