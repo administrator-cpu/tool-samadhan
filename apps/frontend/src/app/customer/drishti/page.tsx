@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { graphCache } from "@/lib/cache";
 import { useConnectionStore } from "@/store/useCircuitIDStore";
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Sector } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartTooltip, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
@@ -38,11 +39,19 @@ export default function CustomerMetricsPage() {
 
   useEffect(() => {
     const fetchMetrics = async () => {
+      const cacheKey = `/tickets/customer-metrics?circuitId=${selectedCircuit}`;
+      const cachedData = graphCache.get(cacheKey);
+
+      if (cachedData) {
+        setMetrics(cachedData);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
-        const response = await api.get(
-          `/tickets/customer-metrics?circuitId=${selectedCircuit}`
-        );
+        const response = await api.get(cacheKey);
+        graphCache.set(cacheKey, response.data, 24); // Cache for 24 hours
         setMetrics(response.data);
       } catch (error) {
         console.error("Failed to fetch metrics", error);
