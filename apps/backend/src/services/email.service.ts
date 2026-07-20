@@ -118,7 +118,7 @@ export const sendMttrEscalationEmail = async ({ customerName, ticketNo, category
   const catLower = (category || '').toLowerCase();
   
   let toEmail = env.ceoEmail;
-  if ( catLower.includes('Link Down') || catLower.includes('Latency Very High') || catLower.includes('Packet Drops') || catLower.includes('Link Fluctuating') ) {
+  if ( catLower.includes('link down') || catLower.includes('latency very high') || catLower.includes('packet drops') || catLower.includes('link fluctuating') ) {
     toEmail = env.arunavEmail || env.ceoEmail;
   }
 
