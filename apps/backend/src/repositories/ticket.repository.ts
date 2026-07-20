@@ -78,12 +78,14 @@ export class TicketRepository {
 
   static async getCustomerContactInfo(tx: any, ticketId: string) {
     const result = await tx.execute(sql`
-      SELECT u.name, u.email, u.phone, t.ticket_no, c.customer_id, ic.name as category, te.message, t.circuit_description, t.alternate_email
+      SELECT u.name, u.email, u.phone, t.ticket_no, c.customer_id, ic.name as category, te.message, t.circuit_description, t.alternate_email, au.name as agent_name
       FROM tickets t
       JOIN customers c ON c.id = t.customer_id
       JOIN users u ON u.id = c.user_id
       JOIN issue_categories ic ON ic.id = t.primary_issue_category_id
       LEFT JOIN ticket_events te ON te.ticket_id = t.id AND te.event_type = 'TICKET_CREATED'
+      LEFT JOIN employees e ON e.id = t.current_assigned_employee_id
+      LEFT JOIN users au ON au.id = e.user_id
       WHERE t.id = ${parseInt(ticketId, 10)}
     `);
     return result.rowCount && result.rowCount > 0 ? result.rows[0] : null;
