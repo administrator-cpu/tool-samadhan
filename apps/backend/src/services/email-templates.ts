@@ -557,7 +557,7 @@ export const serverErrorTemplate = ( { timestamp, errorType, errorMessage, stack
   )
 });
 
-export const mttrBreachEscalationTemplate = ({ customerName, ticketNo, category, circuitId }: any) => ({
+export const mttrBreachEscalationTemplate = ({ customerName, ticketNo, category, circuitId, agentName }: any) => ({
   subject: `Urgent Escalation: MTTR Breach - ${ticketNo}${circuitId ? ` ( Reference: ${circuitId})` : ''}`,
   html: emeraldLayout(
     "MTTR SLA Breach – Escalation",
@@ -583,6 +583,10 @@ export const mttrBreachEscalationTemplate = ({ customerName, ticketNo, category,
           <tr>
             <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Circuit ID:</td>
             <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${circuitId || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Assigned To:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${agentName || 'Unassigned'}</td>
           </tr>
         </table>
       </div>

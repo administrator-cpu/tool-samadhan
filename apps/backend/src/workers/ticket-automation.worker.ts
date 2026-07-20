@@ -262,7 +262,8 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               ticketNo: ticketInfo.ticket_no,
               category: ticketInfo.category,
               alternateEmail: ticketInfo.alternate_email,
-              circuitId: ticketInfo.circuit_description
+              circuitId: ticketInfo.circuit_description,
+              agentName: ticketInfo.agent_name
             });
 
             ticketEventEmitter.emit('ticket_updated', {

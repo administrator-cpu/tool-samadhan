@@ -112,8 +112,8 @@ export const sendTicketReopenedAgentEmail = async ({ customerName, agentName, ag
   });
 };
 
-export const sendMttrEscalationEmail = async ({ customerName, ticketNo, category, circuitId }: any): Promise<boolean> => {
-  const { subject, html } = mttrBreachEscalationTemplate({ customerName, ticketNo, category, circuitId });
+export const sendMttrEscalationEmail = async ({ customerName, ticketNo, category, circuitId, agentName }: any): Promise<boolean> => {
+  const { subject, html } = mttrBreachEscalationTemplate({ customerName, ticketNo, category, circuitId, agentName });
 
   const catLower = (category || '').toLowerCase();
   
