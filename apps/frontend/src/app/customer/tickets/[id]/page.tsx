@@ -87,6 +87,26 @@ const getStatusBadgeConfig = (status: string) => {
   }
 };
 
+const getSeverityConfig = (category: string) => {
+  const catLower = (category || "").toLowerCase();
+  if (
+    catLower.includes("link down") ||
+    catLower.includes("latency") ||
+    catLower.includes("packet drop") ||
+    catLower.includes("link fluctuating")
+  ) {
+    return { label: "CRITICAL", classes: "bg-red-100 text-red-700 border-red-200" };
+  }
+  if (
+    catLower.includes("bgp issue") ||
+    catLower.includes("bts access") ||
+    catLower.includes("slow browsing")
+  ) {
+    return { label: "MEDIUM", classes: "bg-orange-100 text-orange-700 border-orange-200" };
+  }
+  return { label: "LOW", classes: "bg-yellow-100 text-yellow-700 border-yellow-200" };
+};
+
 export default function TicketDetailPage() {
   const { id } = useParams();
   const [ticket, setTicket] = useState<Ticket | null>(null);
@@ -309,6 +329,8 @@ export default function TicketDetailPage() {
     );
   }
 
+  const severityConfig = getSeverityConfig(ticket.subject);
+
   return (
     <div className="h-screen flex flex-col bg-[#faf9fa] text-slate-900 overflow-hidden">
       {/* Header */}
@@ -321,8 +343,13 @@ export default function TicketDetailPage() {
         </Link>
 
         <div>
-          <h1 className="text-xl font-semibold break-words">{ticket.subject}</h1>
-          <p className="text-sm text-slate-500">Ticket #{ticket.ticket_no}</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-xl font-semibold break-words">{ticket.subject}</h1>
+            <span className={`px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest border ${severityConfig.classes}`}>
+              {severityConfig.label}
+            </span>
+          </div>
+          <p className="text-sm text-slate-500 mt-1">Ticket #{ticket.ticket_no}</p>
         </div>
 
         <div className="ml-auto flex items-center gap-6">
