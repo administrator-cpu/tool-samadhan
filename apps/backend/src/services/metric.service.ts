@@ -21,7 +21,7 @@ export function getTotalHoursInMonth(year: number, month: number): number {
 }
 
 export class MetricService {
-  static async getCustomerMetrics(userId: string, circuitId: string | null) {
+  static async getCustomerMetrics(userId: string, circuitId: string | null, totalCircuits?: number) {
     const parsedUserId = parseInt(userId, 10);
     
     // Fetch all tickets for the user
@@ -45,10 +45,10 @@ export class MetricService {
     }
 
     const result = await db.execute(query);
-    return this.processMetrics(result.rows as any[]);
+    return this.processMetrics(result.rows as any[], totalCircuits);
   }
 
-  static async getCustomerMetricsByCustomerId(customerRowId: number, circuitId: string | null) {
+  static async getCustomerMetricsByCustomerId(customerRowId: number, circuitId: string | null, totalCircuits?: number) {
     let query = sql`
       SELECT 
         t.id, 
@@ -69,10 +69,10 @@ export class MetricService {
     }
 
     const result = await db.execute(query);
-    return this.processMetrics(result.rows as any[]);
+    return this.processMetrics(result.rows as any[], totalCircuits);
   }
 
-  private static processMetrics(ticketsData: any[]) {
+  private static processMetrics(ticketsData: any[], totalCircuits?: number) {
 
     // Determine start date from tickets or fallback to 6 months ago
     let startDate = new Date();
@@ -193,7 +193,15 @@ export class MetricService {
       // Uptime = (Total Available - Downtime) / Total Available * 100
       const totalMinutes = getTotalMinutesInMonth(monthData.year, monthData.month);
       const downtimeMinutes = downtimePerMonth.get(monthLabel) || 0;
-      let uptime = ((totalMinutes - downtimeMinutes) / totalMinutes) * 100;
+      
+      let uptime = 0;
+      if (totalCircuits && totalCircuits > 0) {
+        const totalPossibleMinutes = totalMinutes * totalCircuits;
+        uptime = ((totalPossibleMinutes - downtimeMinutes) / totalPossibleMinutes) * 100;
+      } else {
+        uptime = ((totalMinutes - downtimeMinutes) / totalMinutes) * 100;
+      }
+      
       if (uptime < 0) uptime = 0; // Cap at 0%
       monthlyUptimeTrend[i].uptime = parseFloat(uptime.toFixed(2));
 
