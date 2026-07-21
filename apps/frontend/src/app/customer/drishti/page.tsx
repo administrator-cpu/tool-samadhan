@@ -131,7 +131,7 @@ export default function CustomerMetricsPage() {
             <div className="h-[350px] w-full">
               <ChartContainer config={{}} className="h-full w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={metrics.monthlyUptimeTrend}>
+                  <AreaChart data={metrics.monthlyUptimeTrend} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorUptime" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
@@ -140,7 +140,7 @@ export default function CustomerMetricsPage() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dy={10} />
-                    <YAxis domain={["auto", 100]} axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dx={-10} />
+                    <YAxis type="number" domain={[(dataMin: number) => Math.max(0, Math.min(Math.floor(dataMin), 98)), 100]} allowDataOverflow={true} axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dx={-10} />
                     <Tooltip content={<ChartTooltipContent />} cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '3 3' }} />
                     <Area 
                       type="monotone" 
