@@ -28,7 +28,7 @@ const itemVariants: Variants = {
 };
 
 export default function CustomerMetricsPage() {
-  const { connections, fetchConnections } = useConnectionStore();
+  const { connections, fetchConnections, hasFetched } = useConnectionStore();
   const [selectedCircuit, setSelectedCircuit] = useState<string>("ALL");
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -38,8 +38,10 @@ export default function CustomerMetricsPage() {
   }, [fetchConnections]);
 
   useEffect(() => {
+    if (!hasFetched) return;
+
     const fetchMetrics = async () => {
-      const cacheKey = `/tickets/customer-metrics?circuitId=${selectedCircuit}`;
+      const cacheKey = `/tickets/customer-metrics?circuitId=${selectedCircuit}&totalCircuits=${connections.length}`;
       const cachedData = graphCache.get(cacheKey);
 
       if (cachedData) {
@@ -60,7 +62,7 @@ export default function CustomerMetricsPage() {
       }
     };
     fetchMetrics();
-  }, [selectedCircuit]);
+  }, [selectedCircuit, hasFetched, connections.length]);
 
   const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;

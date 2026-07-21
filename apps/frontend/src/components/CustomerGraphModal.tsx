@@ -44,10 +44,14 @@ export default function CustomerGraphModal({ isOpen, onClose, customerRowId, cus
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | undefined>();
+  const [connectionsLoaded, setConnectionsLoaded] = useState(false);
 
   // Fetch connections for the dropdown
   useEffect(() => {
-    if (!isOpen || !customerRowId) return;
+    if (!isOpen || !customerRowId) {
+      setConnectionsLoaded(false);
+      return;
+    }
 
     const fetchConnections = async () => {
       try {
@@ -55,6 +59,8 @@ export default function CustomerGraphModal({ isOpen, onClose, customerRowId, cus
         setConnections(response.data.connections || []);
       } catch (err: any) {
         console.error("Failed to fetch connections:", err);
+      } finally {
+        setConnectionsLoaded(true);
       }
     };
     fetchConnections();
@@ -62,13 +68,13 @@ export default function CustomerGraphModal({ isOpen, onClose, customerRowId, cus
 
   // Fetch metrics when modal opens or circuit changes
   useEffect(() => {
-    if (!isOpen || !customerRowId) return;
+    if (!isOpen || !customerRowId || !connectionsLoaded) return;
 
     const fetchMetrics = async () => {
       setLoading(true);
       try {
         const response = await api.get(
-          `/users/customers/${customerRowId}/metrics?circuitId=${selectedCircuit}`
+          `/users/customers/${customerRowId}/metrics?circuitId=${selectedCircuit}&totalCircuits=${connections.length}`
         );
         setMetrics(response.data);
       } catch (error) {
@@ -79,7 +85,7 @@ export default function CustomerGraphModal({ isOpen, onClose, customerRowId, cus
       }
     };
     fetchMetrics();
-  }, [isOpen, customerRowId, selectedCircuit]);
+  }, [isOpen, customerRowId, selectedCircuit, connectionsLoaded, connections.length]);
 
   const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
