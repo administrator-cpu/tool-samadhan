@@ -345,71 +345,7 @@ export class UserController {
       }
 
 
-      const searchName = user.name.trim().toUpperCase()
-        .replace(/\(/g, "\\(")
-        .replace(/\)/g, "\\)");
-        
-      const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(searchName)}&page=1&limit=1000`;
-      // const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(user.name.trim().toUpperCase())}&page=1&limit=1`;
-      const searchRes = await fetch(searchUrl, {
-        headers: { 'x-api-key': env.crmApiKey }
-      });
-
-      if (!searchRes.ok) {
-        throw new Error(`CRM API error: ${searchRes.statusText}`);
-      }
-      const searchData = await searchRes.json();
-      
-      if (!searchData.customers || searchData.customers.length === 0) {
-        return sendResponse({ res, data: { connections: [] } });
-      }
-
-      // const crmCustomerId = searchData.customers[0].id;
-
-      // Fetch connections for all matching customers
-      const connectionResponses = await Promise.all(
-        searchData.customers.map(async (customer: any) => {
-          const connUrl = `${env.crmApiUrl}/customers/${customer.id}/connections`;
-          const connRes = await fetch(connUrl, {
-            headers: { "x-api-key": env.crmApiKey }
-          });
-  
-          if (!connRes.ok) {
-            throw new Error(`CRM API error: ${connRes.statusText}`);
-          }
-  
-          return connRes.json();
-        })
-      );
-
-      let connections: any[] = [];
-      for (const connData of connectionResponses) {
-        if (connData.success && Array.isArray(connData.connections)) {
-          connections.push(
-            ...connData.connections
-              .filter((c: any) => {
-                 const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
-                 if (status === 'active' || status === 'termination' || status === 'under termination' || status === 'notice period') return true;
-                 if (status === 'generation') {
-                   return c.history?.some((h: any) => h.action?.toUpperCase() === 'ACTIVATED');
-                 }
-                 return false;
-              })
-              .map((c: any) => ({
-             id: c.crmConnectionId || c._id,
-             fabCircuitId: c.fabCircuitId,
-             opportunityId: c.opportunityId,
-             aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
-             bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
-              }))
-           );
-         }
-      }
-
-      // Remove duplicate connections (optional)
-      connections = Array.from(
-        new Map(connections.map((c) => [c.id, c])).values()
-      );
+      const connections = await UserService.getCustomerConnectionsFromCrm(user.name);
 
       return sendResponse({ res, data: { connections } });
     } catch (error) {
@@ -421,8 +357,11 @@ export class UserController {
     try {
       const customerRowId = parseInt(req.params.id as string, 10);
       const circuitId = (req.query.circuitId as string) || undefined;
+      let totalCircuits = req.query.totalCircuits ? parseInt(req.query.totalCircuits as string, 10) : undefined;
+      if (Number.isNaN(totalCircuits)) totalCircuits = undefined;
+
       const { MetricService } = await import('../services/metric.service.js');
-      const metrics = await MetricService.getCustomerMetricsByCustomerId(customerRowId, circuitId || null);
+      const metrics = await MetricService.getCustomerMetricsByCustomerId(customerRowId, circuitId || null, totalCircuits);
       return sendResponse({ res, data: metrics });
     } catch (error) {
       next(error);
