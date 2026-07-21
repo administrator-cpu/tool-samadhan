@@ -106,6 +106,7 @@ export class TicketService {
 
       await ticketAutomationQueue.add('TROUBLESHOOTING_UPDATE', { ticketId: ticket.id }, { delay: 15 * 60 * 1000, jobId: `troubleshoot-${ticket.id}-${Date.now()}` });
       await ticketAutomationQueue.add('FINAL_ACTIVITY_CHECK', { ticketId: ticket.id }, { delay: 45 * 60 * 1000, jobId: `final-activity-${ticket.id}-${Date.now()}` });
+      await ticketAutomationQueue.add('MTTR_BREACH_ESCALATION', { ticketId: ticket.id }, { delay: 4 * 60 * 60 * 1000, jobId: `mttr-breach-${ticket.id}-${Date.now()}` });
 
       ticketEventEmitter.emit('ticket_updated', {
         ticketId: ticket.id,
@@ -387,6 +388,8 @@ export class TicketService {
         await ticketAutomationQueue.add('REOPENED_TROUBLESHOOTING_UPDATE', { ticketId: ticket.id }, { delay: 15 * 60 * 1000, jobId: `reopened-troubleshoot-${ticket.id}-${Date.now()}` });
         
         await ticketAutomationQueue.add('REOPENED_FINAL_ACTIVITY_CHECK', { ticketId: ticket.id }, { delay: 45 * 60 * 1000, jobId: `reopened-final-activity-${ticket.id}-${Date.now()}` });
+
+        await ticketAutomationQueue.add('REOPENED_MTTR_BREACH_ESCALATION', { ticketId: ticket.id }, { delay: 4 * 60 * 60 * 1000, jobId: `reopened-mttr-breach-${ticket.id}-${Date.now()}` });
       }
 
       let agentName = null;
@@ -559,6 +562,10 @@ export class TicketService {
     const result = await db.transaction(async (tx) => {
       const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
+
+      if (ticket.status === 'CLOSED' || ticket.status === 'RESOLVED') {
+         throw new AppError(400, 'Cannot reassign a resolved or closed ticket. Reopen it first.', ErrorCodes.VALIDATION_ERROR);
+      }
 
       const updates: any = {
         current_assigned_employee_id: employeeId

@@ -6,9 +6,14 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import Image from "next/image";
-import { Paperclip, X } from "lucide-react";
+import { Paperclip, X, ChevronDown } from "lucide-react";
+import { useConnectionStore } from "@/store/useCircuitIDStore";
+
 
 export default function CreateTicketPage() {
+  const { connections, loadingConnection, hasFetched, connectionError, fetchConnections } = useConnectionStore();
+
+
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const { categories, fetchCategories } = useCategoryStore();
@@ -60,6 +65,16 @@ export default function CreateTicketPage() {
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+  
+  useEffect(() => {
+    fetchConnections();
+  }, [fetchConnections]);
+
+  useEffect(() => {
+    if ( hasFetched && !connectionError && connections.length === 0 ) {
+      toast.error("No active circuits found for your account. Please contact support if you believe this is incorrect.");
+    }
+  }, [hasFetched, connectionError, connections]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -68,11 +83,6 @@ export default function CreateTicketPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.categoryId) {
-      toast.error("Please select an issue category");
-      return;
-    }
-
     if (!formData.circuitDescription.trim()) {
       toast.error("Circuit description is required");
       return;
@@ -80,6 +90,11 @@ export default function CreateTicketPage() {
 
     if (formData.circuitDescription.trim().length > 20) {
       toast.error("Circuit description cannot exceed 20 characters");
+      return;
+    }
+    
+    if (!formData.categoryId) {
+      toast.error("Please select an issue category");
       return;
     }
 
@@ -169,22 +184,50 @@ export default function CreateTicketPage() {
           {/* Form */}
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
 
-          {/* Circuit Description */}
-            <div className="flex flex-col gap-2">
+            {/* Circuit Description */}
+            
+           <div className="flex flex-col gap-2">
               <label htmlFor="circuitDescription" className="text-sm font-medium text-slate-700">
                 Circuit Description
-              </label>
-              <input
-                type="text"
-                id="circuitDescription"
-                name="circuitDescription"
-                value={formData.circuitDescription}
-                onChange={handleChange}
-                placeholder="Circuit or B END ID"
-                required
-                className="h-14 w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
-              />
+             </label>
+
+              <div className="relative">
+                <select
+                  name="circuitDescription"
+                  value={formData.circuitDescription}
+                  onChange={handleChange}
+                  disabled={loadingConnection || !!connectionError || connections.length === 0}
+                  className="h-12 w-full appearance-none rounded-lg border border-slate-200 bg-white px-4 pr-12 text-base text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 focus:outline-none"
+
+                >
+                  {loadingConnection ? (
+                    <option>Loading circuits...</option>
+                  ) : connectionError ? (
+                    <option>Failed to load circuits</option>
+                  ) : connections.length === 0 ? (
+                    <option>No circuits available</option>
+                  ) : (
+                    <>
+                      <option value="" disabled>Select Circuit ID</option>
+                
+                      {connections.map((conn) => (
+                        <option key={conn.id} value={conn.fabCircuitId}>
+                          {conn.opportunityId}
+                        </option>
+                      ))}
+                    </>
+                  )}
+                </select>
+              
+                <ChevronDown
+                  className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  size={20}
+                />
+              </div>
             </div>
+
+
+       
             
             {/* Category */}
             <div className="flex flex-col gap-2">
@@ -198,7 +241,8 @@ export default function CreateTicketPage() {
                   name="categoryId"
                   value={formData.categoryId}
                   onChange={handleChange}
-                  className="h-14 w-full appearance-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 transition-shadow cursor-pointer focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
+                  disabled={ connections.length === 0 || loadingConnection}
+                  className="h-12 w-full appearance-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 transition-shadow cursor-pointer focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                 >
                   <option value="" disabled>
                     Select an issue type
@@ -239,8 +283,9 @@ export default function CreateTicketPage() {
                 multiple
                 value={formData.alternateEmail}
                 onChange={handleChange}
+                disabled={ connections.length === 0 || loadingConnection}
                 placeholder="user1@eg.com, user2@eg.com, user3@eg.com"
-                className="h-14 w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
+                className="h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-emerald-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
               />
             </div>
 
@@ -256,13 +301,14 @@ export default function CreateTicketPage() {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
+                disabled={ connections.length === 0 || loadingConnection}
                 placeholder="Tell us exactly what's happening..."
-                className="h-[160px] w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-[#2513ec] focus:outline-none focus:ring-[3px] focus:ring-[#2513ec]/10"
+                className="h-40 w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-emerald-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 focus:outline-none"
               />
             </div>
 
             {/* Attachments */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 -mt-4">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-slate-700">
                   Attachments <span className="text-slate-400 font-normal">(Optional)</span>
@@ -270,8 +316,8 @@ export default function CreateTicketPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={loading || attachments.length >= 10}
-                  className="flex items-center gap-1.5 text-sm font-medium text-[#2513ec] hover:text-[#2513ec]/80 disabled:opacity-50 transition-colors"
+                  disabled={loading || attachments.length >= 10 || connections.length === 0 || loadingConnection}
+                  className="p-2 flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-500/80 disabled:opacity-50 transition-colors"
                 >
                   <Paperclip size={16} />
                   Add Images
@@ -314,8 +360,8 @@ export default function CreateTicketPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={loading}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-medium shadow-sm transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer"
+                disabled={loading || connections.length === 0 || loadingConnection}
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-medium shadow-sm transition-all hover:opacity-90 disabled:opacity-50  disabled:cursor-not-allowed enabled:hover:cursor-pointer"
               >
                 {loading ? (
                   <span>Submitting...</span>
