@@ -297,6 +297,7 @@ export default function CustomerMetricsPage() {
                     <Area 
                       type="monotone" 
                       dataKey="mttr" 
+                      name="MTTR"
                       stroke="#8b5cf6" 
                       strokeWidth={3} 
                       fill="url(#colorMttr)" 
