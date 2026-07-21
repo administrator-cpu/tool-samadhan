@@ -63,16 +63,21 @@ const getStatusBadgeConfig = (status: string) => {
   switch (status) {
     case "OPEN":
       return {
-        dotClass: "bg-red-500",
-        pingClass: "bg-red-400",
-        textClass: "text-red-600",
+        dotClass: "bg-slate-400",
+        pingClass: "bg-slate-600",
+        textClass: "text-slate-600",
       };
     case "IN_PROGRESS":
-    case "ESCALATED":
       return {
         dotClass: "bg-amber-500",
         pingClass: "bg-amber-400",
         textClass: "text-amber-600",
+      };
+    case "ESCALATED":
+      return {
+        dotClass: "bg-red-500",
+        pingClass: "bg-red-400",
+        textClass: "text-red-600",
       };
     case "RESOLVED":
       return {
@@ -89,6 +94,7 @@ const getStatusBadgeConfig = (status: string) => {
       };
   }
 };
+
 
 const getSeverityConfig = (category: string) => {
   const catLower = (category || "").toLowerCase();
