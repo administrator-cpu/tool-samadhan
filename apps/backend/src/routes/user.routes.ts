@@ -28,6 +28,7 @@ router.post(  '/customers',                 requireRole([UserRole.ADMIN]), valid
 router.get(   '/customers',                 requireRole([UserRole.ADMIN]),                            UserController.getAllCustomers);
 router.get(   '/customers/not-linked',                                                                UserController.getAllNotLinkedCustomers);
 router.get(   '/customers/:id/connections', requireRole([UserRole.ADMIN]),                            UserController.getCustomerConnectionsById );
+router.get(   '/customers/:id/metrics',     requireRole([UserRole.ADMIN]),                            UserController.getCustomerMetricsById );
 router.put(   '/customers/:id',             requireRole([UserRole.ADMIN]),  validateUpdateProfile,    UserController.updateCustomer );
 router.delete('/customers/:id',             requireRole([UserRole.ADMIN]),                            UserController.deleteCustomer );
 

@@ -4,7 +4,7 @@ import { db } from '../config/database.js';
 import { TicketRepository } from '../repositories/ticket.repository.js';
 import { AutomatedEmailLogRepository } from '../repositories/automated-email-log.repository.js';
 import { TicketEventRepository } from '../repositories/ticket-event.repository.js';
-import { sendCustomerAssignment2MinEmail, sendTroubleshootingUpdateEmail, sendLongDelayUpdateEmail } from '../services/email.service.js';
+import { sendCustomerAssignment2MinEmail, sendTroubleshootingUpdateEmail, sendLongDelayUpdateEmail, sendMttrEscalationEmail } from '../services/email.service.js';
 import { sendTroubleshootingUpdateSms, sendMediaOutageAlertSms } from '../services/sms.service.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
 import { logger } from '../lib/logger.js';
@@ -211,6 +211,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
             break;
         }
 
+
           
         case 'FINAL_ACTIVITY_CHECK': {
           const createdAt = new Date(ticket.created_at);
@@ -253,20 +254,75 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
           break;
         }
 
+        case 'MTTR_BREACH_ESCALATION': {
+          const createdAt = new Date(ticket.created_at);
+          const now = new Date();
+          const diffMs = now.getTime() - createdAt.getTime();
+          const fourHoursMs = 4 * 60 * 60 * 1000 - 5000; // 5-second buffer
 
-          
+          if (diffMs >= fourHoursMs) {
+            const updatedTicket = await TicketRepository.updateStatus(db, ticketId, 'ESCALATED');
+
+            await sendMttrEscalationEmail({
+              customerName: ticketInfo.name,
+              ticketNo: ticketInfo.ticket_no,
+              category: ticketInfo.category,
+              alternateEmail: ticketInfo.alternate_email,
+              circuitId: ticketInfo.circuit_description,
+              agentName: ticketInfo.agent_name
+            });
+
+            ticketEventEmitter.emit('ticket_updated', {
+              ticketId,
+              data: {
+                type: 'TICKET_STATUS_UPDATED',
+                ticket: updatedTicket
+              }
+            });
+
+            await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
+            logger.info(`[WORKER] MTTR breach escalation sent for Ticket #${ticketId}. Status updated to ESCALATED.`);
+          }
+          break;
+        }
+      case 'REOPENED_MTTR_BREACH_ESCALATION': {
+        const lastReopen = await TicketEventRepository.getLastReopenedEvent(db, ticketId);
+        const referenceTime = lastReopen ? new Date(lastReopen.created_at) : new Date(ticket.created_at);
+        const now = new Date();
+        const diffMs = now.getTime() - referenceTime.getTime();
+        const fourHoursMs = 4 * 60 * 60 * 1000 - 5000; // 5-second buffer
+
+        if (diffMs >= fourHoursMs) {
+          const updatedTicket = await TicketRepository.updateStatus(db, ticketId, 'ESCALATED');
+
+          await sendMttrEscalationEmail({
+            customerName: ticketInfo.name,
+            ticketNo: ticketInfo.ticket_no,
+            category: ticketInfo.category,
+            alternateEmail: ticketInfo.alternate_email,
+            circuitId: ticketInfo.circuit_description
+          });
+
+          ticketEventEmitter.emit('ticket_updated', {
+            ticketId,
+              data: {
+                type: 'TICKET_STATUS_UPDATED',
+                ticket: updatedTicket
+              }
+            });
+
+          await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
+          logger.info(`[WORKER] Reopened MTTR breach escalation sent for Ticket #${ticketId}. Status updated to ESCALATED.`);
+        }
+        break;
+      }
 
         case 'CLOSE_RESOLVED_TICKET': {
           try {
             await db.transaction(async (tx) => {
               const lockedTicket = await TicketRepository.findByIdForUpdate(tx, ticketId);
             
-            if (
-              lockedTicket &&
-              lockedTicket.status === 'RESOLVED' &&
-              lockedTicket.rca &&
-              lockedTicket.rca.trim()
-            ) {
+            if ( lockedTicket && lockedTicket.status === 'RESOLVED' && lockedTicket.rca && lockedTicket.rca.trim() ) {
               const updatedTicket = await TicketRepository.updateFields(tx, ticketId, {
                 status: 'CLOSED' as any,
                 closed_at: new Date(),

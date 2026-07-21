@@ -40,6 +40,10 @@ export default function EditCustomerModal({ isOpen, onClose, onSuccess, customer
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!customer) return;
+    if (!customer.customer_row_id) {
+      toast.error("Customer ID is missing. Cannot update.");
+      return;
+    }
 
     setLoading(true);
 

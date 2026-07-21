@@ -19,6 +19,7 @@ import {
   passwordResetOtpTemplate,
   
   serverErrorTemplate,
+  mttrBreachEscalationTemplate,
 } from './email-templates.js';
 
 const sendEmail = async ({ toEmail, subject, htmlContent, ccEmail }: { toEmail: string; subject: string; htmlContent: string; ccEmail?: string; }): Promise<boolean> => {
@@ -111,6 +112,24 @@ export const sendTicketReopenedAgentEmail = async ({ customerName, agentName, ag
   });
 };
 
+export const sendMttrEscalationEmail = async ({ customerName, ticketNo, category, circuitId, agentName }: any): Promise<boolean> => {
+  const { subject, html } = mttrBreachEscalationTemplate({ customerName, ticketNo, category, circuitId, agentName });
+
+  const catLower = (category || '').toLowerCase();
+  
+  let toEmail = env.ceoEmail;
+  if ( catLower.includes('link down') || catLower.includes('latency very high') || catLower.includes('packet drops') || catLower.includes('link fluctuating') ) {
+    toEmail = env.arunavEmail || env.ceoEmail;
+  }
+
+  return await sendEmail({
+    toEmail,
+    subject,
+    htmlContent: html,
+    ccEmail: env.helpdeskEmail,
+  });
+};
+
 
 
 // --- Customer Email ---
@@ -137,7 +156,7 @@ export const sendCustomerAssignment2MinEmail = async ({ name, email, ticketNo, a
   const { subject, html } = ticketAssignedCustomer2MinTemplate({ ticketNo, circuitId });
   await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
-
+  
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
   if (alternateEmails?.length) {
@@ -151,6 +170,7 @@ export const sendTroubleshootingUpdateEmail = async ({ name, email, ticketNo, al
   const { subject, html } = ticketTroubleshootingCustomer15MinTemplate({ ticketNo, circuitId });
   const success = await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
+  
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
@@ -166,6 +186,7 @@ export const sendLongDelayUpdateEmail = async ({ name, email, ticketNo, alternat
   const { subject, html } = mediaOutage45MinTemplate({ ticketNo, circuitId });
   const success = await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
+  
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
@@ -181,6 +202,7 @@ export const sendTicketUpdateEmail = async ({ name, email, ticketNo, agentName, 
   const { subject, html } = ticketUpdateByStaffTemplate({ ticketNo, agentName, message, attachments, circuitId });
   await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
+  
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
@@ -195,6 +217,7 @@ export const sendTicketStatusUpdateEmail = async ({ name, email, ticketNo, statu
   const { subject, html } = ticketStatusUpdateTemplate({ ticketNo, customerName: name, status, updateType, circuitId });
   await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
+  
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];
@@ -209,6 +232,7 @@ export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca, rcaImages
   const { subject, html } = ticketRcaTemplate({ ticketNo, rca, rcaImages, circuitId });
   await sendEmail({ toEmail: email, subject, htmlContent: html });
   // if (alternateEmail) await sendEmail({ toEmail: alternateEmail, subject, htmlContent: html });
+  
 
   // Alternate emails
   const alternateEmails = alternateEmail ? alternateEmail.split(",").map((email) => email.trim()).filter(Boolean) : [];

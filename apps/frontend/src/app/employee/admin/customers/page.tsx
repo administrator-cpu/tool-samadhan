@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import AddCustomerModal from "@/components/AddCustomerModal";
 import EditCustomerModal from "@/components/EditCustomerModal";
 import CustomerConnectionsModal from "@/components/CustomerConnectionsModal";
+import CustomerGraphModal from "@/components/CustomerGraphModal";
 import StandardPagination from "@/components/StandardPagination";
 import { formatINR } from "@/lib/formatINR";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -47,6 +48,10 @@ export default function CustomersPage() {
   // Connections Modal State
   const [connectionsModalOpen, setConnectionsModalOpen] = useState(false);
   const [customerForConnections, setCustomerForConnections] = useState<Customer | null>(null);
+
+  // Graph Modal State
+  const [graphModalOpen, setGraphModalOpen] = useState(false);
+  const [customerForGraph, setCustomerForGraph] = useState<Customer | null>(null);
 
   const { user } = useAuthStore();
 
@@ -260,6 +265,13 @@ export default function CustomersPage() {
                           <span className="material-symbols-outlined">cable</span>
                         </button>
                         <button 
+                          onClick={() => { setCustomerForGraph(customer); setGraphModalOpen(true); }}
+                          className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-sky-600 transition-all hover:bg-sky-50 rounded-lg active:scale-95"
+                          title="View Analytics Graph"
+                        >
+                          <span className="material-symbols-outlined">monitoring</span>
+                        </button>
+                        <button 
                           onClick={() => { setCustomerToEdit(customer); setIsEditModalOpen(true); }}
                           className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-emerald-600 transition-all hover:bg-emerald-50 rounded-lg active:scale-95"
                           title="Edit Customer"
@@ -308,9 +320,16 @@ export default function CustomersPage() {
 
       <CustomerConnectionsModal
         isOpen={connectionsModalOpen}
-        onClose={() => { setConnectionsModalOpen(false); setCustomerForConnections(null); }}
+        onClose={() => setConnectionsModalOpen(false)}
         customerRowId={customerForConnections?.customer_row_id || null}
         customerName={customerForConnections?.name}
+      />
+
+      <CustomerGraphModal
+        isOpen={graphModalOpen}
+        onClose={() => setGraphModalOpen(false)}
+        customerRowId={customerForGraph?.customer_row_id || null}
+        customerName={customerForGraph?.name}
       />
     </div>
   );

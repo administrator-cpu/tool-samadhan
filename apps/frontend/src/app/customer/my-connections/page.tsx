@@ -1,39 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
-
-interface Connection {
-  id: string;
-  fabCircuitId: string;
-  opportunityId: string;
-  serviceType: string;
-  aEndBtsId: string;
-  bEndBtsId: string;
-}
+import { useEffect } from "react";
+import { useConnectionStore } from "@/store/useCircuitIDStore";
 
 export default function MyConnectionsPage() {
-  const [connections, setConnections] = useState<Connection[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { connections, loadingConnection, connectionError, fetchConnections } = useConnectionStore();
 
   useEffect(() => {
-    const fetchConnections = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get("/users/my-connections");
-        setConnections(response.data.connections || []);
-      } catch (err: any) {
-        console.error("Failed to fetch connections:", err);
-        setError("Failed to load your connections. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchConnections();
-  }, []);
+     fetchConnections();
+   }, [fetchConnections]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F8FAFC] text-slate-900">
@@ -50,12 +26,12 @@ export default function MyConnectionsPage() {
         {/* Connections Table */}
         <section className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
           <div className="overflow-x-auto">
-            {loading ? (
+            {loadingConnection ? (
               <div className="flex justify-center items-center p-20">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2513ec]"></div>
               </div>
-            ) : error ? (
-              <div className="p-10 text-center text-red-500">{error}</div>
+            ) : connectionError ? (
+              <div className="p-10 text-center text-red-500">{connectionError}</div>
             ) : connections.length === 0 ? (
               <div className="p-20 text-center text-slate-500">
                 <span className="material-symbols-outlined text-6xl mb-4">cable</span>
@@ -70,16 +46,16 @@ export default function MyConnectionsPage() {
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Circuit ID
-                          </th>
-
-                          <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            Service Type
-                          </th>
-
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Service Type
+                    </th>
                     <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Installation Code
                     </th>
-                    
+                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      bandwidth
+                    </th>
                     <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Action
                     </th>
@@ -102,6 +78,9 @@ export default function MyConnectionsPage() {
 
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
                         {conn.bEndBtsId !== "N/A" ? conn.bEndBtsId : conn.aEndBtsId}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-slate-600">
+                        {conn.bandwidth || "N/A"}
                       </td>
 
                       

@@ -21,13 +21,15 @@ interface Ticket {
 const getStatusClassName = (status: string) => {
   switch (status) {
     case "OPEN":
-      return "bg-blue-100 text-blue-700";
+      return "bg-emerald-50 text-emerald-600";
     case "IN_PROGRESS":
-      return "bg-indigo-100 text-[#2a14b4]";
+      return "bg-indigo-50 text-[#2a14b4]";
+    case "ESCALATED":
+      return "bg-red-50 text-red-600";
     case "RESOLVED":
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-slate-100 text-slate-600";
     case "CLOSED":
-      return "bg-slate-100 text-slate-700";
+      return "bg-slate-100 text-slate-400";
     default:
       return "bg-slate-100 text-slate-700";
   }

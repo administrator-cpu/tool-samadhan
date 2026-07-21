@@ -16,13 +16,29 @@ export class AssignmentService {
       return ticket.current_assigned_employee_id;
     }
 
-    // 2. Find best agent (least active tickets in OPEN/IN_PROGRESS/ESCALATED) for this category
-    const bestAgent = await EmployeeRepository.findBestAgentForCategory(tx, categoryId);
+    // 2. Check for recent ticket by same customer and same category today
+    const recentAgentId = await TicketRepository.findRecentAssignedAgentForCustomerAndCategory(
+      tx,
+      String(ticket.customer_id),
+      categoryId,
+      ticketId
+    );
 
-    if (bestAgent) {
-      assignedEmployeeId = bestAgent.employee_id;
-      
-      // 3. Assign the ticket
+    if (recentAgentId) {
+      assignedEmployeeId = recentAgentId;
+      logger.info(`Assigning to recent agent ${assignedEmployeeId} for Ticket ${ticketId} based on today's history.`);
+    } else {
+      // 3. Find best agent (least active tickets in OPEN/IN_PROGRESS/ESCALATED) for this category
+      const bestAgent = await EmployeeRepository.findBestAgentForCategory(tx, categoryId);
+      if (bestAgent) {
+        assignedEmployeeId = bestAgent.employee_id;
+      } else {
+        logger.warn(`No suitable agent found for Ticket ${ticketId} in category ${categoryId}`);
+      }
+    }
+
+    if (assignedEmployeeId) {
+      // 4. Assign the ticket
       const updates: any = {
         current_assigned_employee_id: assignedEmployeeId
       };
@@ -32,8 +48,6 @@ export class AssignmentService {
       await TicketRepository.updateFields(tx, ticketId, updates);
 
       logger.info(`Assigned Ticket ${ticketId} to Employee ${assignedEmployeeId}`);
-    } else {
-      logger.warn(`No suitable agent found for Ticket ${ticketId} in category ${categoryId}`);
     }
     
     return assignedEmployeeId;

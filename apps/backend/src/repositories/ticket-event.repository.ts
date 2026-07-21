@@ -139,4 +139,16 @@ export class TicketEventRepository {
     
     return !!reply;
   }
+
+  static async getLastReopenedEvent(tx: any, ticketId: string) {
+    const lastReopen = await tx.query.ticketEvents.findFirst({
+        where: and(
+            eq(ticketEvents.ticket_id, Number(ticketId)),
+            eq(ticketEvents.event_type, "STATUS_CHANGED"),
+            sql`${ticketEvents.metadata}->>'newStatus' = 'REOPENED'`
+        ),
+        orderBy: [desc(ticketEvents.id)]
+    });
+    return lastReopen;
+  }
 }

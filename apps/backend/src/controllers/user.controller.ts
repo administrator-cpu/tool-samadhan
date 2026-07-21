@@ -307,7 +307,8 @@ export class UserController {
             opportunityId: c.opportunityId,
             serviceType: c.serviceType || 'N/A',
             aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
-            bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
+            bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A',
+            bandwidth: c.bandwidth || 'N/A'
           }));
       }
 
@@ -411,6 +412,18 @@ export class UserController {
       );
 
       return sendResponse({ res, data: { connections } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getCustomerMetricsById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const customerRowId = parseInt(req.params.id as string, 10);
+      const circuitId = (req.query.circuitId as string) || undefined;
+      const { MetricService } = await import('../services/metric.service.js');
+      const metrics = await MetricService.getCustomerMetricsByCustomerId(customerRowId, circuitId || null);
+      return sendResponse({ res, data: metrics });
     } catch (error) {
       next(error);
     }

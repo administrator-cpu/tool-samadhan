@@ -16,6 +16,15 @@ export class TicketController {
       next(error);
     }
   }
+
+  static async getUnassignedCategories(req: Request, res: Response, next: NextFunction) {
+    try {
+      const categories = await IssueCategoryRepository.findUnassigned(db);
+      return sendResponse({ res, data: categories });
+    } catch (error) {
+      next(error);
+    }
+  }
   static async createTicket(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await TicketService.createTicket(req.body, req.user!.userId, req.user!.role);
@@ -168,6 +177,17 @@ export class TicketController {
 
       const result = await TicketService.listResolvedTickets(page, limit, exportAll, year, month);
       return sendResponse({ res, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getCustomerMetrics(req: Request, res: Response, next: NextFunction) {
+    try {
+      const circuitId = req.query.circuitId as string | undefined;
+      const { MetricService } = await import('../services/metric.service.js');
+      const metrics = await MetricService.getCustomerMetrics(req.user!.userId, circuitId || null);
+      return sendResponse({ res, data: metrics });
     } catch (error) {
       next(error);
     }

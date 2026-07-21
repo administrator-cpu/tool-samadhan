@@ -74,7 +74,11 @@ export default function CustomerConnectionsModal({ isOpen, onClose, customerRowI
               ) : connections.length === 0 ? (
                 <div className="p-20 text-center text-slate-500">
                   <span className="material-symbols-outlined text-6xl mb-4">cable</span>
-                  <p>No connections found for this customer.</p>
+                  {customerName ? (
+                    <p>We found this customer in the CRM, but they currently have no connections.</p>
+                  ) : (
+                    <p>We could not find this customer's details.</p>
+                  )}
                 </div>
               ) : (
                 <table className="w-full border-collapse text-left">

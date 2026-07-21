@@ -488,7 +488,7 @@ export const passwordResetOtpTemplate = ( { name, otpCode }: any) => ( {
     "Password Recovery",
     `
       <p>Dear Customer,</p>
-      <p>We received a request to reset your support account password. Use the verification code below to proceed. <strong style="color: #dc2626;">This code will expire in 5 minutes.</strong></p>
+      <p>We received a request to reset your support account password. Use the verification code below to proceed. <strong style="color: #dc2626;">This code will expire in 10 minutes.</strong></p>
       
       <div style="background-color: #f0fdf4; border: 2px dashed #059669; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
         <div style="color: #065f46; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Verification Code</div>
@@ -556,3 +556,47 @@ export const serverErrorTemplate = ( { timestamp, errorType, errorMessage, stack
     `
   )
 });
+
+export const mttrBreachEscalationTemplate = ({ customerName, ticketNo, category, circuitId, agentName }: any) => ({
+  subject: `Urgent Escalation: MTTR Breach - ${ticketNo}${circuitId ? ` ( Reference: ${circuitId})` : ''}`,
+  html: emeraldLayout(
+    "MTTR SLA Breach – Escalation",
+    `
+      <p>Dear Sir,</p>
+      <p>This is to bring to your immediate attention that the ongoing service incident has exceeded the committed <strong>Mean Time to Restore (MTTR)</strong> as per our SLA commitments.</p>
+
+      <div style="background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <p style="font-size: 14px; font-weight: 700; color: #dc2626; margin-top: 0;">Incident Summary</p>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Customer:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${customerName || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Ticket Number:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;"><strong>${ticketNo}</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Issue:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${category || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Circuit ID:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${circuitId || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Assigned To:</td>
+            <td style="padding: 6px 0; color: #1f2937; font-weight: 700; text-align: right;">${agentName || 'Unassigned'}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p>We sincerely request your guidance and assistance to ensure this critical issue is addressed with the highest priority.</p>
+
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
+        <p style="margin: 0; font-size: 14px;">Regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
+      </div>
+    `
+  )
+});
+

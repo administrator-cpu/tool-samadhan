@@ -23,6 +23,7 @@ interface Employee {
 
 export default function StaffPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [unassignedCategories, setUnassignedCategories] = useState<{ id: string, name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -55,6 +56,15 @@ export default function StaffPage() {
     }
   }, [page]);
 
+  const fetchUnassignedCategories = useCallback(async () => {
+    try {
+      const res = await api.get('/categories/unassigned');
+      setUnassignedCategories(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch unassigned categories", err);
+    }
+  }, []);
+
   const openDeleteModal = (id: number) => {
     setEmployeeToDelete(id);
     setDeleteModalOpen(true);
@@ -69,6 +79,7 @@ export default function StaffPage() {
       toast.success("Staff member deleted successfully");
       setDeleteModalOpen(false);
       fetchEmployees();
+      fetchUnassignedCategories();
     } catch (err: any) {
       toast.error(err.message || "Failed to delete staff member");
     } finally {
@@ -79,7 +90,8 @@ export default function StaffPage() {
 
   useEffect(() => {
     fetchEmployees();
-  }, [fetchEmployees]);
+    fetchUnassignedCategories();
+  }, [fetchEmployees, fetchUnassignedCategories]);
 
 
   const hideAdminEmail = ["ajay@finviatech.co", "administrator@fab5network.com"];
@@ -140,6 +152,24 @@ export default function StaffPage() {
           Add Staff
         </button>
       </div>
+
+      {unassignedCategories.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm animate-in fade-in duration-300">
+          <div className="flex gap-3">
+            <span className="material-symbols-outlined text-amber-500">warning</span>
+            <div>
+              <h3 className="text-sm font-bold text-amber-800">Unassigned Issue Categories</h3>
+              <p className="mt-1 text-sm text-amber-700">
+                {/* The following categories are currently not assigned to any active support agent:{" "} */}
+                {/* <br/> */}
+                <span className="font-semibold">{unassignedCategories.map(c => c.name).join(', ')}</span>
+                {/* <br/> */}
+                {/* Tickets for these categories may not be properly routed. */}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
         {loading ? (
@@ -240,13 +270,13 @@ export default function StaffPage() {
       <AddStaffModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchEmployees}
+        onSuccess={() => { fetchEmployees(); fetchUnassignedCategories(); }}
       />
 
       <EditStaffModal
         isOpen={isEditModalOpen}
         onClose={() => { setIsEditModalOpen(false); setEmployeeToEdit(null); }}
-        onSuccess={fetchEmployees}
+        onSuccess={() => { fetchEmployees(); fetchUnassignedCategories(); }}
         employee={employeeToEdit}
       />
     </div>

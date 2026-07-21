@@ -31,6 +31,21 @@ export class TicketRepository {
     return { ...result[0], id: String(result[0].id) } as any;
   }
 
+  static async findRecentAssignedAgentForCustomerAndCategory(tx: any, customerId: string, categoryId: string, excludeTicketId: string): Promise<string | null> {
+    const result = await tx.query.tickets.findFirst({
+      where: and(
+        eq(tickets.customer_id, parseInt(customerId, 10)),
+        eq(tickets.primary_issue_category_id, parseInt(categoryId, 10)),
+        isNotNull(tickets.current_assigned_employee_id),
+        sql`${tickets.id} != ${parseInt(excludeTicketId, 10)}`,
+        sql`${tickets.created_at} >= CURRENT_DATE`
+      ),
+      columns: { current_assigned_employee_id: true },
+      orderBy: [desc(tickets.created_at)]
+    });
+    return result && result.current_assigned_employee_id ? String(result.current_assigned_employee_id) : null;
+  }
+
   static async findActiveTicketByCircuit(tx: any, circuit: string): Promise<Ticket | null> {
     const result = await tx.query.tickets.findFirst({
       where: and(
@@ -63,12 +78,14 @@ export class TicketRepository {
 
   static async getCustomerContactInfo(tx: any, ticketId: string) {
     const result = await tx.execute(sql`
-      SELECT u.name, u.email, u.phone, t.ticket_no, c.customer_id, ic.name as category, te.message, t.circuit_description, t.alternate_email
+      SELECT u.name, u.email, u.phone, t.ticket_no, c.customer_id, ic.name as category, te.message, t.circuit_description, t.alternate_email, au.name as agent_name
       FROM tickets t
       JOIN customers c ON c.id = t.customer_id
       JOIN users u ON u.id = c.user_id
       JOIN issue_categories ic ON ic.id = t.primary_issue_category_id
       LEFT JOIN ticket_events te ON te.ticket_id = t.id AND te.event_type = 'TICKET_CREATED'
+      LEFT JOIN employees e ON e.id = t.current_assigned_employee_id
+      LEFT JOIN users au ON au.id = e.user_id
       WHERE t.id = ${parseInt(ticketId, 10)}
     `);
     return result.rowCount && result.rowCount > 0 ? result.rows[0] : null;
