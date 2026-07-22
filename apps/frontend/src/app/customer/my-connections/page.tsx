@@ -76,7 +76,7 @@ export default function MyConnectionsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search Circuit ID..."
-                className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-9 text-sm text-slate-800 placeholder-slate-400 shadow-sm transition-all focus:border-[#2513ec] focus:outline-none focus:ring-2 focus:ring-[#2513ec]/20"
+                className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-9 text-sm text-slate-800 placeholder-slate-400 shadow-sm transition-all  focus:outline-none focus:ring-2 focus:border-indigo-400 focus:ring-indigo-50"
               />
               {searchQuery && (
                 <button
