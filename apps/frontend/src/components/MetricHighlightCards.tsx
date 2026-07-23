@@ -60,36 +60,7 @@ export default function MetricHighlightCards({ data: externalData }: MetricHighl
     return null;
   }
 
-  const kpis = metrics?.kpiHighlights || {
-    uptimeDelta: {
-      displayText: "Uptime improved by 0.03%",
-      badge: "+0.03% MoM",
-      description: "Current availability at 99.97%",
-      icon: "trending_up",
-      theme: "emerald",
-    },
-    mttrReduction: {
-      displayText: "MTTR reduced by 18%",
-      badge: "18% Faster",
-      description: "Average resolution time standard",
-      icon: "timer",
-      theme: "indigo",
-    },
-    zeroCoreOutage: {
-      displayText: "Zero Core Outage",
-      badge: "100% Reliable",
-      description: "0 critical backbone incidents",
-      icon: "verified_user",
-      theme: "cyan",
-    },
-    repeatFaultReduction: {
-      displayText: "Repeat Fault reduced by 60%",
-      badge: "60% Drop",
-      description: "Recurring issues significantly down",
-      icon: "published_with_changes",
-      theme: "amber",
-    },
-  };
+  const kpis = metrics?.kpiHighlights;
 
   const getStyle = (themeName: string) => THEME_STYLES[themeName] || THEME_STYLES.emerald;
 
