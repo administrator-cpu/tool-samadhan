@@ -61,7 +61,7 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
   };
 
   return (
-    <div className="max-w-4xl mx-auto w-full mt-10 pt-10 border-t border-slate-100 pb-10">
+    <div className="max-w-6xl mx-auto w-full mt-10 pt-10 border-t border-slate-100 pb-10 pl-2 pr-2">
       <div className="mb-6 flex items-center gap-2">
         <Zap size={18} className="text-amber-500" />
         <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Intelligent Quick Replies</h3>
