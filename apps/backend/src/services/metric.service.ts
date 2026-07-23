@@ -24,7 +24,8 @@ export function getTotalHoursInMonth(year: number, month: number): number {
 async function fetchCustomerConnectionsCountFromCrm(customerName: string): Promise<number> {
   if (!customerName) return 1;
   try {
-    const searchUrl = `${env.crmNewApiUrl}?search=${encodeURIComponent(customerName.trim())}`;
+    const searchName = customerName.trim().toUpperCase().replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+    const searchUrl = `${env.crmNewApiUrl}?search=${encodeURIComponent(searchName)}`;
     const res = await fetch(searchUrl, {
       headers: { 'x-api-key': env.crmApiKey }
     });
