@@ -277,16 +277,14 @@ export class MetricService {
     const currUptime = monthlyUptimeTrend[currentMonthIdx]?.uptime ?? 100;
     const prevUptime = prevMonthIdx >= 0 ? (monthlyUptimeTrend[prevMonthIdx]?.uptime ?? 99.94) : 99.94;
     let uptimeDelta = parseFloat((currUptime - prevUptime).toFixed(2));
-    // If no tickets or no downtime recorded, default fallback delta for initial showcase
-    if (uptimeDelta === 0 && ticketsData.length === 0) {
-      uptimeDelta = 0.03;
-    }
 
     const currMTTR = mttrTrend[currentMonthIdx]?.mttr ?? 0;
     const prevMTTR = prevMonthIdx >= 0 ? (mttrTrend[prevMonthIdx]?.mttr ?? 0) : 0;
-    let mttrReductionPct = 18;
+    let mttrReductionPct = 0;
     if (prevMTTR > 0) {
       mttrReductionPct = Math.round(((prevMTTR - currMTTR) / prevMTTR) * 100);
+    } else if (prevMTTR === 0 && currMTTR > 0) {
+      mttrReductionPct = -100; // Represent infinite increase as -100%
     }
 
     const currentFaultSeverity = faultSeverity[currentMonthIdx];
@@ -297,9 +295,11 @@ export class MetricService {
     const currRepeatTotal = currRepeatObj ? (currRepeatObj['Link Down'] + currRepeatObj['Packet Drops'] + currRepeatObj['Latency Very High'] + currRepeatObj['Link Fluctuating']) : 0;
     const prevRepeatTotal = prevRepeatObj ? (prevRepeatObj['Link Down'] + prevRepeatObj['Packet Drops'] + prevRepeatObj['Latency Very High'] + prevRepeatObj['Link Fluctuating']) : 0;
     
-    let repeatFaultReductionPct = 60;
+    let repeatFaultReductionPct = 0;
     if (prevRepeatTotal > 0) {
       repeatFaultReductionPct = Math.round(((prevRepeatTotal - currRepeatTotal) / prevRepeatTotal) * 100);
+    } else if (prevRepeatTotal === 0 && currRepeatTotal > 0) {
+      repeatFaultReductionPct = -100; // Represent infinite increase as -100%
     }
 
     // 1. Uptime Dynamic Attributes
@@ -340,8 +340,13 @@ export class MetricService {
       mttrStatus = 'neutral';
       mttrTheme = 'slate';
       mttrIcon = 'timer';
-      mttrText = `MTTR unchanged`;
-      mttrBadge = `Stable MTTR`;
+      if (prevMTTR === 0 && currMTTR === 0) {
+        mttrText = `No incidents`;
+        mttrBadge = `N/A`;
+      } else {
+        mttrText = `MTTR unchanged`;
+        mttrBadge = `Stable MTTR`;
+      }
     }
 
     // 3. Zero Core Outage Dynamic Attributes
@@ -368,8 +373,13 @@ export class MetricService {
       repeatStatus = 'neutral';
       repeatTheme = 'slate';
       repeatIcon = 'check_circle';
-      repeatText = `Repeat Faults stable`;
-      repeatBadge = `0% Change`;
+      if (prevRepeatTotal === 0 && currRepeatTotal === 0) {
+        repeatText = `No repeat faults`;
+        repeatBadge = `N/A`;
+      } else {
+        repeatText = `Repeat Faults stable`;
+        repeatBadge = `0% Change`;
+      }
     }
 
     const kpiHighlights = {
