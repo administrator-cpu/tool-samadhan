@@ -468,7 +468,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 overflow-y-auto px-4 py-8 border-r border-slate-100 flex flex-col">
-          <div className="max-w-4xl mx-auto w-full flex-1">
+          <div className="max-w-6xl mx-auto w-full flex-1 scrollbar-none">
             <Timeline events={events} />
           </div>
 
