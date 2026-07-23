@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { motion } from "framer-motion";
 import { useCustomerMetricsStore } from "@/store/useCustomerMetricsStore";
 
 interface MetricHighlightCardsProps {
@@ -146,7 +145,7 @@ export default function MetricHighlightCards({ data: externalData }: MetricHighl
               {/* Top Row: Icon & Pill Badge */}
               <div className="flex items-center justify-between">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${style.iconBg}`}
+                  className={`flex h-10 w-10 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-110 ${style.iconBg}`}
                 >
                   <span className="material-symbols-outlined text-[20px]">
                     {icon}
