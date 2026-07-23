@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import Image from "next/image";
 import { Paperclip, X, ChevronDown } from "lucide-react";
-import { useConnectionStore } from "@/store/useCircuitIDStore";
+import { useConnectionStore } from "../../../store/useConnectionStore";
 
 
 export default function CreateTicketPage() {
