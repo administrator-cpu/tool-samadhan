@@ -5,6 +5,7 @@ import { IssueCategoryRepository } from '../repositories/issue-category.reposito
 import { db } from '../config/database.js';
 import { sendResponse } from '../utils/response.js';
 import { UserRole } from '../types/dto.js';
+import { MetricService } from '../services/metric.service.js';
 
 export class TicketController {
 
@@ -187,8 +188,7 @@ export class TicketController {
       const circuitId = req.query.circuitId as string | undefined;
       let totalCircuits = req.query.totalCircuits ? parseInt(req.query.totalCircuits as string, 10) : undefined;
       if (Number.isNaN(totalCircuits)) totalCircuits = undefined;
-
-      const { MetricService } = await import('../services/metric.service.js');
+      
       const metrics = await MetricService.getCustomerMetrics(req.user!.userId, circuitId || null, totalCircuits);
       return sendResponse({ res, data: metrics });
     } catch (error) {
