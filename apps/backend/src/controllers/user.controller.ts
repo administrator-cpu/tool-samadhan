@@ -258,37 +258,31 @@ export class UserController {
 
   static async getMyConnections(req: Request, res: Response, next: NextFunction) {
     try {
+
       const user = await UserService.getCurrentUserDetails(req.user!.userId);
-      if (!user) {
-        return sendResponse({ res, statusCode: 404, success: false, message: 'User not found' });
-      }
+      if (!user) return sendResponse({ res, statusCode: 404, success: false, message: 'User not found' });
 
       const searchName = user.name.trim().toUpperCase().replace(/\(/g, "\\(").replace(/\)/g, "\\)");
-      const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(searchName)}&page=1&limit=1`;
+      const searchUrl = `${env.crmNewApiUrl}?search=${encodeURIComponent(searchName)}`;
       const searchRes = await fetch(searchUrl, {
         headers: { 'x-api-key': env.crmApiKey }
       });
-      
+
+      let connData: any;
+      const textData = await searchRes.text();
+      try {
+        connData = JSON.parse(textData);
+      } catch (e) {
+        // Ignore JSON parse errors
+      }
+
       if (!searchRes.ok) {
-        throw new Error(`CRM API error: ${searchRes.statusText}`);
+        if (searchRes.status === 404 && connData && connData.success === false && typeof connData.message === 'string' && connData.message.toLowerCase().includes('customer not found')) {
+          return sendResponse({ res, data: { connections: [] } });
+        }
+        
+        throw new Error(`CRM API error: ${searchRes.status} - ${connData?.message || searchRes.statusText}`);
       }
-      const searchData = await searchRes.json();
-      
-      if (!searchData.customers || searchData.customers.length === 0) {
-        return sendResponse({ res, data: { connections: [] } });
-      }
-    
-
-      const crmCustomerId = searchData.customers[0].id || searchData.customers[0].id;
-
-      const connUrl = `${env.crmApiUrl}/customers/${crmCustomerId}/connections`;
-      const connRes = await fetch(connUrl, {
-        headers: { 'x-api-key': env.crmApiKey }
-      });
-      if (!connRes.ok) {
-        throw new Error(`CRM API error: ${connRes.statusText}`);
-      }
-      const connData = await connRes.json();
 
       let connections = [];
       if (connData.success && Array.isArray(connData.connections)) {
