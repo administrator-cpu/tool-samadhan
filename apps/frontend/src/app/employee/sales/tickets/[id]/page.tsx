@@ -58,29 +58,34 @@ const getStatusBadgeConfig = (status: string) => {
   switch (status) {
     case "OPEN":
       return {
-        dotClass: "bg-red-500",
-        pingClass: "bg-red-400",
-        textClass: "text-red-600 bg-red-50 border-red-100",
+        dotClass: "bg-slate-400",
+        pingClass: "bg-slate-600",
+        textClass: "text-slate-600",
       };
     case "IN_PROGRESS":
-    case "ESCALATED":
       return {
         dotClass: "bg-amber-500",
         pingClass: "bg-amber-400",
-        textClass: "text-amber-600 bg-amber-50 border-amber-100",
+        textClass: "text-amber-600",
+      };
+    case "ESCALATED":
+      return {
+        dotClass: "bg-red-500",
+        pingClass: "bg-red-400",
+        textClass: "text-red-600",
       };
     case "RESOLVED":
       return {
         dotClass: "bg-emerald-500",
         pingClass: "bg-emerald-400",
-        textClass: "text-emerald-600 bg-emerald-50 border-emerald-100",
+        textClass: "text-emerald-600",
       };
     case "CLOSED":
     default:
       return {
         dotClass: "bg-slate-400",
         pingClass: "bg-slate-300",
-        textClass: "text-slate-500 bg-slate-50 border-slate-100",
+        textClass: "text-slate-500",
       };
   }
 };
@@ -170,7 +175,9 @@ export default function SalesTicketDetailPage() {
           >
             <ArrowLeft size={18} />
           </Link>
-          <div>
+
+
+          {/* <div>
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-black text-slate-900 font-heading">
                 Ticket #{ticket.ticket_no}
@@ -186,7 +193,22 @@ export default function SalesTicketDetailPage() {
                 {getSeverityConfig(ticket.subject).label}
               </span>
             </div>
+          </div> */}
+
+                  <div className="flex-1">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 break-words">{ticket.subject}</h1>
+            <span className="px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border border-slate-200">
+              #{ticket.ticket_no}
+            </span>
+            <span className={`px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest border ${getSeverityConfig(ticket.subject).classes}`}>
+              {getSeverityConfig(ticket.subject).label}
+            </span>
           </div>
+          <p className="text-sm font-medium text-slate-500 mt-1">Opened by {ticket.customer.name}</p>
+        </div>
+
+
         </div>
 
         {/* Reopen Button */}
