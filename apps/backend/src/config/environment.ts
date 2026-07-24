@@ -71,6 +71,7 @@ export const env = {
   },
 
   crmApiUrl: getEnvStr('CRM_API_URL', ''),
+  crmNewApiUrl: getEnvStr('CRM_NEW_API_URL', ''),
   crmApiKey: getEnvStr('CRM_API_KEY', ''),
 
   bahiKhataApiUrl: getEnvStr('BAHIKHATA_API_URL', ''),

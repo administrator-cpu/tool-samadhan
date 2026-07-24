@@ -7,6 +7,8 @@ import { formatDistanceToNow } from "date-fns";
 import Marquee from "react-fast-marquee";
 import { formatINR } from "@/lib/formatINR";
 
+import MetricHighlightCards from "@/components/MetricHighlightCards";
+
 interface Ticket {
   id: number;
   ticket_no: string;
@@ -51,7 +53,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="mx-auto flex max-w-250 flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
+    <div className="mx-auto flex max-w-[1400px] flex-col gap-10 px-6 py-10 md:px-12 md:py-14">
       
       {/* Status Card */}
       <section className="relative overflow-hidden rounded-2xl border border-slate-100/50 bg-white px-8 py-8 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] backdrop-blur-sm">
@@ -74,6 +76,42 @@ export default function Home() {
         </div>
       </section>
 
+      
+
+
+
+      {/* KPI Performance Highlights */}
+      <section className="flex flex-col gap-3">
+        {/* <div className="flex items-center justify-between">
+          <h3
+            className="text-xl font-bold tracking-tight text-slate-900 font-outfit"
+          >
+            Network & Support Quality Highlights
+          </h3>
+          <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-3 py-1 rounded-full">
+            Live SLA Performance
+          </span>
+        </div> */}
+        <MetricHighlightCards />
+      </section>
+
+
+      { outstandingBalance > 0 && (
+        <section className="mt-2 bg-amber-100 text-amber-700 py-3 rounded-md">
+          <Marquee
+            speed={50}
+            gradient={true}
+            gradientColor="#FEF3C6"
+            pauseOnHover
+            pauseOnClick
+          >
+            <span className="text-lg font-medium">
+              An outstanding amount of &nbsp;{formatINR(outstandingBalance)}&nbsp; is pending against your account.
+            </span>
+          </Marquee>
+        </section>
+      )}
+
       {/* Quick Actions */}
       {/*<section className="flex flex-wrap items-center gap-4">
         <Link
@@ -91,21 +129,7 @@ export default function Home() {
         </button>
       </section>*/}
 
-      { outstandingBalance > 0 && (
-        <section className="mt-2 bg-amber-100 text-amber-700 py-3 rounded-md">
-          <Marquee
-            speed={50}
-            gradient={true}
-            gradientColor="#FEF3C6"
-            pauseOnHover
-            pauseOnClick
-          >
-            <span className="text-lg font-medium">
-              An outstanding amount of &nbsp;{formatINR(outstandingBalance)}&nbsp; is pending against your account.
-            </span>
-          </Marquee>
-        </section>
-      )}
+
       
 
       {/* Active Tickets */}

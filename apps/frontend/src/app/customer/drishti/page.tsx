@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { graphCache } from "@/lib/cache";
-import { useConnectionStore } from "@/store/useCircuitIDStore";
+import { useConnectionStore } from "../../../store/useConnectionStore";
+import { useCustomerMetricsStore } from "@/store/useCustomerMetricsStore";
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Sector } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartTooltip, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { motion, Variants } from "framer-motion";
+import MetricHighlightCards from "@/components/MetricHighlightCards";
 
 const COLORS = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#06b6d4", "#a855f7", "#f43f5e", "#0ea5e9", "#eab308", "#14b8a6"];
 
@@ -28,41 +30,14 @@ const itemVariants: Variants = {
 };
 
 export default function CustomerMetricsPage() {
-  const { connections, fetchConnections, hasFetched } = useConnectionStore();
+  const { connections, fetchConnections } = useConnectionStore();
+  const { metrics, loadingMetrics, fetchMetrics } = useCustomerMetricsStore();
   const [selectedCircuit, setSelectedCircuit] = useState<string>("ALL");
-  const [metrics, setMetrics] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState<number | undefined>();
-  useEffect(() => {
-    fetchConnections();
-  }, [fetchConnections]);
 
   useEffect(() => {
-    if (!hasFetched) return;
-
-    const fetchMetrics = async () => {
-      const cacheKey = `/tickets/customer-metrics?circuitId=${selectedCircuit}&totalCircuits=${connections.length}`;
-      const cachedData = graphCache.get(cacheKey);
-
-      if (cachedData) {
-        setMetrics(cachedData);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const response = await api.get(cacheKey);
-        graphCache.set(cacheKey, response.data, 24); // Cache for 24 hours
-        setMetrics(response.data);
-      } catch (error) {
-        console.error("Failed to fetch metrics", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMetrics();
-  }, [selectedCircuit, hasFetched, connections.length]);
+    fetchMetrics(selectedCircuit);
+  }, [selectedCircuit, fetchMetrics]);
 
   const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -116,17 +91,23 @@ export default function CustomerMetricsPage() {
         </div> */}
       </div>
 
-      {loading ? (
+      {loadingMetrics ? (
         <div className="flex h-64 items-center justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-indigo-500"></div>
         </div>
       ) : metrics ? (
-        <motion.div 
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
+        <div className="flex flex-col gap-8">
+
+
+          {/* Executive SLA Performance Cards */}
+          {/* <MetricHighlightCards data={metrics} /> */}
+
+          <motion.div 
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+          >
           {/* 1. Monthly Uptime Trend - FULL WIDTH */}
           <motion.div variants={itemVariants} className="md:col-span-2 lg:col-span-2 rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-sm transition-shadow hover:shadow-md">
             <h3 className="mb-4 text-lg font-semibold text-slate-800">Monthly Uptime Trend</h3>
@@ -315,7 +296,8 @@ export default function CustomerMetricsPage() {
             </div>
           </motion.div>
         </motion.div>
-      ) : (
+      </div>
+    ) : (
         <div className="rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500 bg-slate-50/50">
           Failed to load metrics data.
         </div>
