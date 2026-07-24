@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useMemo } from "react";
-import { useConnectionStore } from "@/store/useCircuitIDStore";
+import { useConnectionStore } from "../../../store/useConnectionStore";
 
 export default function MyConnectionsPage() {
   const { connections, loadingConnection, connectionError, fetchConnections } = useConnectionStore();

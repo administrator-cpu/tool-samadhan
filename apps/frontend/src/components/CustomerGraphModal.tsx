@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Sector } from "recharts";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { motion, Variants } from "framer-motion";
+import MetricHighlightCards from "@/components/MetricHighlightCards";
 
 const COLORS = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#06b6d4", "#a855f7", "#f43f5e", "#0ea5e9", "#eab308", "#14b8a6"];
 
@@ -149,17 +150,28 @@ export default function CustomerGraphModal({ isOpen, onClose, customerRowId, cus
         </div>
 
         <div className="p-6 overflow-y-auto w-full">
+
+        
+
           {loading ? (
             <div className="flex h-64 items-center justify-center">
               <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-indigo-500"></div>
             </div>
           ) : metrics ? (
+
+
             <motion.div 
               className="grid grid-cols-1 lg:grid-cols-2 gap-6"
               variants={containerVariants}
               initial="hidden"
               animate="show"
             >
+
+              {/* Top KPI Cards - Spanning full width */}
+              <section className="md:col-span-2 lg:col-span-2 w-full flex flex-col gap-3 mb-2">
+                <MetricHighlightCards data={metrics} />
+              </section>
+
               {/* 1. Monthly Uptime Trend */}
               <motion.div variants={itemVariants} className="md:col-span-2 lg:col-span-2 rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm">
                 <h3 className="mb-4 text-lg font-semibold text-slate-800">Monthly Uptime Trend</h3>
