@@ -262,7 +262,7 @@ export class UserController {
       const user = await UserService.getCurrentUserDetails(req.user!.userId);
       if (!user) return sendResponse({ res, statusCode: 404, success: false, message: 'User not found' });
 
-      const searchName = user.name.trim().toUpperCase().replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+      const searchName = user.name.trim().toUpperCase();
       const searchUrl = `${env.crmNewApiUrl}?search=${encodeURIComponent(searchName)}`;
       const searchRes = await fetch(searchUrl, {
         headers: { 'x-api-key': env.crmApiKey }
