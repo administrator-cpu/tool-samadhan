@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [passwords, setPasswords] = useState({ new: "", confirm: "" });
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   
   // Timer for resend OTP
   const [resendTimer, setResendTimer] = useState(0);
@@ -58,7 +59,7 @@ export default function ForgotPasswordPage() {
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otpCode.length !== 6) return toast.error("Please enter the 6-digit code");
+    if (otpCode.length !== 6) return toast.error("Please enter the full 6-digit code");
 
     setIsLoading(true);
     try {
@@ -90,6 +91,40 @@ export default function ForgotPasswordPage() {
       toast.error(error.message || "Failed to reset password");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = otpCode.split("");
+    newOtp[index] = value.slice(-1);
+    const updatedOtp = newOtp.join("");
+    setOtpCode(updatedOtp);
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otpCode[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+      const newOtp = otpCode.split("");
+      newOtp[index - 1] = "";
+      setOtpCode(newOtp.join(""));
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowRight" && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pasted) {
+      setOtpCode(pasted);
+      const nextIndex = Math.min(pasted.length, 5);
+      inputRefs.current[nextIndex]?.focus();
     }
   };
 
@@ -126,21 +161,28 @@ export default function ForgotPasswordPage() {
       case "OTP":
         return (
           <form onSubmit={handleVerifyOtp} className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-slate-700">Enter OTP Code</label>
-              <div className="relative group">
-                <Key className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-emerald-600" />
-                <input
-                  type="text"
-                  maxLength={6}
-                  placeholder="Enter 6-digit OTP"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                  className="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-lg font-black tracking-[0.5em] text-slate-900 placeholder:text-slate-300 placeholder:tracking-normal focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-hidden"
-                  required
-                />
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2 text-center">
+                <label className="text-sm font-bold text-slate-700">Enter OTP Code</label>
+                {/* <p className="text-xs font-bold text-slate-500">Code sent to: <span className="text-emerald-600">{email}</span></p> */}
               </div>
-              <p className="text-xs font-bold text-slate-500 mt-1">Code sent to: <span className="text-emerald-600">{email}</span></p>
+              <div className="flex justify-center gap-2 sm:gap-3">
+                {[0, 1, 2, 3, 4, 5].map((index) => (
+                  <input
+                    key={index}
+                    ref={(el) => { inputRefs.current[index] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={otpCode[index] || ""}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    onPaste={handleOtpPaste}
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-slate-200 bg-white text-center text-2xl font-black text-slate-900 focus:border-slate-500 focus:ring-4 focus:ring-slate-500/20 transition-all outline-hidden shadow-sm focus:shadow-md"
+                    required
+                  />
+                ))}
+              </div>
             </div>
 
             <button
@@ -232,7 +274,7 @@ export default function ForgotPasswordPage() {
             <h1 className="text-3xl font-black text-slate-900 font-heading tracking-tight mb-2">
               {step === "EMAIL" ? "Forgot Password?" : step === "OTP" ? "Verify Identity" : "Secure Account"}
             </h1>
-            <p className="text-slate-500 font-medium text-sm max-w-[300px]">
+            <p className="text-slate-500 font-medium text-sm max-w-[400px]">
               {step === "EMAIL" ? "No worries! Enter your email and we'll send you a verification code." : 
                step === "OTP" ? "Please enter the 6-digit code we sent to your email address." : 
                "Enter a strong new password to regain access to your Samadhan account."}
