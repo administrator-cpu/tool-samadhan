@@ -38,10 +38,17 @@ export default function ForgotPasswordPage() {
     
     setIsLoading(true);
     try {
-      await api.post("/forgot-password", { email });
-      toast.success("Verification code sent to your email!");
+      const res = await api.post("/forgot-password", { email });
+      const data = res.data || {};
+      
+      if (data.alreadySent) {
+        toast.success(res.message || "OTP already sent. Please check your email.");
+        setResendTimer(data.remainingSeconds || 120);
+      } else {
+        toast.success("Verification code sent to your email!");
+        setResendTimer(120); // 2 minute buffer
+      }
       setStep("OTP");
-      setResendTimer(120); // 2 minute buffer
     } catch (error: any) {
       toast.error(error.message || "Failed to send verification code");
     } finally {
@@ -101,7 +108,7 @@ export default function ForgotPasswordPage() {
                   placeholder="Enter your registered email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-hidden font-medium"
+                  className="w-full rounded-lg border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-hidden font-medium"
                   required
                 />
               </div>
@@ -109,7 +116,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-700 hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:translate-y-0"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-4 text-sm font-black uppercase tracking-widest text-white transition-all hover:bg-emerald-700 hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:translate-y-0"
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Send Verification Code <ArrowRight size={18} /></>}
             </button>
@@ -120,7 +127,7 @@ export default function ForgotPasswordPage() {
         return (
           <form onSubmit={handleVerifyOtp} className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-slate-700">6-Digit Verification Code</label>
+              <label className="text-sm font-bold text-slate-700">Enter OTP Code</label>
               <div className="relative group">
                 <Key className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-emerald-600" />
                 <input
@@ -139,7 +146,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-700 hover:-translate-y-0.5 active:scale-95 disabled:opacity-70"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-4 text-sm font-black uppercase tracking-widest text-white transition-all hover:bg-emerald-700 hover:-translate-y-0.5 active:scale-95 disabled:opacity-70"
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify Code"}
             </button>
@@ -216,7 +223,7 @@ export default function ForgotPasswordPage() {
       </div>
 
       <div className="w-full max-w-[480px] relative">
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 md:p-12">
+        <div className="bg-white rounded-[30px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 md:p-12">
           {/* Brand */}
           <div className="flex flex-col items-center text-center mb-10">
             <div className="mb-6 inline-flex items-center justify-center p-4 bg-emerald-50 rounded-2xl">
@@ -244,11 +251,6 @@ export default function ForgotPasswordPage() {
             </Link>
           </div>
         </div>
-
-        {/* Support Footer */}
-        <p className="mt-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
-          Samadhan Enterprise Security
-        </p>
       </div>
     </div>
   );

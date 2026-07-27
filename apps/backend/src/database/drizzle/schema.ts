@@ -62,8 +62,8 @@ export const passwordResetOtps = pgTable('password_reset_otps', {
   id: serial('id').primaryKey(),
   user_id: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
   otp_code: varchar('otp_code', { length: 6 }).notNull(),
-  expires_at: timestamp('expires_at').notNull(),
-  created_at: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`),
+  expires_at: timestamp('expires_at', { withTimezone: true }).notNull(),
+  created_at: timestamp('created_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),
 }, (table) => ({
   userCreatedIdx: index('idx_password_reset_user_created').on(table.user_id, table.created_at.desc())
 }));

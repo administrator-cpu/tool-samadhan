@@ -10,7 +10,7 @@ import { sendPasswordResetEmail } from './email.service.js';
 import { disconnectUser } from './socket.service.js';
 
 export class PasswordResetService {
-  static async requestPasswordReset(email: string): Promise<{ message: string }> {
+  static async requestPasswordReset(email: string): Promise<{ message: string; alreadySent?: boolean; remainingSeconds?: number }> {
     return db.transaction(async (tx) => {
       const user = await UserRepository.findByEmail(tx, email);
       if (!user) {
@@ -21,16 +21,25 @@ export class PasswordResetService {
       if (lastOtp) {
         const diffInMs = new Date().getTime() - lastOtp.created_at.getTime();
         const twoMinutes = 120 * 1000;
-        if (diffInMs < twoMinutes) {
-          throw new AppError(429, 'Please wait 2 minutes before requesting another OTP', ErrorCodes.RATE_LIMIT);
+        if (diffInMs < twoMinutes && diffInMs >= 0) {
+          const remainingSeconds = Math.ceil((twoMinutes - diffInMs) / 1000);
+          return { 
+            message: 'An OTP was already sent to this email recently. Please check your inbox.', 
+            alreadySent: true,
+            remainingSeconds 
+          };
         }
       }
 
       await PasswordResetRepository.deleteOtpsForUser(tx, user.id);
 
       const otpCode = crypto.randomInt(100000, 999999).toString();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
 
+      // Pass now as created_at implicitly via repository if we updated it, or we can just let DB handle it.
+      // Wait, we updated schema to withTimezone: true, so the DB's CURRENT_TIMESTAMP will correctly map to UTC in Javascript!
+      // But let's be explicit just in case. Wait, PasswordResetRepository.createOtp does not accept created_at.
       await PasswordResetRepository.createOtp(tx, user.id, otpCode, expiresAt);
 
       await sendPasswordResetEmail({

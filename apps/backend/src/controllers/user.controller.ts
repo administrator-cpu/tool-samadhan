@@ -232,7 +232,14 @@ export class UserController {
   static async forgotPassword(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await PasswordResetService.requestPasswordReset(req.body.email);
-      return sendResponse({ res, message: result.message });
+      return sendResponse({ 
+        res, 
+        message: result.message,
+        data: {
+          alreadySent: result.alreadySent,
+          remainingSeconds: result.remainingSeconds
+        }
+      });
     } catch (error) {
       next(error);
     }
