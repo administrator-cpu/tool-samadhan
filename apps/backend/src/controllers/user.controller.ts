@@ -332,19 +332,33 @@ export class UserController {
 
   static async getCustomerConnectionsByEmail(req: Request, res: Response, next: NextFunction) {
     try {
-      const email = req.query.email as string;
-      if (!email) {
+      const emailQuery = req.query.email as string;
+      if (!emailQuery) {
         return sendResponse({ res, statusCode: 400, message: 'Email is required' });
       }
+
+      const email = emailQuery.trim().toLowerCase();
 
       const user = await UserService.getUserByEmail(email);
       if (!user || user.role !== 'USER') {
         return sendResponse({ res, statusCode: 404, success: false, message: "This customer doesn't exist" });
       }
 
-      const connections = await UserService.getCustomerConnectionsFromCrm(user.name);
-
-      return sendResponse({ res, data: { name: user.name, connections } });
+      try {
+        const connections = await UserService.getCustomerConnectionsFromCrm(user.name);
+        return sendResponse({ res, data: { name: user.name, connections } });
+      } catch (crmError: any) {
+        if (crmError.message && crmError.message.includes('404')) {
+           return sendResponse({ res, data: { name: user.name, connections: [] } });
+        }
+        
+        return sendResponse({ 
+          res, 
+          statusCode: 502, 
+          success: false, 
+          message: "Unable to communicate with the CRM. Please try again later." 
+        });
+      }
     } catch (error) {
       next(error);
     }

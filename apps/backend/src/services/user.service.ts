@@ -299,7 +299,7 @@ export class UserService {
     });
 
     if (!searchRes.ok) {
-      throw new Error(`CRM API error: ${searchRes.statusText}`);
+      throw new Error(`CRM API error ${searchRes.status}: ${searchRes.statusText}`);
     }
     const searchData = await searchRes.json();
     
@@ -315,7 +315,7 @@ export class UserService {
         });
 
         if (!connRes.ok) {
-          throw new Error(`CRM API error: ${connRes.statusText}`);
+          throw new Error(`CRM API error ${connRes.status}: ${connRes.statusText}`);
         }
 
         return connRes.json();
