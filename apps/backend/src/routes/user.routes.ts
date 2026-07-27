@@ -27,6 +27,7 @@ router.delete('/employees/:id',             requireRole([UserRole.ADMIN]),      
 router.post(  '/customers',                 requireRole([UserRole.ADMIN]), validateRegister,          UserController.registerCustomer);
 router.get(   '/customers',                 requireRole([UserRole.ADMIN]),                            UserController.getAllCustomers);
 router.get(   '/customers/not-linked',                                                                UserController.getAllNotLinkedCustomers);
+router.get(   '/customers/connections-by-email', requireRole([UserRole.ADMIN, UserRole.SUPPORT_AGENT, UserRole.SALES]), UserController.getCustomerConnectionsByEmail );
 router.get(   '/customers/:id/connections', requireRole([UserRole.ADMIN]),                            UserController.getCustomerConnectionsById );
 router.get(   '/customers/:id/metrics',     requireRole([UserRole.ADMIN]),                            UserController.getCustomerMetricsById );
 router.put(   '/customers/:id',             requireRole([UserRole.ADMIN]),  validateUpdateProfile,    UserController.updateCustomer );

@@ -183,8 +183,8 @@ const SidebarNavbar = () => {
 
   const salesItems: NavItem[] = [
     { label: "Dashboard", icon: "dashboard", href: "/employee/sales" },
-    { label: "All Tickets", icon: "list_alt", href: "/employee/sales/tickets" },
     { label: "Raise Ticket", icon: "add_circle", href: "/employee/sales/raise-ticket" },
+    { label: "All Tickets", icon: "list_alt", href: "/employee/sales/tickets" },
     { label: "Profile", icon: "person", href: "/profile" },
   ];
 
