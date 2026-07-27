@@ -76,14 +76,23 @@ export default function SalesCreateTicketPage() {
   };
 
   const handleVerifyEmail = async () => {
-    if (!formData.customerEmail.trim()) {
+    const emailStr = formData.customerEmail.trim();
+    if (!emailStr) {
       toast.error("Please enter a customer email first.");
       return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailStr)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
     setFetchingConnections(true);
     try {
-      const res = await api.get(`/users/customers/connections-by-email?email=${encodeURIComponent(formData.customerEmail.trim())}`);
-      const data = res.data.data;
+      const res = await api.get(`/users/customers/connections-by-email?email=${encodeURIComponent(emailStr)}`);
+      // `res` is the JSON parsed response. `res.data` is the "data" object returned from the API.
+      const data = res.data;
       setCustomerName(data.name);
       setConnections(data.connections || []);
       setEmailVerified(true);
