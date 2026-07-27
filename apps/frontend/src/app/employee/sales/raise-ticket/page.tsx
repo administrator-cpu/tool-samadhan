@@ -188,7 +188,7 @@ export default function SalesCreateTicketPage() {
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-900 antialiased font-sans">
       {/* Main */}
       <main className="flex flex-1 items-center justify-center w-full p-4 sm:p-6 md:p-12">
-        <div className="w-full max-w-150 rounded-xl bg-white p-6 sm:p-10 md:p-12 border border-slate-100 shadow-2xl shadow-slate-200/40">
+        <div className="w-full max-w-200 rounded-xl bg-white p-6 sm:p-10 md:p-12 border border-slate-100 shadow-2xl shadow-slate-200/40">
           
           {/* Heading */}
           <div className="mb-8">
@@ -204,7 +204,7 @@ export default function SalesCreateTicketPage() {
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
 
             {/* Customer Email */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-4">
               <label htmlFor="customerEmail" className="text-sm font-bold text-slate-700">
                 Customer Email Address
               </label>
@@ -223,7 +223,7 @@ export default function SalesCreateTicketPage() {
                   type="button"
                   onClick={handleVerifyEmail}
                   disabled={fetchingConnections || !formData.customerEmail.trim()}
-                  className="h-[56px] px-6 rounded-lg bg-indigo-600 text-white font-bold shadow-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                  className="h-[56px] px-6 rounded-lg bg-emerald-700 text-white font-bold shadow-md hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
                 >
                   {fetchingConnections ? "Verifying..." : "Verify"}
                 </button>
@@ -379,7 +379,7 @@ export default function SalesCreateTicketPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-bold shadow-lg shadow-emerald-700/20 transition-all hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-bold transition-all hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <span>Submitting...</span>
