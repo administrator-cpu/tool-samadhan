@@ -330,6 +330,26 @@ export class UserController {
     }
   }
 
+  static async getCustomerConnectionsByEmail(req: Request, res: Response, next: NextFunction) {
+    try {
+      const email = req.query.email as string;
+      if (!email) {
+        return sendResponse({ res, statusCode: 400, message: 'Email is required' });
+      }
+
+      const user = await UserService.getUserByEmail(email);
+      if (!user || user.role !== 'USER') {
+        return sendResponse({ res, statusCode: 404, success: false, message: "This customer doesn't exist" });
+      }
+
+      const connections = await UserService.getCustomerConnectionsFromCrm(user.name);
+
+      return sendResponse({ res, data: { name: user.name, connections } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getCustomerConnectionsById(req: Request, res: Response, next: NextFunction) {
     try {
       const customerRowId = req.params.id as string;

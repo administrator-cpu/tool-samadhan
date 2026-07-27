@@ -92,6 +92,10 @@ export class UserService {
     return { user: result.user, customer: result.customer };
   }
 
+  static async getUserByEmail(email: string) {
+    return UserRepository.findByEmail(db, email);
+  }
+
   static async listAllEmployees(page: number, limit: number): Promise<PaginatedResponse<any>> {
     const { employees, total } = await EmployeeRepository.findAllWithCategories(db, page, limit);
     return {

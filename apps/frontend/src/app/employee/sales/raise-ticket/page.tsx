@@ -21,6 +21,11 @@ export default function SalesCreateTicketPage() {
   });
   const [attachments, setAttachments] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [connections, setConnections] = useState<any[]>([]);
+  const [customerName, setCustomerName] = useState<string | null>(null);
+  const [fetchingConnections, setFetchingConnections] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -61,7 +66,40 @@ export default function SalesCreateTicketPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>) => {
     const { name, value } = e.target;
+    if (name === "customerEmail") {
+      setEmailVerified(false);
+      setCustomerName(null);
+      setConnections([]);
+      setFormData((prev) => ({ ...prev, circuitDescription: "" }));
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleVerifyEmail = async () => {
+    if (!formData.customerEmail.trim()) {
+      toast.error("Please enter a customer email first.");
+      return;
+    }
+    setFetchingConnections(true);
+    try {
+      const res = await api.get(`/users/customers/connections-by-email?email=${encodeURIComponent(formData.customerEmail.trim())}`);
+      const data = res.data.data;
+      setCustomerName(data.name);
+      setConnections(data.connections || []);
+      setEmailVerified(true);
+      if (!data.connections || data.connections.length === 0) {
+        toast.error("There is no active circuit of this customer.");
+      } else {
+        toast.success("Customer verified successfully.");
+      }
+    } catch (err: any) {
+      setCustomerName(null);
+      setConnections([]);
+      setEmailVerified(false);
+      toast.error(err.response?.data?.message || err.message || "Failed to verify customer.");
+    } finally {
+      setFetchingConnections(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -161,16 +199,31 @@ export default function SalesCreateTicketPage() {
               <label htmlFor="customerEmail" className="text-sm font-bold text-slate-700">
                 Customer Email Address
               </label>
-              <input
-                type="email"
-                id="customerEmail"
-                name="customerEmail"
-                value={formData.customerEmail}
-                onChange={handleChange}
-                placeholder="customer@example.com"
-                required
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  id="customerEmail"
+                  name="customerEmail"
+                  value={formData.customerEmail}
+                  onChange={handleChange}
+                  placeholder="customer@example.com"
+                  required
+                  className="h-[56px] flex-1 rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyEmail}
+                  disabled={fetchingConnections || !formData.customerEmail.trim()}
+                  className="h-[56px] px-6 rounded-lg bg-indigo-600 text-white font-bold shadow-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                >
+                  {fetchingConnections ? "Verifying..." : "Verify"}
+                </button>
+              </div>
+              {emailVerified && customerName && (
+                <p className="text-sm text-emerald-600 font-medium">
+                  ✓ Verified Customer: {customerName}
+                </p>
+              )}
             </div>
 
             {/* Alternate Email */}
@@ -197,18 +250,32 @@ export default function SalesCreateTicketPage() {
             {/* Circuit Description */}
             <div className="flex flex-col gap-2">
               <label htmlFor="circuitDescription" className="text-sm font-bold text-slate-700">
-                Circuit Description
+                Circuit ID
               </label>
-              <input
-                type="text"
+              <select
                 id="circuitDescription"
                 name="circuitDescription"
                 value={formData.circuitDescription}
                 onChange={handleChange}
-                placeholder="Circuit or B END ID"
+                disabled={!emailVerified || connections.length === 0}
                 required
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
-              />
+                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 transition-shadow cursor-pointer focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+              >
+                {!emailVerified ? (
+                  <option value="">Verify customer email first</option>
+                ) : connections.length === 0 ? (
+                  <option value="">No active circuits</option>
+                ) : (
+                  <>
+                    <option value="" disabled>Select Circuit ID</option>
+                    {connections.map((conn) => (
+                      <option key={conn.id} value={conn.fabCircuitId || conn.bEndBtsId}>
+                        {conn.opportunityId || conn.fabCircuitId || conn.bEndBtsId}
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
             </div>
             
             {/* Category */}
