@@ -252,12 +252,48 @@ export class TicketRepository {
     }
 
     // Search query
+    let searchRankSql: SQL | undefined;
     if (filters.searchQuery) {
-      let q = filters.searchQuery.trim();
+      const q = filters.searchQuery.trim();
+      let ticketNoQ = q;
       if (/^\d+$/.test(q)) {
-        q = `TCK-${q}`;
+        ticketNoQ = `TCK-${q}`;
       }
-      whereConditions.push(ilike(tickets.ticket_no, `%${q}%`));
+      
+      whereConditions.push(
+        or(
+          ilike(tickets.ticket_no, `%${ticketNoQ}%`),
+          ilike(tickets.ticket_no, `%${q}%`), // Also search raw digits
+          inArray(
+             tickets.customer_id, 
+             db.select({ id: customers.id })
+               .from(customers)
+               .innerJoin(users, eq(customers.user_id, users.id))
+               .where(ilike(users.name, `%${q}%`))
+          ),
+          inArray(
+             tickets.primary_issue_category_id,
+             db.select({ id: issueCategories.id })
+               .from(issueCategories)
+               .where(ilike(issueCategories.name, `%${q}%`))
+          )
+        )!
+      );
+
+      searchRankSql = sql`
+        CASE 
+          WHEN ${tickets.ticket_no} ILIKE ${ticketNoQ} THEN 1
+          WHEN ${tickets.ticket_no} ILIKE ${ticketNoQ + '%'} THEN 2
+          WHEN ${tickets.ticket_no} ILIKE ${'%' + q + '%'} THEN 3
+          WHEN ${tickets.customer_id} IN (
+            SELECT c.id FROM customers c JOIN users u ON c.user_id = u.id WHERE u.name ILIKE ${'%' + q + '%'}
+          ) THEN 4
+          WHEN ${tickets.primary_issue_category_id} IN (
+            SELECT ic.id FROM issue_categories ic WHERE ic.name ILIKE ${'%' + q + '%'}
+          ) THEN 5
+          ELSE 6
+        END
+      `;
     }
 
     // Default sorting logic
@@ -270,7 +306,20 @@ export class TicketRepository {
     
     // Keyset pagination (Cursor logic)
     if (cursor) {
-      const [cursorValStr, cursorIdStr] = cursor.split('_');
+      const parts = cursor.split('_');
+      let cursorRank: number | undefined;
+      let cursorValStr: string;
+      let cursorIdStr: string;
+
+      if (filters.searchQuery && parts.length >= 3) {
+        cursorRank = parseInt(parts[0], 10);
+        cursorValStr = parts[1];
+        cursorIdStr = parts[2];
+      } else {
+        cursorValStr = parts[0];
+        cursorIdStr = parts[1];
+      }
+
       const cursorId = parseInt(cursorIdStr, 10);
       
       // Determine cursor value type based on sortField
@@ -279,30 +328,55 @@ export class TicketRepository {
         cursorVal = new Date(parseInt(cursorValStr, 10));
       }
 
-      if (isAsc) {
-        whereConditions.push(
-          or(
-            gt(sortField, cursorVal),
-            and(eq(sortField, cursorVal), gt(tickets.id, cursorId))
-          )!
-        );
+      if (filters.searchQuery && searchRankSql && cursorRank !== undefined) {
+        const rankCond = gt(searchRankSql, cursorRank);
+        let sortCond;
+        let tieCond;
+
+        if (isAsc) {
+           sortCond = and(eq(searchRankSql, cursorRank), gt(sortField, cursorVal));
+           tieCond = and(eq(searchRankSql, cursorRank), eq(sortField, cursorVal), gt(tickets.id, cursorId));
+        } else {
+           sortCond = and(eq(searchRankSql, cursorRank), lt(sortField, cursorVal));
+           tieCond = and(eq(searchRankSql, cursorRank), eq(sortField, cursorVal), gt(tickets.id, cursorId));
+        }
+        whereConditions.push(or(rankCond, sortCond, tieCond)!);
       } else {
-        whereConditions.push(
-          or(
-            lt(sortField, cursorVal),
-            and(eq(sortField, cursorVal), lt(tickets.id, cursorId))
-          )!
-        );
+        if (isAsc) {
+          whereConditions.push(
+            or(
+              gt(sortField, cursorVal),
+              and(eq(sortField, cursorVal), gt(tickets.id, cursorId))
+            )!
+          );
+        } else {
+          whereConditions.push(
+            or(
+              lt(sortField, cursorVal),
+              and(eq(sortField, cursorVal), lt(tickets.id, cursorId))
+            )!
+          );
+        }
       }
     }
 
-    const orderBy = [
-      isAsc ? asc(sortField) : desc(sortField),
-      isAsc ? asc(tickets.id) : desc(tickets.id) // Tie-breaker
-    ];
+    let orderBy;
+    if (searchRankSql) {
+      orderBy = [
+        asc(sql`rank`),
+        isAsc ? asc(sortField) : desc(sortField),
+        isAsc ? asc(tickets.id) : desc(tickets.id)
+      ];
+    } else {
+      orderBy = [
+        isAsc ? asc(sortField) : desc(sortField),
+        isAsc ? asc(tickets.id) : desc(tickets.id) // Tie-breaker
+      ];
+    }
 
     const dataResult = await tx.query.tickets.findMany({
       where: and(...whereConditions),
+      extras: searchRankSql ? { rank: searchRankSql.as('rank') } : undefined,
       orderBy,
       limit: limit + 1,
       with: {
@@ -344,7 +418,11 @@ export class TicketRepository {
         cursorValStr = String(lastSortVal.getTime());
       }
       
-      nextCursor = `${cursorValStr}_${lastItem.id}`;
+      if (filters.searchQuery) {
+         nextCursor = `${lastItem.rank}_${cursorValStr}_${lastItem.id}`;
+      } else {
+         nextCursor = `${cursorValStr}_${lastItem.id}`;
+      }
     }
 
     return {
