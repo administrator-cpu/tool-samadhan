@@ -224,7 +224,7 @@ export class TicketRepository {
       sortOrder?: string;
     },
     limit: number,
-    cursor?: string // Cursor is expected to be a string like "timestamp_id"
+    offset: number = 0
   ) {
     const whereConditions: SQL[] = [];
 
@@ -252,12 +252,48 @@ export class TicketRepository {
     }
 
     // Search query
+    let searchRankSql: SQL | undefined;
     if (filters.searchQuery) {
-      let q = filters.searchQuery.trim();
+      const q = filters.searchQuery.trim();
+      let ticketNoQ = q;
       if (/^\d+$/.test(q)) {
-        q = `TCK-${q}`;
+        ticketNoQ = `TCK-${q}`;
       }
-      whereConditions.push(ilike(tickets.ticket_no, `%${q}%`));
+      
+      whereConditions.push(
+        or(
+          ilike(tickets.ticket_no, `%${ticketNoQ}%`),
+          ilike(tickets.ticket_no, `%${q}%`), // Also search raw digits
+          inArray(
+             tickets.customer_id, 
+             db.select({ id: customers.id })
+               .from(customers)
+               .innerJoin(users, eq(customers.user_id, users.id))
+               .where(ilike(users.name, `%${q}%`))
+          ),
+          inArray(
+             tickets.primary_issue_category_id,
+             db.select({ id: issueCategories.id })
+               .from(issueCategories)
+               .where(ilike(issueCategories.name, `%${q}%`))
+          )
+        )!
+      );
+
+      searchRankSql = sql`
+        CASE 
+          WHEN ${tickets.ticket_no} ILIKE ${ticketNoQ} THEN 1
+          WHEN ${tickets.ticket_no} ILIKE ${ticketNoQ + '%'} THEN 2
+          WHEN ${tickets.ticket_no} ILIKE ${'%' + q + '%'} THEN 3
+          WHEN ${tickets.customer_id} IN (
+            SELECT c.id FROM customers c JOIN users u ON c.user_id = u.id WHERE u.name ILIKE ${'%' + q + '%'}
+          ) THEN 4
+          WHEN ${tickets.primary_issue_category_id} IN (
+            SELECT ic.id FROM issue_categories ic WHERE ic.name ILIKE ${'%' + q + '%'}
+          ) THEN 5
+          ELSE 6
+        END
+      `;
     }
 
     // Default sorting logic
@@ -267,44 +303,29 @@ export class TicketRepository {
     else if (filters.sortField === 'updated_at') sortField = tickets.updated_at;
     
     const isAsc = filters.sortOrder?.toUpperCase() === 'ASC';
-    
-    // Keyset pagination (Cursor logic)
-    if (cursor) {
-      const [cursorValStr, cursorIdStr] = cursor.split('_');
-      const cursorId = parseInt(cursorIdStr, 10);
-      
-      // Determine cursor value type based on sortField
-      let cursorVal: any = cursorValStr;
-      if (sortField === tickets.created_at || sortField === tickets.updated_at) {
-        cursorVal = new Date(parseInt(cursorValStr, 10));
-      }
-
-      if (isAsc) {
-        whereConditions.push(
-          or(
-            gt(sortField, cursorVal),
-            and(eq(sortField, cursorVal), gt(tickets.id, cursorId))
-          )!
-        );
-      } else {
-        whereConditions.push(
-          or(
-            lt(sortField, cursorVal),
-            and(eq(sortField, cursorVal), lt(tickets.id, cursorId))
-          )!
-        );
-      }
+    let orderBy;
+    if (searchRankSql) {
+      orderBy = [
+        asc(sql`rank`),
+        isAsc ? asc(sortField) : desc(sortField),
+        isAsc ? asc(tickets.id) : desc(tickets.id)
+      ];
+    } else {
+      orderBy = [
+        isAsc ? asc(sortField) : desc(sortField),
+        isAsc ? asc(tickets.id) : desc(tickets.id) // Tie-breaker
+      ];
     }
-
-    const orderBy = [
-      isAsc ? asc(sortField) : desc(sortField),
-      isAsc ? asc(tickets.id) : desc(tickets.id) // Tie-breaker
-    ];
+    
+    const countResult = await tx.select({ count: sql`COUNT(*)` }).from(tickets).where(and(...whereConditions));
+    const totalCount = parseInt(String(countResult[0]?.count || '0'), 10);
 
     const dataResult = await tx.query.tickets.findMany({
       where: and(...whereConditions),
+      extras: searchRankSql ? { rank: searchRankSql.as('rank') } : undefined,
       orderBy,
-      limit: limit + 1,
+      limit: limit,
+      offset: offset,
       with: {
         category: { columns: { name: true } },
         customer: {
@@ -315,11 +336,6 @@ export class TicketRepository {
         }
       }
     });
-
-    const hasNext = dataResult.length > limit;
-    if (hasNext) {
-      dataResult.pop();
-    }
 
     const mappedTickets = dataResult.map((t: any) => ({
       id: String(t.id),
@@ -334,23 +350,9 @@ export class TicketRepository {
       current_assigned_employee_id: t.current_assigned_employee_id ? String(t.current_assigned_employee_id) : null,
     }));
 
-    let nextCursor: string | null = null;
-    if (hasNext) {
-      const lastItem = dataResult[dataResult.length - 1];
-      const lastSortVal = lastItem[filters.sortField as keyof typeof lastItem] ?? lastItem.created_at;
-      
-      let cursorValStr = String(lastSortVal);
-      if (lastSortVal instanceof Date) {
-        cursorValStr = String(lastSortVal.getTime());
-      }
-      
-      nextCursor = `${cursorValStr}_${lastItem.id}`;
-    }
-
     return {
       tickets: mappedTickets,
-      nextCursor,
-      hasNext,
+      totalCount,
     };
   }
 

@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
-import { useCursorPagination } from "@/hooks/useCursorPagination";
-import CursorPagination from "@/components/CursorPagination";
+import StandardPagination from "@/components/StandardPagination";
 import { useMemo, useRef } from "react";
 
 interface Ticket {
@@ -42,32 +41,22 @@ export default function TicketsPage() {
 
   const queryParams = useMemo(() => ({}), []);
 
-  const {
-    currentPage,
-    setCurrentPage,
-    pageMap,
-    resetPagination,
-    handlePageResponse,
-  } = useCursorPagination({
-    fetchUrl: "/tickets",
-    limit: 10,
-    queryParams
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const fetchTickets = async (page: number) => {
     try {
       setLoading(true);
-      const cursor = pageMap[page]?.cursor;
-      
       const params = new URLSearchParams();
-      if (cursor) params.append("cursor", cursor);
+      params.append("page", page.toString());
       params.append("limit", "10");
 
       const response = await api.get(`/tickets?${params.toString()}`);
       setTickets(response.data.tickets || []);
       
-      const { nextCursor, hasNext } = response.data.pagination;
-      handlePageResponse(page, nextCursor, hasNext);
+      setTotalPages(response.data.pagination.totalPages || 1);
+      setTotalCount(response.data.pagination.totalCount || 0);
     } catch (err: any) {
       console.error("Failed to fetch tickets:", err);
       setError("Failed to load tickets. Please try again later.");
@@ -81,7 +70,7 @@ export default function TicketsPage() {
   useEffect(() => {
     const currentParamsStr = JSON.stringify(queryParams);
     if (prevParamsRef.current !== currentParamsStr) {
-      resetPagination();
+      setCurrentPage(1);
       prevParamsRef.current = currentParamsStr;
       if (currentPage === 1) {
         fetchTickets(1);
@@ -254,9 +243,12 @@ export default function TicketsPage() {
             )}
           </div>
 
-          <CursorPagination
+          <StandardPagination
             currentPage={currentPage}
-            pageMap={pageMap}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={10}
+            itemName="tickets"
             onPageChange={setCurrentPage}
             loading={loading}
           />

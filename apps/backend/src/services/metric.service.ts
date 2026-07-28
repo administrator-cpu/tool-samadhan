@@ -185,6 +185,8 @@ export class MetricService {
     const downtimePerMonth = new Map<string, number>();
     const resolveTimePerMonth = new Map<string, { totalHours: number, count: number }>();
 
+    const circuitMonthCategoryCounts = new Map<string, any>();
+
     for (const row of ticketsData) {
       const createdDate = new Date(row.created_at as string);
       const resolvedDate = row.resolved_at ? new Date(row.resolved_at as string) : new Date(); // Use now if not resolved
@@ -200,13 +202,23 @@ export class MetricService {
       const tfbm = totalFaultsByMonth.find(m => m.name === monthLabel);
       if (tfbm) tfbm.count += 1;
 
-      // Repeat Fault Comparison
-      const rfc = repeatFaultComparison.find(m => m.name === monthLabel);
-      if (rfc) {
-        if (catLower.includes('link down')) rfc['Link Down'] += 1;
-        else if (catLower.includes('packet drops')) rfc['Packet Drops'] += 1;
-        else if (catLower.includes('latency very high')) rfc['Latency Very High'] += 1;
-        else if (catLower.includes('link fluctuating')) rfc['Link Fluctuating'] += 1;
+      // Group tickets by circuit and month for Repeat Faults
+      const circuitDesc = row.circuit_description;
+      if (circuitDesc) {
+        const mapKey = `${monthLabel}|${circuitDesc}`;
+        if (!circuitMonthCategoryCounts.has(mapKey)) {
+          circuitMonthCategoryCounts.set(mapKey, {
+            "Link Down": 0, 
+            "Packet Drops": 0, 
+            "Latency Very High": 0, 
+            "Link Fluctuating": 0 
+          });
+        }
+        const counts = circuitMonthCategoryCounts.get(mapKey);
+        if (catLower.includes('link down')) counts['Link Down'] += 1;
+        else if (catLower.includes('packet drops')) counts['Packet Drops'] += 1;
+        else if (catLower.includes('latency very high')) counts['Latency Very High'] += 1;
+        else if (catLower.includes('link fluctuating')) counts['Link Fluctuating'] += 1;
       }
 
       // Fault Category Distribution
@@ -233,6 +245,18 @@ export class MetricService {
           current.count += 1;
           resolveTimePerMonth.set(monthLabel, current);
         }
+      }
+    }
+
+    // Calculate repeat faults: if count > 1, add total count to repeat faults
+    for (const [key, counts] of circuitMonthCategoryCounts.entries()) {
+      const [monthLabel] = key.split('|');
+      const rfc = repeatFaultComparison.find(m => m.name === monthLabel);
+      if (rfc) {
+        if (counts['Link Down'] > 1) rfc['Link Down'] += counts['Link Down'];
+        if (counts['Packet Drops'] > 1) rfc['Packet Drops'] += counts['Packet Drops'];
+        if (counts['Latency Very High'] > 1) rfc['Latency Very High'] += counts['Latency Very High'];
+        if (counts['Link Fluctuating'] > 1) rfc['Link Fluctuating'] += counts['Link Fluctuating'];
       }
     }
 

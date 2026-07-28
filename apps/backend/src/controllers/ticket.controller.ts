@@ -37,19 +37,19 @@ export class TicketController {
 
   static async getTickets(req: Request, res: Response, next: NextFunction) {
     try {
-      const cursor = req.query.cursor as string | undefined;
-      const limit = parseInt(req.query.limit as unknown as string) || 10;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
       const filters = {
-        ownership: req.query.ownership as unknown as string,
-        agentId: req.query.agentId as unknown as string,
-        statusGroup: req.query.statusGroup as unknown as string,
-        status: req.query.status as unknown as string,
-        searchQuery: req.query.searchQuery as unknown as string,
-        sortField: req.query.sortField as unknown as string,
-        sortOrder: req.query.sortOrder as unknown as string,
+        ownership: req.query.ownership as string,
+        agentId: req.query.agentId as string,
+        statusGroup: req.query.statusGroup as string,
+        status: req.query.status as string,
+        searchQuery: req.query.searchQuery as string,
+        sortField: req.query.sortField as string,
+        sortOrder: req.query.sortOrder as string,
       };
 
-      const result = await TicketService.listUserTickets(req.user!.userId, req.user!.role, cursor, limit, filters);
+      const result = await TicketService.listUserTickets(req.user!.userId, req.user!.role, page, limit, filters);
       return sendResponse({ res, data: result });
     } catch (error) {
       next(error);

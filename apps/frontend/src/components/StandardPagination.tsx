@@ -35,42 +35,41 @@ export default function StandardPagination({
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-2">
+      <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1 || loading}
-          className="flex h-10 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-4 text-xs font-bold text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-700 disabled:opacity-50 disabled:pointer-events-none active:scale-95"
+           className="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-emerald-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
         >
-          <span className="material-symbols-outlined text-[16px]">chevron_left</span>
-          Previous
+          <span className="sr-only">Previous</span>
+          <span className="material-symbols-outlined text-sm">chevron_left</span>
         </button>
 
-        <div className="flex items-center gap-1 mx-2">
           {visiblePages.map((p) => (
             <button
               key={p}
               onClick={() => onPageChange(p)}
               disabled={loading}
-              className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold transition-all ${
-                currentPage === p
-                  ? "bg-emerald-600 text-white shadow-md"
-                  : "text-slate-600 hover:bg-slate-100 active:scale-95"
-              }`}
+              className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0 disabled:opacity-50 ${
+              currentPage === p
+                ? 'z-10 bg-emerald-600 hover:bg-emerald-800 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                : 'text-slate-900 ring-1 ring-inset ring-slate-300 hover:bg-emerald-50'
+            }`}
             >
               {p}
             </button>
           ))}
-        </div>
 
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages || loading}
-          className="flex h-10 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:pointer-events-none active:scale-95"
+          className="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-emerald-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
         >
-          Next
-          <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+          <span className="sr-only">Next</span>
+          <span className="material-symbols-outlined text-sm">chevron_right</span>
         </button>
-      </div>
+      </nav>
     </div>
   );
 }

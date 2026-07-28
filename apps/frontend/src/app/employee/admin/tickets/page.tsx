@@ -7,8 +7,7 @@ import ReassignModal from "@/components/ReassignModal";
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, TrendingUp, Calendar, UserCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { useCursorPagination } from "@/hooks/useCursorPagination";
-import CursorPagination from "@/components/CursorPagination";
+import StandardPagination from "@/components/StandardPagination";
 import { useRef } from "react";
 
 interface Ticket {
@@ -49,6 +48,7 @@ export default function AdminTicketsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Search and Sort states
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<"status" | "date">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -67,27 +67,23 @@ export default function AdminTicketsPage() {
     return params;
   }, [ownershipFilter, statusFilter, searchQuery, sortField, sortOrder]);
 
-  const { currentPage, setCurrentPage, pageMap, resetPagination, handlePageResponse } = useCursorPagination({
-    fetchUrl: "/tickets",
-    limit: 15,
-    queryParams
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const fetchTickets = async (page: number) => {
     try {
       setLoading(true);
-      const cursor = pageMap[page]?.cursor;
-      
       const params = new URLSearchParams();
       Object.entries(queryParams).forEach(([k, v]) => params.append(k, v));
-      if (cursor) params.append("cursor", cursor);
+      params.append("page", page.toString());
       params.append("limit", "15");
 
       const res = await api.get(`/tickets?${params.toString()}`);
       setTickets(res.data.tickets);
       
-      const { nextCursor, hasNext } = res.data.pagination;
-      handlePageResponse(page, nextCursor, hasNext);
+      setTotalPages(res.data.pagination.totalPages || 1);
+      setTotalCount(res.data.pagination.totalCount || 0);
     } catch (err: any) {
       toast.error(err.message || "Failed to fetch tickets");
     } finally {
@@ -100,7 +96,7 @@ export default function AdminTicketsPage() {
   useEffect(() => {
     const currentParamsStr = JSON.stringify(queryParams);
     if (prevParamsRef.current !== currentParamsStr) {
-      resetPagination();
+      setCurrentPage(1);
       prevParamsRef.current = currentParamsStr;
       if (currentPage === 1) {
         fetchTickets(1);
@@ -136,14 +132,22 @@ export default function AdminTicketsPage() {
 
           {/* Search and Sort Toolbar */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="relative group min-w-[280px]">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-indigo-600" />
+            <div className="relative group min-w-[320px]">
+              <Search 
+                className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors hover:text-indigo-600 cursor-pointer z-10" 
+                onClick={() => setSearchQuery(searchInput)}
+              />
               <input
                 type="text"
-                placeholder="Search by ID (e.g. 10003)"
-                value={searchQuery}
+                placeholder="Ticket Number, Name or Category"
+                value={searchInput}
                 onChange={(e) => {
-                  setSearchQuery(e.target.value);
+                  setSearchInput(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setSearchQuery(searchInput);
+                  }
                 }}
                 className="h-12 w-full rounded-lg border border-slate-200 bg-white pl-11 pr-4 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all outline-hidden"
               />
@@ -315,9 +319,12 @@ export default function AdminTicketsPage() {
           </div>
 
           {/* Pagination Controls */}
-          <CursorPagination
+          <StandardPagination
             currentPage={currentPage}
-            pageMap={pageMap}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={15}
+            itemName="tickets"
             onPageChange={setCurrentPage}
             loading={loading}
           />
