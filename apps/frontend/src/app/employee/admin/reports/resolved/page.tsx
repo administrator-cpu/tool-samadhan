@@ -306,7 +306,7 @@ export default function ResolvedTicketsPage() {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1 || loading}
-                  className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-all"
+                  className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-all"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -315,8 +315,8 @@ export default function ResolvedTicketsPage() {
                     <button
                       key={p}
                       onClick={() => setCurrentPage(p)}
-                      className={`h-9 w-9 rounded-xl text-xs font-black transition-all ${currentPage === p
-                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
+                      className={`h-9 w-9 rounded-lg text-xs font-black transition-all ${currentPage === p
+                          ? "bg-emerald-700 hover:bg-emerald-800 text-white"
                           : "bg-white border border-slate-200 text-slate-600 hover:border-indigo-300"
                         }`}
                     >
@@ -327,7 +327,7 @@ export default function ResolvedTicketsPage() {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(pagination.pages, p + 1))}
                   disabled={currentPage === pagination.pages || loading}
-                  className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-all"
+                  className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-all"
                 >
                   <ChevronRight size={18} />
                 </button>

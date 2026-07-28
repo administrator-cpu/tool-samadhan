@@ -6,8 +6,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, Calendar, UserCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { useCursorPagination } from "@/hooks/useCursorPagination";
-import CursorPagination from "@/components/CursorPagination";
+import StandardPagination from "@/components/StandardPagination";
 import { useRef } from "react";
 
 interface Ticket {
@@ -64,33 +63,23 @@ export default function SalesTicketsPage() {
     return params;
   }, [ownershipFilter, statusFilter, searchQuery, sortField, sortOrder]);
 
-  const {
-    currentPage,
-    setCurrentPage,
-    pageMap,
-    resetPagination,
-    handlePageResponse,
-  } = useCursorPagination({
-    fetchUrl: "/tickets",
-    limit: 10,
-    queryParams
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const fetchTickets = async (page: number) => {
     try {
       setLoading(true);
-      const cursor = pageMap[page]?.cursor;
-      
       const params = new URLSearchParams();
       Object.entries(queryParams).forEach(([k, v]) => params.append(k, v));
-      if (cursor) params.append("cursor", cursor);
+      params.append("page", page.toString());
       params.append("limit", "10");
 
       const res = await api.get(`/tickets?${params.toString()}`);
       setTickets(res.data.tickets || []);
       
-      const { nextCursor, hasNext } = res.data.pagination;
-      handlePageResponse(page, nextCursor, hasNext);
+      setTotalPages(res.data.pagination.totalPages || 1);
+      setTotalCount(res.data.pagination.totalCount || 0);
     } catch (err: any) {
       toast.error(err.message || "Failed to fetch tickets");
     } finally {
@@ -103,7 +92,7 @@ export default function SalesTicketsPage() {
   useEffect(() => {
     const currentParamsStr = JSON.stringify(queryParams);
     if (prevParamsRef.current !== currentParamsStr) {
-      resetPagination();
+      setCurrentPage(1);
       prevParamsRef.current = currentParamsStr;
       if (currentPage === 1) {
         fetchTickets(1);
@@ -280,9 +269,12 @@ export default function SalesTicketsPage() {
           </div>
 
           {/* Pagination Controls */}
-          <CursorPagination
+          <StandardPagination
             currentPage={currentPage}
-            pageMap={pageMap}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={10}
+            itemName="tickets"
             onPageChange={setCurrentPage}
             loading={loading}
           />
