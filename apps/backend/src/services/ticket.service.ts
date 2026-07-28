@@ -159,7 +159,7 @@ export class TicketService {
     return { ticket: result.ticket, assignedAgentId: result.assignedAgentId };
   }
 
-  static async listUserTickets(userId: string, role: string, cursor: string | undefined, limit: number, filters: any) {
+  static async listUserTickets(userId: string, role: string, page: number, limit: number, filters: any) {
     const tx = db; const client = db;
     try {
       const queryFilters: any = { 
@@ -172,11 +172,11 @@ export class TicketService {
 
       if (role === UserRole.USER) {
         const cust = await CustomerRepository.findByUserId(tx, userId);
-        if (!cust) return { tickets: [], pagination: { nextCursor: null, hasNext: false, limit } };
+        if (!cust) return { tickets: [], pagination: { totalPages: 0, currentPage: page, limit, totalCount: 0 } };
         queryFilters.customerId = cust.id;
       } else if (role === UserRole.SUPPORT_AGENT) {
         const emp = await EmployeeRepository.findByUserId(tx, userId);
-        if (!emp) return { tickets: [], pagination: { nextCursor: null, hasNext: false, limit } };
+        if (!emp) return { tickets: [], pagination: { totalPages: 0, currentPage: page, limit, totalCount: 0 } };
         queryFilters.employeeId = emp.id;
       } else if (role === UserRole.SALES) {
         queryFilters.salesUserId = userId;
@@ -187,11 +187,14 @@ export class TicketService {
         if (filters.agentId) queryFilters.employeeId = filters.agentId;
       }
 
-      const { tickets, nextCursor, hasNext } = await TicketRepository.findUserTickets(tx, queryFilters, limit, cursor);
+      const offset = (page - 1) * limit;
+      const { tickets, totalCount } = await TicketRepository.findUserTickets(tx, queryFilters, limit, offset);
+      
+      const totalPages = Math.ceil(totalCount / limit);
       
       return {
         tickets,
-        pagination: { nextCursor, hasNext, limit }
+        pagination: { totalPages, currentPage: page, limit, totalCount }
       };
     } finally {
       // client.release();

@@ -224,7 +224,7 @@ export class TicketRepository {
       sortOrder?: string;
     },
     limit: number,
-    cursor?: string // Cursor is expected to be a string like "timestamp_id"
+    offset: number = 0
   ) {
     const whereConditions: SQL[] = [];
 
@@ -303,63 +303,6 @@ export class TicketRepository {
     else if (filters.sortField === 'updated_at') sortField = tickets.updated_at;
     
     const isAsc = filters.sortOrder?.toUpperCase() === 'ASC';
-    
-    // Keyset pagination (Cursor logic)
-    if (cursor) {
-      const parts = cursor.split('_');
-      let cursorRank: number | undefined;
-      let cursorValStr: string;
-      let cursorIdStr: string;
-
-      if (filters.searchQuery && parts.length >= 3) {
-        cursorRank = parseInt(parts[0], 10);
-        cursorValStr = parts[1];
-        cursorIdStr = parts[2];
-      } else {
-        cursorValStr = parts[0];
-        cursorIdStr = parts[1];
-      }
-
-      const cursorId = parseInt(cursorIdStr, 10);
-      
-      // Determine cursor value type based on sortField
-      let cursorVal: any = cursorValStr;
-      if (sortField === tickets.created_at || sortField === tickets.updated_at) {
-        cursorVal = new Date(parseInt(cursorValStr, 10));
-      }
-
-      if (filters.searchQuery && searchRankSql && cursorRank !== undefined) {
-        const rankCond = gt(searchRankSql, cursorRank);
-        let sortCond;
-        let tieCond;
-
-        if (isAsc) {
-           sortCond = and(eq(searchRankSql, cursorRank), gt(sortField, cursorVal));
-           tieCond = and(eq(searchRankSql, cursorRank), eq(sortField, cursorVal), gt(tickets.id, cursorId));
-        } else {
-           sortCond = and(eq(searchRankSql, cursorRank), lt(sortField, cursorVal));
-           tieCond = and(eq(searchRankSql, cursorRank), eq(sortField, cursorVal), gt(tickets.id, cursorId));
-        }
-        whereConditions.push(or(rankCond, sortCond, tieCond)!);
-      } else {
-        if (isAsc) {
-          whereConditions.push(
-            or(
-              gt(sortField, cursorVal),
-              and(eq(sortField, cursorVal), gt(tickets.id, cursorId))
-            )!
-          );
-        } else {
-          whereConditions.push(
-            or(
-              lt(sortField, cursorVal),
-              and(eq(sortField, cursorVal), lt(tickets.id, cursorId))
-            )!
-          );
-        }
-      }
-    }
-
     let orderBy;
     if (searchRankSql) {
       orderBy = [
@@ -373,12 +316,16 @@ export class TicketRepository {
         isAsc ? asc(tickets.id) : desc(tickets.id) // Tie-breaker
       ];
     }
+    
+    const countResult = await tx.select({ count: sql`COUNT(*)` }).from(tickets).where(and(...whereConditions));
+    const totalCount = parseInt(String(countResult[0]?.count || '0'), 10);
 
     const dataResult = await tx.query.tickets.findMany({
       where: and(...whereConditions),
       extras: searchRankSql ? { rank: searchRankSql.as('rank') } : undefined,
       orderBy,
-      limit: limit + 1,
+      limit: limit,
+      offset: offset,
       with: {
         category: { columns: { name: true } },
         customer: {
@@ -389,11 +336,6 @@ export class TicketRepository {
         }
       }
     });
-
-    const hasNext = dataResult.length > limit;
-    if (hasNext) {
-      dataResult.pop();
-    }
 
     const mappedTickets = dataResult.map((t: any) => ({
       id: String(t.id),
@@ -408,27 +350,9 @@ export class TicketRepository {
       current_assigned_employee_id: t.current_assigned_employee_id ? String(t.current_assigned_employee_id) : null,
     }));
 
-    let nextCursor: string | null = null;
-    if (hasNext) {
-      const lastItem = dataResult[dataResult.length - 1];
-      const lastSortVal = lastItem[filters.sortField as keyof typeof lastItem] ?? lastItem.created_at;
-      
-      let cursorValStr = String(lastSortVal);
-      if (lastSortVal instanceof Date) {
-        cursorValStr = String(lastSortVal.getTime());
-      }
-      
-      if (filters.searchQuery) {
-         nextCursor = `${lastItem.rank}_${cursorValStr}_${lastItem.id}`;
-      } else {
-         nextCursor = `${cursorValStr}_${lastItem.id}`;
-      }
-    }
-
     return {
       tickets: mappedTickets,
-      nextCursor,
-      hasNext,
+      totalCount,
     };
   }
 
