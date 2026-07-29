@@ -5,6 +5,8 @@ import { PasswordResetService } from '../services/password-reset.service.js';
 import { isProd, env } from '../config/environment.js';
 import { sendResponse } from '../utils/response.js';
 import { UserRole } from '../types/dto.js';
+import { PushTokenRepository } from '../repositories/index.js';
+
 
 const cookieOptions = {
   httpOnly: true,
@@ -398,6 +400,37 @@ export class UserController {
       const { MetricService } = await import('../services/metric.service.js');
       const metrics = await MetricService.getCustomerMetricsByCustomerId(customerRowId, circuitId || null, totalCircuits);
       return sendResponse({ res, data: metrics });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async addPushToken(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token, platform } = req.body;
+      const userId = req.user?.userId;
+      if (!token) {
+        return sendResponse({ res, statusCode: 400, success: false, message: 'Push token required' });
+      }
+      if (!userId) {
+        return sendResponse({ res, statusCode: 401, success: false, message: 'Unauthorized' });
+      }
+      
+      await PushTokenRepository.upsertToken(Number(userId), token, platform);
+      return sendResponse({ res, message: 'Push token saved successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async removePushToken(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return sendResponse({ res, statusCode: 400, success: false, message: 'Push token required' });
+      }
+      await PushTokenRepository.removeToken(token);
+      return sendResponse({ res, message: 'Push token removed successfully' });
     } catch (error) {
       next(error);
     }
