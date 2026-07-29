@@ -7,3 +7,4 @@ export * from './ticket-event.repository.js';
 export * from './issue-category.repository.js';
 export * from './password-reset.repository.js';
 export * from './automated-email-log.repository.js';
+export * from './push-token.repository.js';
