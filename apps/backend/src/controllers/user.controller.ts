@@ -5,6 +5,8 @@ import { PasswordResetService } from '../services/password-reset.service.js';
 import { isProd, env } from '../config/environment.js';
 import { sendResponse } from '../utils/response.js';
 import { UserRole } from '../types/dto.js';
+import { PushTokenRepository } from '../repositories/index.js';
+
 
 const cookieOptions = {
   httpOnly: true,
@@ -265,53 +267,10 @@ export class UserController {
 
   static async getMyConnections(req: Request, res: Response, next: NextFunction) {
     try {
-
       const user = await UserService.getCurrentUserDetails(req.user!.userId);
       if (!user) return sendResponse({ res, statusCode: 404, success: false, message: 'User not found' });
 
-      const searchName = user.name.trim().toUpperCase();
-      const searchUrl = `${env.crmNewApiUrl}?search=${encodeURIComponent(searchName)}`;
-      const searchRes = await fetch(searchUrl, {
-        headers: { 'x-api-key': env.crmApiKey }
-      });
-
-      let connData: any;
-      const textData = await searchRes.text();
-      try {
-        connData = JSON.parse(textData);
-      } catch (e) {
-        // Ignore JSON parse errors
-      }
-
-      if (!searchRes.ok) {
-        if (searchRes.status === 404 && connData && connData.success === false && typeof connData.message === 'string' && connData.message.toLowerCase().includes('customer not found')) {
-          return sendResponse({ res, data: { connections: [] } });
-        }
-        
-        throw new Error(`CRM API error: ${searchRes.status} - ${connData?.message || searchRes.statusText}`);
-      }
-
-      let connections = [];
-      if (connData.success && Array.isArray(connData.connections)) {
-        connections = connData.connections
-          .filter((c: any) => {
-             const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
-             if (status === 'active' || status === 'termination' || status === 'under termination'|| status === 'notice period') return true;
-             if (status === 'generation') {
-               return c.history?.some((h: any) => h.action?.toUpperCase() === 'ACTIVATED');
-             }
-             return false;
-          })
-          .map((c: any) => ({
-            id: c.crmConnectionId || c._id,
-            fabCircuitId: c.fabCircuitId,
-            opportunityId: c.opportunityId,
-            serviceType: c.serviceType || 'N/A',
-            aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
-            bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A',
-            bandwidth: c.bandwidth || 'N/A'
-          }));
-      }
+      const { connections } = await UserService.getCustomerConnectionsFromCrm(user.name);
 
       return sendResponse({ res, data: { connections } });
     } catch (error) {
@@ -352,13 +311,9 @@ export class UserController {
       }
 
       try {
-        const connections = await UserService.getCustomerConnectionsFromCrm(user.name);
-        return sendResponse({ res, data: { name: user.name, connections } });
+        const { crmFound, connections } = await UserService.getCustomerConnectionsFromCrm(user.name);
+        return sendResponse({ res, data: { name: user.name, connections, crmFound } });
       } catch (crmError: any) {
-        if (crmError.message && crmError.message.includes('404')) {
-           return sendResponse({ res, data: { name: user.name, connections: [] } });
-        }
-        
         return sendResponse({ 
           res, 
           statusCode: 502, 
@@ -380,9 +335,9 @@ export class UserController {
       }
 
 
-      const connections = await UserService.getCustomerConnectionsFromCrm(user.name);
+      const { crmFound, connections } = await UserService.getCustomerConnectionsFromCrm(user.name);
 
-      return sendResponse({ res, data: { connections } });
+      return sendResponse({ res, data: { connections, crmFound } });
     } catch (error) {
       next(error);
     }
@@ -398,6 +353,37 @@ export class UserController {
       const { MetricService } = await import('../services/metric.service.js');
       const metrics = await MetricService.getCustomerMetricsByCustomerId(customerRowId, circuitId || null, totalCircuits);
       return sendResponse({ res, data: metrics });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async addPushToken(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token, platform } = req.body;
+      const userId = req.user?.userId;
+      if (!token) {
+        return sendResponse({ res, statusCode: 400, success: false, message: 'Push token required' });
+      }
+      if (!userId) {
+        return sendResponse({ res, statusCode: 401, success: false, message: 'Unauthorized' });
+      }
+      
+      await PushTokenRepository.upsertToken(Number(userId), token, platform);
+      return sendResponse({ res, message: 'Push token saved successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async removePushToken(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return sendResponse({ res, statusCode: 400, success: false, message: 'Push token required' });
+      }
+      await PushTokenRepository.removeToken(token);
+      return sendResponse({ res, message: 'Push token removed successfully' });
     } catch (error) {
       next(error);
     }
