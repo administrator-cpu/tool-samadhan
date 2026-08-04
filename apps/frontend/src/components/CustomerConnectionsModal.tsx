@@ -23,6 +23,7 @@ export default function CustomerConnectionsModal({ isOpen, onClose, customerRowI
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [crmFound, setCrmFound] = useState<boolean>(true);
 
   useEffect(() => {
     if (!isOpen || !customerRowId) return;
@@ -34,6 +35,7 @@ export default function CustomerConnectionsModal({ isOpen, onClose, customerRowI
         console.log("Customer Row Id: ",customerRowId)
         const response = await api.get(`/users/customers/${customerRowId}/connections`);
         setConnections(response.data.connections || []);
+        setCrmFound(response.data.crmFound !== false);
       } catch (err: any) {
         console.error("Failed to fetch connections:", err);
         setError("Failed to load customer connections. Please try again later.");
@@ -74,10 +76,10 @@ export default function CustomerConnectionsModal({ isOpen, onClose, customerRowI
               ) : connections.length === 0 ? (
                 <div className="p-20 text-center text-slate-500">
                   <span className="material-symbols-outlined text-6xl mb-4">cable</span>
-                  {customerName ? (
+                  {crmFound ? (
                     <p>We found this customer in the CRM, but they currently have no connections.</p>
                   ) : (
-                    <p>We could not find this customer's details.</p>
+                    <p>This customer was not found in the CRM.</p>
                   )}
                 </div>
               ) : (
