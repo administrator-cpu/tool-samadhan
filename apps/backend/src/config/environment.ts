@@ -70,7 +70,6 @@ export const env = {
     sender: getEnvStr('SMS_SENDER', ''),
   },
 
-  crmApiUrl: getEnvStr('CRM_API_URL', ''),
   crmNewApiUrl: getEnvStr('CRM_NEW_API_URL', ''),
   crmApiKey: getEnvStr('CRM_API_KEY', ''),
 
