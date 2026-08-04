@@ -17,6 +17,8 @@ router.put(   '/profile',                   validateUpdateProfile,              
 router.post(  '/profile/image',             parseProfileImageUpload(),                                    UserController.uploadProfileImage);
 router.delete('/profile/image',                                                                           UserController.removeProfileImage);
 
+router.post(  '/push-token',                                                                              UserController.addPushToken);
+router.delete('/push-token',                                                                              UserController.removePushToken);
 router.post('/employees',                   requireRole([UserRole.ADMIN]), validateRegister,             UserController.registerEmployee);
 router.get(   '/employees',                 requireRole([UserRole.ADMIN]),                               UserController.getAllEmployees );
 router.get(   '/agents',                    requireRole([UserRole.ADMIN, UserRole.SUPPORT_AGENT]),       UserController.getAllAgents );

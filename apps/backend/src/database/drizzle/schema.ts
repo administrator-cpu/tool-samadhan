@@ -57,6 +57,15 @@ export const sessions = pgTable('sessions', {
   created_at: timestamp('created_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// Push Tokens Table
+export const pushTokens = pgTable('push_tokens', {
+  id: bigint('id', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+  user_id: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  platform: varchar('platform', { length: 50 }),
+  created_at: timestamp('created_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // Password Reset OTPs
 export const passwordResetOtps = pgTable('password_reset_otps', {
   id: serial('id').primaryKey(),
@@ -140,6 +149,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   employee: one(employees, { fields: [users.id], references: [employees.user_id] }),
   customer: one(customers, { fields: [users.id], references: [customers.user_id] }),
   sessions: many(sessions),
+  pushTokens: many(pushTokens),
   ticketsCreated: many(tickets, { relationName: 'createdBy' })
 }));
 

@@ -1,5 +1,6 @@
 import { db } from '../config/database.js';
 import { TicketRepository } from '../repositories/ticket.repository.js';
+import { NotificationService } from './notification/notification.service.js';
 import { TicketEventRepository } from '../repositories/ticket-event.repository.js';
 import { EmployeeRepository } from '../repositories/employee.repository.js';
 import { CustomerRepository } from '../repositories/customer.repository.js';
@@ -129,6 +130,12 @@ export class TicketService {
             circuitId: result.info.circuit_description, 
             attachments: dto.metadata?.attachments 
           });
+          await NotificationService.notify({
+            userIds: [result.info.user_id],
+            title: `Ticket ${result.info.ticket_no} created`,
+            body: `Your ticket regarding ${result.info.category} has been created.`,
+            data: { ticketId: result.ticket.id }
+          });
 
           // 2. Send notification to helpdesk
           await sendTicketCreatedHelpdeskEmail({
@@ -149,6 +156,14 @@ export class TicketService {
               category: result.info.category,
               circuitId: result.info.circuit_description
             });
+            if (result.info.agent_user_id) {
+              await NotificationService.notify({
+                userIds: [result.info.agent_user_id],
+                title: `Ticket ${result.info.ticket_no} assigned`,
+                body: `You have been assigned to ticket ${result.info.ticket_no}.`,
+                data: { ticketId: result.ticket.id }
+              });
+            }
           }
         } catch (err) {
           logger.error('[EMAIL] Failed to send ticket creation emails sequentially', err);
