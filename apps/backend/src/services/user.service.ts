@@ -288,72 +288,44 @@ export class UserService {
 
 
   
-  static async getCustomerConnectionsFromCrm(userName: string): Promise<any[]> {
-    const searchName = userName.trim().toUpperCase()
-      .replace(/\(/g, "\\(")
-      .replace(/\)/g, "\\)");
+  static async getCustomerConnectionsFromCrm(userName: string): Promise<{ crmFound: boolean, connections: any[] }> {
+    const searchName = userName.trim().toUpperCase();
       
-    const searchUrl = `${env.crmApiUrl}/customers?search=${encodeURIComponent(searchName)}&page=1&limit=1000`;
+    const searchUrl = `${env.crmNewApiUrl}?search=${encodeURIComponent(searchName)}`;
     const searchRes = await fetch(searchUrl, {
       headers: { 'x-api-key': env.crmApiKey }
     });
 
+    let connData: any;
+    const textData = await searchRes.text();
+    try {
+      connData = JSON.parse(textData);
+    } catch (e) {
+      // Ignore JSON parse errors
+    }
+
     if (!searchRes.ok) {
-      throw new Error(`CRM API error ${searchRes.status}: ${searchRes.statusText}`);
+      if (searchRes.status === 404 && connData && connData.success === false && typeof connData.message === 'string' && connData.message.toLowerCase().includes('customer not found')) {
+        return { crmFound: false, connections: [] };
+      }
+      
+      throw new Error(`CRM API error: ${searchRes.status} - ${connData?.message || searchRes.statusText}`);
     }
-    const searchData = await searchRes.json();
-    
-    if (!searchData.customers || searchData.customers.length === 0) {
-      return [];
-    }
-
-    const connectionResponses = await Promise.all(
-      searchData.customers.map(async (customer: any) => {
-        const connUrl = `${env.crmApiUrl}/customers/${customer.id}/connections`;
-        const connRes = await fetch(connUrl, {
-          headers: { "x-api-key": env.crmApiKey }
-        });
-
-        if (!connRes.ok) {
-          throw new Error(`CRM API error ${connRes.status}: ${connRes.statusText}`);
-        }
-
-        return connRes.json();
-      })
-    );
 
     let connections: any[] = [];
-    for (const connData of connectionResponses) {
-      if (connData.success && Array.isArray(connData.connections)) {
-        connections.push(
-          ...connData.connections
-            .filter((c: any) => {
-               const status = (c.status || c.workflowStatus)?.toLowerCase() || '';
-               if (status === 'active' || status === 'termination' || status === 'under termination' || status === 'notice period') return true;
-               if (status === 'generation') {
-                 return c.history?.some((h: any) => h.action?.toUpperCase() === 'ACTIVATED');
-               }
-               return false;
-            })
-            .map((c: any) => ({
-              id: c.crmConnectionId || c._id,
-              fabCircuitId: c.fabCircuitId,
-              opportunityId: c.opportunityId,
-              serviceType: c.serviceType || 'N/A',
-              bandwidth: c.bandwidth || 'N/A',
-              aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
-              bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
-            }))
-         );
-       }
+    if (connData && connData.success && Array.isArray(connData.connections)) {
+      connections = connData.connections.map((c: any) => ({
+        id: c.crmConnectionId || c._id,
+        fabCircuitId: c.fabCircuitId,
+        opportunityId: c.opportunityId,
+        serviceType: c.serviceType || 'N/A',
+        bandwidth: c.bandwidth || 'N/A',
+        aEndBtsId: c.technicalDetails?.aEnd?.btsId || 'N/A',
+        bEndBtsId: c.technicalDetails?.bEnd?.btsId || 'N/A'
+      }));
     }
 
-    // Remove duplicate connections
-    connections = Array.from(
-      new Map(connections.map((c) => [c.id, c])).values()
-    );
-
-    return connections;
+    return { crmFound: true, connections };
   }
 
 
