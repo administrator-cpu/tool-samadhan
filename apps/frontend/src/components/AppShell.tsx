@@ -26,13 +26,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!_hasHydrated || !isSessionChecked || !isMounted) return;
 
-    const publicRoutes = ["/", "/auth/login", "/auth/signup", "/auth/logout"];
+    const publicRoutes = ["/", "/auth/login", "/auth/signup", "/auth/logout", "/privacy"];
     const isPublicRoute = publicRoutes.includes(pathname);
     const isDashboardRoute = pathname.startsWith("/customer") || pathname.startsWith("/employee") || pathname.startsWith("/profile");
 
     if (isAuthenticated && user) {
-      // If logged in and on a public route, redirect to dashboard
-      if (isPublicRoute) {
+      // If logged in and on a public route (except /privacy), redirect to dashboard
+      if (isPublicRoute && pathname !== "/privacy") {
         router.replace(getDashboardPath());
         return;
       }
@@ -68,8 +68,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   ]);
 
   // Prevent flash of unauthenticated content during hydration
-  // EXCEPT on the home page, where we want immediate visibility
-  if ((!_hasHydrated || !isSessionChecked || !isMounted) && pathname !== "/") {
+  // EXCEPT on the home page and privacy policy, where we want immediate visibility
+  if ((!_hasHydrated || !isSessionChecked || !isMounted) && pathname !== "/" && pathname !== "/privacy") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
