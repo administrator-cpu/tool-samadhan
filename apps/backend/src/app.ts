@@ -10,6 +10,7 @@ import { errorHandler } from './middleware/error-handler.middleware.js';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import ticketRoutes from './routes/ticket.routes.js';
+import eventRoutes from './routes/event.routes.js';
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.get('/api/categories', TicketController.getCategories);
 app.get('/api/categories/unassigned', TicketController.getUnassignedCategories);
 app.use('/api/users', userRoutes);
 app.use('/api/tickets', ticketRoutes);
+app.use('/api/events', eventRoutes);
 
 // Catch 404
 app.use((req, res, next) => {

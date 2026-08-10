@@ -16,7 +16,10 @@ import { useSocket } from "@/hooks/useSocket";
 import { useSocketStore } from "@/store/useSocketStore";
 import TicketReplyForm from "./ticket/TicketReplyForm";
 import TicketRcaEditor from "./ticket/TicketRcaEditor";
+import LanguageToggle from "@/components/LanguageToggle";
 import ReopenTicketModal from "@/components/ReopenTicketModal";
+import { getStatusBadgeConfig } from "@/lib/statusBadge";
+import { getSeverityConfig } from "@/lib/severity";
 
 interface TicketEvent {
   id: number;
@@ -25,6 +28,7 @@ interface TicketEvent {
   actor_name: string | null;
   created_at: string;
   metadata: any;
+  translations?: Record<string, string>;
 }
 
 interface TicketData {
@@ -59,62 +63,6 @@ interface TicketData {
   events: TicketEvent[];
 }
 
-const getStatusBadgeConfig = (status: string) => {
-  switch (status) {
-    case "OPEN":
-      return {
-        dotClass: "bg-slate-400",
-        pingClass: "bg-slate-600",
-        textClass: "text-slate-600",
-      };
-    case "IN_PROGRESS":
-      return {
-        dotClass: "bg-amber-500",
-        pingClass: "bg-amber-400",
-        textClass: "text-amber-600",
-      };
-    case "ESCALATED":
-      return {
-        dotClass: "bg-red-500",
-        pingClass: "bg-red-400",
-        textClass: "text-red-600",
-      };
-    case "RESOLVED":
-      return {
-        dotClass: "bg-emerald-500",
-        pingClass: "bg-emerald-400",
-        textClass: "text-emerald-600",
-      };
-    case "CLOSED":
-    default:
-      return {
-        dotClass: "bg-slate-400",
-        pingClass: "bg-slate-300",
-        textClass: "text-slate-500",
-      };
-  }
-};
-
-
-const getSeverityConfig = (category: string) => {
-  const catLower = (category || "").toLowerCase();
-  if (
-    catLower.includes("link down") ||
-    catLower.includes("latency") ||
-    catLower.includes("packet drop") ||
-    catLower.includes("link fluctuating")
-  ) {
-    return { label: "CRITICAL", classes: "bg-red-100 text-red-700 border-red-200" };
-  }
-  if (
-    catLower.includes("bgp issue") ||
-    catLower.includes("bts access") ||
-    catLower.includes("slow browsing")
-  ) {
-    return { label: "MEDIUM", classes: "bg-orange-100 text-orange-700 border-orange-200" };
-  }
-  return { label: "LOW", classes: "bg-yellow-100 text-yellow-700 border-yellow-200" };
-};
 
 interface TicketDetailViewProps {
   userRole: "ADMIN" | "AGENT";
@@ -223,6 +171,18 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
           };
         });
         toast.info("Customer has submitted feedback rating!");
+      } else if (data.type === "TRANSLATION_READY") {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            events: prev.events.map(e =>
+              e.id === data.eventId
+                ? { ...e, translations: { ...(e.translations || {}), [data.targetLang]: data.translatedText } }
+                : e
+            )
+          };
+        });
       }
     };
 
@@ -307,7 +267,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
         formData.append("message", message.trim());
         formData.append("send_email", String(sendEmail));
         formData.append("send_sms", String(sendSms));
-        
+
         attachments.forEach(file => {
           formData.append("files", file);
         });
@@ -346,6 +306,20 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
     }
   };
 
+  const handleTranslationUpdate = (eventId: number, targetLang: string, translatedText: string) => {
+    setData((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        events: prev.events.map(e =>
+          e.id === eventId
+            ? { ...e, translations: { ...(e.translations || {}), [targetLang]: translatedText } }
+            : e
+        )
+      };
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -371,17 +345,22 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
           <span className="material-symbols-outlined">arrow_back</span>
         </Link>
 
-        <div className="flex-1">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 break-words">{ticket.subject}</h1>
-            <span className="px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border border-slate-200">
-              #{ticket.ticket_no}
-            </span>
-            <span className={`px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest border ${severityConfig.classes}`}>
-              {severityConfig.label}
-            </span>
+        <div className="flex-1 flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 break-words">{ticket.subject}</h1>
+              <span className="px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border border-slate-200">
+                #{ticket.ticket_no}
+              </span>
+              <span className={`px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest border ${severityConfig.classes}`}>
+                {severityConfig.label}
+              </span>
+            </div>
+            <p className="text-sm font-medium text-slate-500 mt-1">Opened by {ticket.customer.name}</p>
           </div>
-          <p className="text-sm font-medium text-slate-500 mt-1">Opened by {ticket.customer.name}</p>
+          <div className="mr-6">
+            <LanguageToggle />
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -392,11 +371,10 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
               <button
                 onClick={handleToggleCustomerReply}
                 disabled={updating || togglingReply || ticket.status === "RESOLVED"}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all disabled:opacity-50 ${
-                  ticket.allow_customer_reply
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all disabled:opacity-50 ${ticket.allow_customer_reply
                     ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                  }`}
               >
                 <MessageSquare size={18} />
                 {ticket.allow_customer_reply ? "Customer Reply ON" : "Customer Reply OFF"}
@@ -454,7 +432,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                       className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-[18px]">restart_alt</span>
-                        Reopen Ticket
+                      Reopen Ticket
                     </button>
                   );
                 }
@@ -469,7 +447,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 overflow-y-auto px-4 py-8 border-r border-slate-100 flex flex-col">
           <div className="max-w-6xl mx-auto w-full flex-1 scrollbar-none">
-            <Timeline events={events} />
+            <Timeline events={events} onTranslationUpdate={handleTranslationUpdate} />
           </div>
 
           {/* Dynamic Action Section: Reply or RCA */}
@@ -497,9 +475,8 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                   return (
                     <span
                       key={i}
-                      className={`material-symbols-outlined text-[20px] ${
-                        isFilled ? "text-amber-500" : "text-slate-200"
-                      }`}
+                      className={`material-symbols-outlined text-[20px] ${isFilled ? "text-amber-500" : "text-slate-200"
+                        }`}
                       style={{ fontVariationSettings: isFilled ? "'FILL' 1" : "'FILL' 0" }}
                     >
                       star
@@ -562,21 +539,21 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
 
                   {ticket.alternate_email && (
                     <div className="mt-1 text-[12px] font-bold text-slate-800">
-                        Alternate Email
-                        {ticket.alternate_email
-                          .split(",")
-                          .map((email) => email.trim())
-                          .filter(Boolean)
-                          .map((email) => (
-                            <span
-                              key={email}
-                              className="text-[11px] font-bold text-slate-400 lowercase block"
-                            >
-                              {email}
-                            </span>
-                          ))}
+                      Alternate Email
+                      {ticket.alternate_email
+                        .split(",")
+                        .map((email) => email.trim())
+                        .filter(Boolean)
+                        .map((email) => (
+                          <span
+                            key={email}
+                            className="text-[11px] font-bold text-slate-400 lowercase block"
+                          >
+                            {email}
+                          </span>
+                        ))}
                     </div>
-                )}
+                  )}
                 </div>
 
                 {/* Opened On */}
@@ -621,11 +598,11 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Assigned Agent</p>
               <div className="flex items-center gap-3">
                 {ticket.assigned_employee?.profile_image ? (
-                  <Image 
-                    src={ticket.assigned_employee.profile_image} 
-                    alt="Agent" 
-                    width={36} height={36} 
-                    className="object-cover rounded-full shadow-xs ring-2 ring-slate-100" 
+                  <Image
+                    src={ticket.assigned_employee.profile_image}
+                    alt="Agent"
+                    width={36} height={36}
+                    className="object-cover rounded-full shadow-xs ring-2 ring-slate-100"
                   />
                 ) : (
                   <Image src={AgentImage} alt="" width={36} height={36} className="rounded-full shadow-xs ring-2 ring-slate-100" />

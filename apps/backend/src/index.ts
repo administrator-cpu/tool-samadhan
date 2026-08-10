@@ -6,6 +6,7 @@ import { postgresPool } from './config/database.js';
 import { initSocket } from './services/socket.service.js';
 import { applyMigrations } from './database/migrate.js';
 import { ticketAutomationWorker } from './workers/ticket-automation.worker.js';
+import { translationWorker } from './workers/translation.worker.js';
 import { ticketAutomationQueue } from './config/redis.js';
 import { sendServerErrorEmail } from './services/email.service.js';
 
@@ -52,6 +53,7 @@ const gracefulShutdown = async (signal: string) => {
 
   try {
     await ticketAutomationWorker.close();
+    await translationWorker.close();
     logger.info('[BULLMQ] Worker closed.');
 
     server.close(() => {
