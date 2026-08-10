@@ -49,6 +49,7 @@ export class TicketEventRepository {
       event_type: ticketEvents.event_type,
       message: ticketEvents.message,
       metadata: ticketEvents.metadata,
+      translations: ticketEvents.translations,
       visible_to_customer: ticketEvents.visible_to_customer,
       created_at: ticketEvents.created_at
     })
@@ -74,6 +75,7 @@ export class TicketEventRepository {
       event_type: ticketEvents.event_type,
       message: ticketEvents.message,
       metadata: ticketEvents.metadata,
+      translations: ticketEvents.translations,
       visible_to_customer: ticketEvents.visible_to_customer,
       created_at: ticketEvents.created_at
     })
@@ -150,5 +152,38 @@ export class TicketEventRepository {
         orderBy: [desc(ticketEvents.id)]
     });
     return lastReopen;
+  }
+
+  static async updateTranslations(tx: any, eventId: string, translations: Record<string, string>): Promise<void> {
+    await tx.update(ticketEvents)
+      .set({ translations })
+      .where(eq(ticketEvents.id, parseInt(eventId, 10)));
+  }
+
+  static async findById(tx: any, eventId: string): Promise<any> {
+    const result = await tx.select({
+      id: ticketEvents.id,
+      ticket_id: ticketEvents.ticket_id,
+      actor_user_id: ticketEvents.actor_user_id,
+      actor_name: users.name,
+      event_type: ticketEvents.event_type,
+      message: ticketEvents.message,
+      metadata: ticketEvents.metadata,
+      translations: ticketEvents.translations,
+      visible_to_customer: ticketEvents.visible_to_customer,
+      created_at: ticketEvents.created_at
+    })
+    .from(ticketEvents)
+    .leftJoin(users, eq(ticketEvents.actor_user_id, users.id))
+    .where(eq(ticketEvents.id, parseInt(eventId, 10)));
+
+    if (!result.length) return null;
+    
+    return {
+      ...result[0],
+      id: String(result[0].id),
+      ticket_id: String(result[0].ticket_id),
+      actor_user_id: result[0].actor_user_id ? String(result[0].actor_user_id) : null
+    };
   }
 }

@@ -60,6 +60,12 @@ export class UserRepository {
       .where(eq(users.id, parseInt(userId, 10)));
   }
 
+  static async updateTranslatedNames(tx: any, userId: string, translatedNames: Record<string, string>): Promise<void> {
+    await tx.update(users)
+      .set({ translated_names: translatedNames })
+      .where(eq(users.id, parseInt(userId, 10)));
+  }
+
   static async deleteById(tx: any, userId: string): Promise<void> {
     await tx.delete(users).where(eq(users.id, parseInt(userId, 10)));
   }

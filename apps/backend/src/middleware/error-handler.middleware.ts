@@ -58,6 +58,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
       path: req.originalUrl,
       method: req.method,
       payload: req.body,
+      user: req.user,
     }).catch(e => logger.error('[EMAIL-SERVICE] Failed to send server error email', e));
   }
 

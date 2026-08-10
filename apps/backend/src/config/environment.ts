@@ -76,6 +76,8 @@ export const env = {
 
   bahiKhataApiUrl: getEnvStr('BAHIKHATA_API_URL', ''),
   bahiKhataApiKey: getEnvStr('BAHIKHATA_API_KEY', ''),
+  googleProjectId: getEnvStr('GOOGLE_CLOUD_PROJECT_ID', ''),
+  googleTranslateApiKey: getEnvStr('GOOGLE_CLOUD_APPLICATION_CREDENTIALS', ''),
 };
 
 export const isProd = env.nodeEnv === 'production';

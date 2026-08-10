@@ -12,7 +12,7 @@ import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
 import { UserRole } from '../types/dto.js';
-import { ticketAutomationQueue } from '../config/redis.js';
+import { ticketAutomationQueue, translationQueue } from '../config/redis.js';
 import { logger } from '../lib/logger.js';
 
 export class TicketService {
@@ -85,13 +85,18 @@ export class TicketService {
            }
         }
 
-        await TicketEventRepository.insertEvent(tx, {
+        const event = await TicketEventRepository.insertEvent(tx, {
           ticket_id: ticket.id,
           actor_user_id: null,
           event_type: 'TICKET_ASSIGNED',
           message: `Ticket assign to ${assignedAgentName}`,
           metadata: { assigned_to: assignedAgentId },
           visible_to_customer: true
+        });
+
+        await translationQueue.add('TRANSLATE_MESSAGE', { 
+          eventId: event.id,
+          targetLang: 'hi' // Defaulting to Hindi for now
         });
       }
 
@@ -346,6 +351,14 @@ export class TicketService {
         ticketId,
         data: { type: 'NEW_EVENT', event }
       });
+
+      // Queue for background translation for LIVE ticket bursts
+      if (dto.message) {
+        await translationQueue.add('TRANSLATE_MESSAGE', { 
+          eventId: event.id,
+          targetLang: 'hi' // Defaulting to Hindi for now
+        });
+      }
 
       return event;
     });
@@ -612,6 +625,11 @@ export class TicketService {
         message: `Ticket reassigned to ${agentName}`,
         metadata: { assigned_to: employeeId },
         visible_to_customer: true
+      });
+
+      await translationQueue.add('TRANSLATE_MESSAGE', { 
+        eventId: event.id,
+        targetLang: 'hi' // Defaulting to Hindi for now
       });
 
       ticketEventEmitter.emit('ticket_updated', {

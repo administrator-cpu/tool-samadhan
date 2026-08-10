@@ -9,6 +9,7 @@ export interface User {
   role: UserRole;
   profile_image?: string | null;
   must_change_password?: boolean;
+  translated_names?: Record<string, string>;
   created_at?: Date;
   updated_at?: Date;
 }

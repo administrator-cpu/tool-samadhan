@@ -28,7 +28,7 @@ const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen
         alt="Samadhan-Logo"
         width={100}
         height={100}
-        className={` ${ collapsed && !mobile ? "mt-5 mb-5" : "mt-10 mb-10" } transition-all duration-300`}
+        className={` ${collapsed && !mobile ? "mt-5 mb-5" : "mt-10 mb-10"} transition-all duration-300`}
       />
       {/* <h2
         className={`${
@@ -56,25 +56,21 @@ const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen
           <Link
             key={item.label}
             href={item.href}
-            className={`group flex items-center gap-2 rounded-lg px-3 py-3 transition-colors ${
-              isActive ? "bg-indigo-50" : "hover:bg-slate-50"
-            }`}
+            className={`group flex items-center gap-2 rounded-lg px-3 py-3 transition-colors ${isActive ? "bg-indigo-50" : "hover:bg-slate-50"
+              }`}
           >
             <div
-              className={`transition-colors shrink-0 ${
-                isActive ? "text-[#2513ec]" : "text-slate-500 group-hover:text-[#2513ec]"
-              } flex items-center`}
+              className={`transition-colors shrink-0 ${isActive ? "text-[#2513ec]" : "text-slate-500 group-hover:text-[#2513ec]"
+                } flex items-center`}
             >
               <span className={`material-symbols-outlined block ${isActive ? "icon-active" : ""}`}>
                 {item.icon}
               </span>
             </div>
             <p
-              className={`${
-                collapsed && !mobile ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"
-              } text-sm leading-normal transition-all duration-300 whitespace-nowrap ${
-                isActive ? "font-semibold text-[#2513ec]" : "font-medium text-slate-500 group-hover:text-slate-900"
-              }`}
+              className={`${collapsed && !mobile ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"
+                } text-sm leading-normal transition-all duration-300 whitespace-nowrap ${isActive ? "font-semibold text-[#2513ec]" : "font-medium text-slate-500 group-hover:text-slate-900"
+                }`}
             >
               {item.label}
             </p>
@@ -97,9 +93,8 @@ const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen
           )}
         </div>
         <div
-          className={`${
-            collapsed && !mobile ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"
-          } flex flex-col min-w-0 transition-all duration-300`}
+          className={`${collapsed && !mobile ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"
+            } flex flex-col min-w-0 transition-all duration-300`}
         >
           <span className="text-sm font-semibold text-slate-900 truncate">{user?.name}</span>
           <span className="text-xs font-medium text-slate-500 truncate uppercase">
@@ -114,9 +109,8 @@ const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen
       >
         <span className="material-symbols-outlined shrink-0">logout</span>
         <span
-          className={`${
-            collapsed && !mobile ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"
-          } text-sm font-medium transition-all duration-300`}
+          className={`${collapsed && !mobile ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"
+            } text-sm font-medium transition-all duration-300`}
         >
           Sign Out
         </span>
@@ -211,23 +205,17 @@ const SidebarNavbar = () => {
       </div>
 
       {/* Mobile Sidebar (Drawer) */}
-      <div
-        className={`md:hidden fixed inset-0 z-50 transition-visibility duration-300 ${
-          isMobileOpen ? "visible" : "invisible"
-        }`}
-      >
+      <div className={`md:hidden fixed inset-0 z-50 transition-visibility duration-300 ${isMobileOpen ? "visible" : "invisible" }`} >
         {/* Backdrop */}
         <div
-          className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 ${
-            isMobileOpen ? "opacity-100" : "opacity-0"
-          }`}
+          className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 ${isMobileOpen ? "opacity-100" : "opacity-0"
+            }`}
           onClick={() => setIsMobileOpen(false)}
         />
         {/* Panel */}
         <aside
-          className={`absolute top-0 left-0 h-full w-[280px] bg-white transition-transform duration-300 ease-in-out transform ${
-            isMobileOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`absolute top-0 left-0 h-full w-[280px] bg-white transition-transform duration-300 ease-in-out transform ${isMobileOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
         >
           <SidebarContent
             mobile={true}
@@ -244,9 +232,8 @@ const SidebarNavbar = () => {
 
       {/* Desktop Sidebar (Persistent) */}
       <aside
-        className={`hidden md:flex ${
-          isCollapsed ? "w-[73px]" : "w-[200px]"
-        } shrink-0 flex-col border-r border-slate-200 bg-white h-screen sticky top-0 transition-all duration-300 ease-in-out relative z-40`}
+        className={`hidden md:flex ${isCollapsed ? "w-[73px]" : "w-[200px]"
+          } shrink-0 flex-col border-r border-slate-200 bg-white h-screen sticky top-0 transition-all duration-300 ease-in-out relative z-40`}
       >
         {/* Toggle Button */}
         <button
@@ -254,9 +241,8 @@ const SidebarNavbar = () => {
           className="absolute -right-4 top-25 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-transform hover:text-[#2513ec] z-10"
         >
           <span
-            className={`material-symbols-outlined text-sm transition-transform duration-300 ${
-              isCollapsed ? "rotate-180" : ""
-            }`}
+            className={`material-symbols-outlined text-sm transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""
+              }`}
           >
             chevron_left
           </span>
