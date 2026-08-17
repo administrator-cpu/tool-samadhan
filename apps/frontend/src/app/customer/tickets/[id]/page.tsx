@@ -191,6 +191,12 @@ export default function TicketDetailPage() {
           if (!prev) return null;
           return { ...prev, ...data.ticket };
         });
+      } else if (data.type === "TRANSLATION_READY") {
+        setEvents((prev) => prev.map(e =>
+          e.id === data.eventId
+            ? { ...e, translations: { ...(e as any).translations, [data.targetLang]: data.translatedText } }
+            : e
+        ));
       }
     };
 

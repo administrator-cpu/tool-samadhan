@@ -25,13 +25,13 @@ export default function Timeline({ events, onTranslationUpdate }: TimelineProps)
   const visibleEvents = events;
 
   // Function to translate on-demand
-  const requestTranslation = async (eventId: number) => {
+  const requestTranslation = async (eventId: number, lang: string) => {
     if (translatingEvents.has(eventId)) return;
     setTranslatingEvents((prev) => new Set(prev).add(eventId));
     try {
-      const res = await api.post(`/events/${eventId}/translate`, { targetLang: "hi" });
+      const res = await api.post(`/events/${eventId}/translate`, { targetLang: lang });
       if (res.data?.data?.translation && onTranslationUpdate) {
-        onTranslationUpdate(eventId, "hi", res.data.data.translation);
+        onTranslationUpdate(eventId, lang, res.data.data.translation);
       }
     } catch (err) {
       console.error(err);
@@ -46,10 +46,10 @@ export default function Timeline({ events, onTranslationUpdate }: TimelineProps)
 
   // Effect to trigger translations when changing targetLang
   useEffect(() => {
-    if (targetLang === "hi") {
+    if (targetLang !== "en") {
       visibleEvents.forEach((event) => {
-        if (!event.translations?.hi && event.message && event.message.trim() !== "") {
-          requestTranslation(event.id);
+        if (!event.translations?.[targetLang] && event.message && event.message.trim() !== "") {
+          requestTranslation(event.id, targetLang);
         }
       });
     }
@@ -171,7 +171,7 @@ export default function Timeline({ events, onTranslationUpdate }: TimelineProps)
                                       Translating...
                                     </span>
                                   ) : (
-                                    targetLang === "hi" && event.translations?.hi ? event.translations.hi : event.message
+                                    targetLang !== "en" && event.translations?.[targetLang] ? event.translations[targetLang] : event.message
                                   )}
                                 </p>
                                 {event.event_type === "TICKET_RCA_UPDATED" && event.metadata?.rca && (
