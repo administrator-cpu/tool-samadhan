@@ -13,6 +13,7 @@ import { disconnectUser } from './socket.service.js';
 import { logger } from '../lib/logger.js';
 import { env } from '../config/environment.js';
 import Fuse from "fuse.js";
+import { TranslationFactory } from './translation/translation.factory.js';
 
 interface SuggestedCustomer {
   samadhanId: number;
@@ -23,6 +24,23 @@ interface SuggestedCustomer {
 
 
 export class UserService {
+  static async syncUserTranslations(userId: string, newName: string) {
+    try {
+      const targetLangs = ['hi']; // As requested, currently only Hindi
+      const translatedNames: Record<string, string> = {};
+      for (const lang of targetLangs) {
+        try {
+          translatedNames[lang] = await TranslationFactory.translateSafely(newName, lang);
+        } catch (err) {
+          logger.error(`[UserService] Failed to translate user name for lang ${lang}:`, err);
+        }
+      }
+      await UserRepository.updateTranslatedNames(db, userId, translatedNames);
+    } catch (err) {
+      logger.error('[UserService] Failed to sync user translations:', err);
+    }
+  }
+
   static async createEmployee(dto: CreateEmployeeDto) {
     const result = await db.transaction(async (tx) => {
       const existingUser = await UserRepository.findByEmail(tx, dto.email);
@@ -350,6 +368,10 @@ export class UserService {
         await EmployeeRepository.replaceCategoriesByName(tx, employeeRowId, dto.issueCategories);
       }
 
+      if (dto.name) {
+        UserService.syncUserTranslations(userId, dto.name).catch(err => logger.error(err));
+      }
+
       return UserRepository.findById(tx, userId);
     });
   }
@@ -379,6 +401,10 @@ export class UserService {
           }
         }
         await UserRepository.update(tx, userId, dto);
+      }
+
+      if (dto.name) {
+        UserService.syncUserTranslations(userId, dto.name).catch(err => logger.error(err));
       }
 
       return UserRepository.findById(tx, userId);
@@ -440,6 +466,11 @@ export class UserService {
       }
 
       await UserRepository.update(tx, userId, dto);
+
+      if (dto.name) {
+        UserService.syncUserTranslations(userId, dto.name).catch(err => logger.error(err));
+      }
+
       return UserRepository.findById(tx, userId);
     });
   }

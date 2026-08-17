@@ -62,7 +62,7 @@ export const initSocket = (server: any) => {
         const role = userRes.rows[0]?.role as string;
 
         const result = await db.execute(sql`
-          SELECT te.id, te.ticket_id, te.actor_user_id, u.name AS actor_name, 
+          SELECT te.id, te.ticket_id, te.actor_user_id, u.name AS actor_name, u.translated_names AS actor_translated_names,
                   te.event_type, te.message, te.metadata, te.visible_to_customer, te.created_at
            FROM ticket_events te
            LEFT JOIN users u ON u.id = te.actor_user_id

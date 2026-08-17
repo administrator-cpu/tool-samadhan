@@ -308,7 +308,7 @@ export class TicketService {
       });
 
       const actor = await UserRepository.findById(tx, actorUserId);
-      const event = { ...rawEvent, actor_name: actor?.name || null };
+      const event = { ...rawEvent, actor_name: actor?.name || null, actor_translated_names: actor?.translated_names || null };
 
       if (ticket.status === 'OPEN') {
         await TicketRepository.updateStatus(tx, ticketId, 'IN_PROGRESS');

@@ -3,6 +3,7 @@ export interface TicketEvent {
   event_type: string;
   message: string;
   actor_name: string | null;
+  actor_translated_names?: Record<string, string> | null;
   created_at: string;
   metadata: any;
   translations?: Record<string, string>;
@@ -36,12 +37,16 @@ const TITLE_TRANSLATIONS: Record< string, Partial<Record<Language, string>> > = 
     hi: "सिस्टम अपडेट",
   },
 
-  "Customer Reply": {
-    hi: "ग्राहक का जवाब",
+  "Customer": {
+    hi: "ग्राहक",
   },
 
-  "Support Reply": {
-    hi: "समर्थन का जवाब",
+  "Support": {
+    hi: "समर्थन",
+  },
+
+  "Admin": {
+    hi: "एडमिन",
   },
 
   "Troubleshooting": {
@@ -113,21 +118,25 @@ export function getEventDetails( event: TicketEvent, language: Language ) {
                 title: translateTitle( title, language )
             }
 
-        case "AGENT_REPLY":
-        case "MANAGER_REPLY":
-        case "ADMIN_REPLY":{
-            const actorName = event.actor_name || event.metadata?.actor_name;
+        case "ADMIN_REPLY": {
             return {
                 icon: "support_agent",
-                title: actorName ? actorName.split(" ")[0] : translateTitle("Support Reply", language),
-            };}
+                title: translateTitle("Admin", language),
+            };
+        }
 
-        case "USER_REPLY":{
+        case "AGENT_REPLY":
+        case "MANAGER_REPLY":
+        case "USER_REPLY": {
             const actorName = event.actor_name || event.metadata?.actor_name;
+            const translatedName = event.actor_translated_names?.[language] || actorName;
+            const fallbackTitle = event.event_type === "USER_REPLY" ? "Customer" : "Support";
+            
             return {
-                icon: "person",
-                title: actorName ? actorName.split(" ")[0] : translateTitle("Customer Reply", language),
-            };}
+                icon: event.event_type === "USER_REPLY" ? "person" : "support_agent",
+                title: translatedName ? translatedName.split(" ")[0] : translateTitle(fallbackTitle, language),
+            };
+        }
 
         case "STATUS_CHANGED": {
             const rawStatus = event.metadata?.newStatus ?? event.metadata?.new_status ?? event.metadata?.status;

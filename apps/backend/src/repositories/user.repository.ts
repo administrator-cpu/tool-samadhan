@@ -35,7 +35,10 @@ export class UserRepository {
     const { name, email, phone, profile_image } = data;
     const updates: any = { updated_at: sql`NOW()` };
     
-    if (name !== undefined) updates.name = name;
+    if (name !== undefined) {
+      updates.name = name;
+      updates.translated_names = {};
+    }
     if (email !== undefined) updates.email = email.toLowerCase();
     if (phone !== undefined) updates.phone = phone;
     if (profile_image !== undefined) updates.profile_image = profile_image;
