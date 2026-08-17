@@ -219,7 +219,16 @@ export default function SalesTicketDetailPage() {
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 overflow-y-auto px-5 py-8 border-r border-slate-100 flex flex-col">
           <div className="max-w-4xl mx-auto w-full flex-1">
-            <Timeline events={events} />
+            <Timeline 
+              events={events} 
+              onTranslationUpdate={(eventId, lang, text) => {
+                setEvents((prev) => prev.map(e => 
+                  e.id === eventId 
+                    ? { ...e, translations: { ...(e as any).translations, [lang]: text } } 
+                    : e
+                ));
+              }} 
+            />
 
             {/* RCA Report in Main Chat Box */}
             {["RESOLVED", "CLOSED"].includes(ticket.status) && ticket.rca && (

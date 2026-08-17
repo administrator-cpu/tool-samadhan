@@ -197,7 +197,7 @@ export default function ProfilePage() {
 
   const { user, customer, employee } = profileData;
   
-  const canEditImage = isEditing || user.role === 'USER';
+  const canEditImage = true;
 
   return (
     <div className="min-h-screen bg-white pb-20 antialiased flex justify-center flex-col items-center">
@@ -377,7 +377,7 @@ export default function ProfilePage() {
  
             {/* Actions */}
             <div className="mt-12 flex w-full flex-col gap-4">
-              {!isEditing && user.role !== 'USER' && (
+              {!isEditing && (
                 <button 
                   onClick={() => setIsEditing(true)}
                   className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#4b8264] text-sm font-black text-white hover:bg-emerald-700 transition-all active:scale-[0.98]"

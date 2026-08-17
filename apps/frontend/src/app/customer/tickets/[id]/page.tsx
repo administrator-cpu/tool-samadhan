@@ -379,7 +379,16 @@ export default function TicketDetailPage() {
       {/* Layout */}
       <main className="flex flex-1 overflow-hidden max-w-[1400px] mx-auto w-full">
         <section className="flex-1 flex flex-col relative px-5 overflow-y-auto pt-6">
-          <Timeline events={events} />
+          <Timeline 
+            events={events} 
+            onTranslationUpdate={(eventId, lang, text) => {
+              setEvents((prev) => prev.map(e => 
+                e.id === eventId 
+                  ? { ...e, translations: { ...(e as any).translations, [lang]: text } } 
+                  : e
+              ));
+            }} 
+          />
 
           {ticket.allow_customer_reply && !["RESOLVED", "CLOSED"].includes(ticket.status) && (
             <div className={`mt-4 mb-6 rounded-lg border bg-white p-2 shadow-xl transition-all shrink-0 ${sending ? "border-slate-200 opacity-80" : "border-slate-200 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5"}`}>
