@@ -222,11 +222,17 @@ export default function SalesTicketDetailPage() {
             <Timeline 
               events={events} 
               onTranslationUpdate={(eventId, lang, text) => {
-                setEvents((prev) => prev.map(e => 
-                  e.id === eventId 
-                    ? { ...e, translations: { ...(e as any).translations, [lang]: text } } 
-                    : e
-                ));
+                setData((prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    events: prev.events.map(e => 
+                      e.id === eventId 
+                        ? { ...e, translations: { ...(e as any).translations, [lang]: text } } 
+                        : e
+                    )
+                  };
+                });
               }} 
             />
 
