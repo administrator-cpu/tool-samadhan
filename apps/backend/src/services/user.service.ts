@@ -75,6 +75,8 @@ export class UserService {
       role: result.user.role,
     }).catch(err => logger.error('[EMAIL] Failed to send staff welcome email', err));
 
+    UserService.syncUserTranslations(result.user.id.toString(), dto.name).catch(err => logger.error('[Translation] Failed to sync user translation on creation:', err));
+
     return { user: result.user, employee: result.employee };
   }
 
@@ -106,6 +108,8 @@ export class UserService {
       email: result.user.email,
       password: result.generatedPassword,
     }).catch(err => logger.error('[EMAIL] Failed to send customer welcome email', err));
+
+    UserService.syncUserTranslations(result.user.id.toString(), dto.name).catch(err => logger.error('[Translation] Failed to sync user translation on creation:', err));
 
     return { user: result.user, customer: result.customer };
   }

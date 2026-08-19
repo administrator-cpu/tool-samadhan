@@ -19,6 +19,21 @@ export class EventService {
         return event.translations[targetLang];
       }
 
+      // Actor Name Resolution (translates and saves 1st name for ANY actor in the background)
+      if (event.actor_user_id) {
+        const actorUser = await UserRepository.findById(tx, event.actor_user_id);
+        if (actorUser && (!actorUser.translated_names || !actorUser.translated_names[targetLang])) {
+          const firstName = actorUser.name.split(' ')[0];
+          try {
+            const transliterated = await TranslationFactory.translateSafely(firstName, targetLang);
+            const newNames = { ...(actorUser.translated_names || {}), [targetLang]: transliterated };
+            await UserRepository.updateTranslatedNames(tx, actorUser.id, newNames);
+          } catch (err) {
+            // Ignore error so we don't fail the event translation
+          }
+        }
+      }
+
       let translatedText = '';
 
       // 2. Global Exact Match Check (Trimmed & Lowercased) against STATIC_TRANSLATIONS
@@ -59,10 +74,11 @@ export class EventService {
               if (assignedUser.translated_names && assignedUser.translated_names[targetLang]) {
                 agentName = assignedUser.translated_names[targetLang];
               } else {
-                // Transliterate name using API once and save
-                const transliterated = await TranslationFactory.translateSafely(agentName, targetLang);
+                // Transliterate 1st name using API once and save
+                const firstName = agentName.split(' ')[0];
+                const transliterated = await TranslationFactory.translateSafely(firstName, targetLang);
                 agentName = transliterated;
-                const newNames = { ...assignedUser.translated_names, [targetLang]: transliterated };
+                const newNames = { ...(assignedUser.translated_names || {}), [targetLang]: transliterated };
                 await UserRepository.updateTranslatedNames(tx, assignedUser.id, newNames);
               }
               translatedText = translatedText.replace('{{agentName}}', agentName);

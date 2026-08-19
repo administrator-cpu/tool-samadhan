@@ -66,7 +66,7 @@ export default function Timeline({ events, onTranslationUpdate }: TimelineProps)
           const isUser = event.event_type === "TICKET_CREATED" || event.event_type === "USER_REPLY";
           const isLast = index === visibleEvents.length - 1 && events[0].event_type === "CLOSED";
           
-          const { icon, title } = getEventDetails(event, targetLang);
+          const { icon, title } = getEventDetails(event, targetLang, isEmployee);
           return (
             <div key={event.id} className="relative mb-10 timeline-item z-10">
               {/* Spine Line - Only show if not the very last overall node */}
