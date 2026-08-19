@@ -544,8 +544,27 @@ Retrieve a paginated list of tickets.
   {
     "success": true,
     "data": {
-      "tickets": [],
-      "nextCursor": "uuid"
+      "tickets": [
+        {
+          "id": "808", 
+          "ticket_no": "TCK-10829", 
+          "subject": "Latency Very High", 
+          "status": "CLOSED", 
+          "circuit_description": "JKSBDFAJFBEJFBEBFE", 
+          "customer_name": "RAINBOW CABLE AND BROADBAND SERVICE", 
+          "assigned_employee_name": "Khushboo", 
+          "current_assigned_employee_id": "6", 
+          "created_at": "2026-08-09T08:29:21.663Z", 
+          "updated_at": "2026-08-10T12:51:58.857Z",
+          "last_text": "To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes."
+        }
+      ],
+      "pagination": {
+        "totalPages": 5,
+        "currentPage": 1,
+        "limit": 10,
+        "totalCount": 42
+      }
     }
   }
   ```
