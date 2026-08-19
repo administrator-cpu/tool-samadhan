@@ -183,6 +183,7 @@ export class TicketService {
         searchQuery: filters.searchQuery,
         sortField: filters.sortField,
         sortOrder: filters.sortOrder,
+        isCustomer: role === UserRole.USER,
       };
 
       if (role === UserRole.USER) {
