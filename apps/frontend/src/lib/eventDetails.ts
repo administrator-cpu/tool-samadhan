@@ -82,7 +82,7 @@ const TITLE_TRANSLATIONS: Record< string, Partial<Record<Language, string>> > = 
   }
 };
 
-function translateTitle( title: string, language: Language ): string {
+export function translateTitle( title: string, language: Language ): string {
   if (language === "en") {
     return title;
   }
@@ -91,7 +91,7 @@ function translateTitle( title: string, language: Language ): string {
 }
 
 
-export function getEventDetails( event: TicketEvent, language: Language ) {
+export function getEventDetails( event: TicketEvent, language: Language, isEmployee: boolean = false ) {
     
     let title = "System Update";
 
@@ -118,23 +118,27 @@ export function getEventDetails( event: TicketEvent, language: Language ) {
                 title: translateTitle( title, language )
             }
 
-        case "ADMIN_REPLY": {
-            return {
-                icon: "support_agent",
-                title: translateTitle("Admin", language),
-            };
-        }
-
         case "AGENT_REPLY":
         case "MANAGER_REPLY":
+        case "ADMIN_REPLY":
         case "USER_REPLY": {
             const actorName = event.actor_name || event.metadata?.actor_name;
             const translatedName = event.actor_translated_names?.[language] || actorName;
-            const fallbackTitle = event.event_type === "USER_REPLY" ? "Customer" : "Support";
+            
+            let fallbackTitle = "Support";
+            if (event.event_type === "USER_REPLY") fallbackTitle = "Customer";
+            else if (event.event_type === "ADMIN_REPLY") fallbackTitle = "Admin";
+            
+            let title: string;
+            if (event.event_type === "USER_REPLY" && isEmployee) {
+                title = translateTitle("Customer", language);
+            } else {
+                title = translatedName ? translatedName.split(" ")[0] : translateTitle(fallbackTitle, language);
+            }
             
             return {
                 icon: event.event_type === "USER_REPLY" ? "person" : "support_agent",
-                title: translatedName ? translatedName.split(" ")[0] : translateTitle(fallbackTitle, language),
+                title: title,
             };
         }
 

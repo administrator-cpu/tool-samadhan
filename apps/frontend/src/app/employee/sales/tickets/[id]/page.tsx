@@ -13,6 +13,8 @@ import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
 import ReopenTicketModal from "@/components/ReopenTicketModal";
 import LanguageToggle from "@/components/LanguageToggle";
+import { translateTitle } from "@/lib/eventDetails";
+import { useLanguageStore } from "@/store/useLanguageStore";
 
 interface TicketEvent {
   id: number;
@@ -113,6 +115,7 @@ const getSeverityConfig = (category: string) => {
 
 export default function SalesTicketDetailPage() {
   const { id } = useParams();
+  const { targetLang } = useLanguageStore();
   const [data, setData] = useState<TicketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
@@ -186,7 +189,7 @@ export default function SalesTicketDetailPage() {
               {getSeverityConfig(ticket.subject).label}
             </span>
           </div>
-          <p className="text-sm font-medium text-slate-500 mt-1">Opened by {ticket.customer.name}</p>
+          <p className="text-sm font-medium text-slate-500 mt-1">Opened by {translateTitle("Customer", targetLang as any)}</p>
         </div>
 
         <div className="ml-auto flex items-center gap-6">
@@ -299,7 +302,7 @@ export default function SalesTicketDetailPage() {
                 {/* Customer */}
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Customer</p>
-                  <p className="text-[14px] font-bold text-slate-900">{ticket.customer.name}</p>
+                  <p className="text-[14px] font-bold text-slate-900">{translateTitle("Customer", targetLang as any)}</p>
                   {ticket.customer.phone && (
                     <span className="text-[11px] font-bold text-slate-400 block mt-0.5">
                       +91 {ticket.customer.phone}
