@@ -9,6 +9,10 @@ export const STATIC_TRANSLATIONS: Record<string, Record<string, string>> = {
     en: "Status updated from {{oldStatus}} to {{newStatus}}",
     hi: "स्थिति {{oldStatus}} से बदलकर {{newStatus}} की गई"
   },
+  STATUS_RESOLVED: {
+    en: "The problem has been resolved.",
+    hi: "समस्या का समाधान हो गया है।"
+  },
 
   TICKET_RCA_UPDATED: {
     en: "Root Cause Analysis submitted",

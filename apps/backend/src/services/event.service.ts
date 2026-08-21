@@ -59,6 +59,8 @@ export class EventService {
         // Handle reassignment string variation dynamically inside the TICKET_ASSIGNED event
         if (event.event_type === 'TICKET_ASSIGNED' && event.message && event.message.startsWith("Ticket reassigned to ")) {
           template = targetLang === 'hi' ? 'टिकट {{agentName}} को फिर से सौंपा गया' : 'Ticket reassigned to {{agentName}}';
+        } else if (event.event_type === 'STATUS_CHANGED' && event.metadata.newStatus === 'RESOLVED') {
+          template = STATIC_TRANSLATIONS['STATUS_RESOLVED'][targetLang] || STATIC_TRANSLATIONS['STATUS_RESOLVED']['en'];
         }
         
         translatedText = template;
@@ -85,10 +87,12 @@ export class EventService {
             }
           }
         } else if (event.event_type === 'STATUS_CHANGED') {
-          // Translate the statuses using generic API or map
-          const oldStatus = await TranslationFactory.translateSafely(event.metadata.oldStatus || '', targetLang);
-          const newStatus = await TranslationFactory.translateSafely(event.metadata.newStatus || '', targetLang);
-          translatedText = translatedText.replace('{{oldStatus}}', oldStatus).replace('{{newStatus}}', newStatus);
+          if (event.metadata.newStatus !== 'RESOLVED') {
+            // Translate the statuses using generic API or map
+            const oldStatus = await TranslationFactory.translateSafely(event.metadata.oldStatus || '', targetLang);
+            const newStatus = await TranslationFactory.translateSafely(event.metadata.newStatus || '', targetLang);
+            translatedText = translatedText.replace('{{oldStatus}}', oldStatus).replace('{{newStatus}}', newStatus);
+          }
         }
       }
 
