@@ -5,6 +5,7 @@ import { db } from '../config/database.js';
 import { sql } from 'drizzle-orm';
 import { logger } from '../lib/logger.js';
 import { env } from '../config/environment.js';
+import { registerCallSignaling } from '../sockets/callSignaling.js';
 
 let io: Server;
 
@@ -36,6 +37,7 @@ export const initSocket = (server: any) => {
     logger.info(`[SOCKET] User connected: ${socket.user.userId} (${socket.id})`);
 
     socket.join(`user:${socket.user.userId}`);
+    registerCallSignaling(io, socket);
 
     socket.on('join_ticket', async (ticketId: string) => {
       try {
@@ -62,7 +64,7 @@ export const initSocket = (server: any) => {
         const role = userRes.rows[0]?.role as string;
 
         const result = await db.execute(sql`
-          SELECT te.id, te.ticket_id, te.actor_user_id, u.name AS actor_name, 
+          SELECT te.id, te.ticket_id, te.actor_user_id, u.name AS actor_name, u.translated_names AS actor_translated_names,
                   te.event_type, te.message, te.metadata, te.visible_to_customer, te.created_at
            FROM ticket_events te
            LEFT JOIN users u ON u.id = te.actor_user_id
