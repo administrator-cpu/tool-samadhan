@@ -24,6 +24,11 @@ export const STATIC_TRANSLATIONS: Record<string, Record<string, string>> = {
     hi: "समाधान के 24 घंटे बाद टिकट स्वचालित रूप से बंद हो गया है।"
   },
   
+  TICKET_REOPENED_OLD_ISSUE: {
+    en: "Ticket reopened reason: Issue not resolved",
+    hi: "टिकट फिर से खोला गया"
+  },
+
   // Quick Replies
   qr_troubleshooting_45m: {
     en: "To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.",
