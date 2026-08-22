@@ -67,6 +67,8 @@ export interface TicketEvent {
   metadata: Record<string, any>;
   visible_to_customer: boolean;
   created_at: Date;
+  icon?: string;
+  title_translations?: Record<string, string>;
 }
 
 export interface Session {

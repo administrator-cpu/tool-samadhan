@@ -53,12 +53,29 @@ export class EventService {
 
 
       // 3. Static Translation (System Events)
+      let useStaticTemplate = false;
       if (!translatedText && STATIC_TRANSLATIONS[event.event_type]) {
+        useStaticTemplate = true;
+
+        if (event.event_type === 'STATUS_CHANGED' && event.message) {
+          const expectedGenericMessage = `Status updated from ${event.metadata?.oldStatus} to ${event.metadata?.newStatus}`;
+          const isResolvedOverride = event.metadata?.newStatus === 'RESOLVED';
+          const isAutoClosedOverride = event.message === 'Ticket automatically closed after 24 hours of resolution.' || event.message === 'Ticket automatically closed after late RCA submission.';
+          
+          if (event.message !== expectedGenericMessage && !isResolvedOverride && !isAutoClosedOverride) {
+            // It's a custom message (like "Ticket reopened reason: ...")
+            // Fall through to custom API translation instead of forcing generic template
+            useStaticTemplate = false;
+          }
+        }
+      }
+
+      if (useStaticTemplate) {
         let template = STATIC_TRANSLATIONS[event.event_type][targetLang] || STATIC_TRANSLATIONS[event.event_type]['en'];
         
         // Handle reassignment string variation dynamically inside the TICKET_ASSIGNED event
         if (event.event_type === 'TICKET_ASSIGNED' && event.message && event.message.startsWith("Ticket reassigned to ")) {
-          template = targetLang === 'hi' ? 'टिकट {{agentName}} को फिर से सौंपा गया' : 'Ticket reassigned to {{agentName}}';
+          template = targetLang === 'hi' ? 'टिकट {{agentName}} को सौंपा गया' : 'Ticket reassigned to {{agentName}}';
         } else if (event.event_type === 'STATUS_CHANGED' && event.metadata.newStatus === 'RESOLVED') {
           template = STATIC_TRANSLATIONS['STATUS_RESOLVED'][targetLang] || STATIC_TRANSLATIONS['STATUS_RESOLVED']['en'];
         }
