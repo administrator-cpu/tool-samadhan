@@ -5,6 +5,7 @@ import { db } from '../config/database.js';
 import { sql } from 'drizzle-orm';
 import { logger } from '../lib/logger.js';
 import { env } from '../config/environment.js';
+import { registerCallSignaling } from '../sockets/callSignaling.js';
 
 let io: Server;
 
@@ -36,6 +37,7 @@ export const initSocket = (server: any) => {
     logger.info(`[SOCKET] User connected: ${socket.user.userId} (${socket.id})`);
 
     socket.join(`user:${socket.user.userId}`);
+    registerCallSignaling(io, socket);
 
     socket.on('join_ticket', async (ticketId: string) => {
       try {
