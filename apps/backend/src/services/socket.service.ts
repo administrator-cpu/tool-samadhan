@@ -26,7 +26,7 @@ export const initSocket = (server: any) => {
 
     try {
       const decoded = verifyAccessToken(token);
-      socket.user = decoded;
+      socket.user = decoded; 
       next();
     } catch (err) {
       return next(new Error('Authentication error: Invalid token'));
@@ -34,9 +34,10 @@ export const initSocket = (server: any) => {
   });
 
   io.on('connection', (socket: Socket & { user?: any }) => {
-    logger.info(`[SOCKET] User connected: ${socket.user.userId} (${socket.id})`);
+    logger.info(`[SOCKET] User connected: ${socket.user.userId} / ${socket.user.email} (${socket.id})`);
 
     socket.join(`user:${socket.user.userId}`);
+    socket.join(`email:${socket.user.email}`);
     registerCallSignaling(io, socket);
 
     socket.on('join_ticket', async (ticketId: string) => {
@@ -122,8 +123,6 @@ const checkTicketAccess = async (userId: string, ticketId: string) => {
     const userRes = await db.execute(sql`SELECT role FROM users WHERE id = ${userId}`);
     const role = userRes.rows[0]?.role as string;
 
-    // Notice we've kept 'MANAGER' logic intact here because it represents business logic, 
-    // even though it's not strictly an enum on the DB.
     if (['ADMIN', 'MANAGER'].includes(role as string)) return true;
 
     if (role === 'SUPPORT_AGENT') {
