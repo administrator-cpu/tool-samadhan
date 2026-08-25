@@ -12,16 +12,16 @@ const CALL_EVENTS = [
 ] as const;
 
 export function registerCallSignaling(io: Server, socket: Socket) {
-  const userId = (socket as any).user?.userId;
-  if (!userId) return;
+  const userEmail = (socket as any).user?.email;
+  if (!userEmail) return;
 
-  socket.join(`user_${userId}`);
+  socket.join(`email_${userEmail}`);
 
   CALL_EVENTS.forEach((event) => {
-    socket.on(event, (payload: { toUserId: string | number; [k: string]: unknown }) => {
-      const { toUserId } = payload;
-      if (!toUserId) return;
-      io.to(`user_${toUserId}`).emit(event, { ...payload, fromUserId: userId });
+    socket.on(event, (payload: { toEmail: string; [k: string]: unknown }) => {
+      const { toEmail } = payload;
+      if (!toEmail) return;
+      io.to(`email_${toEmail}`).emit(event, { ...payload, fromEmail: userEmail });
     });
   });
 }
