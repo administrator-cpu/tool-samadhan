@@ -20,6 +20,7 @@ export const users = pgTable('users', {
   role: userRoleEnum('role').default('USER').notNull(),
   must_change_password: boolean('must_change_password').default(true).notNull(),
   profile_image: text('profile_image'),
+  translated_names: jsonb('translated_names').default({}).notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => ({
@@ -138,6 +139,7 @@ export const ticketEvents = pgTable('ticket_events', {
   event_type: varchar('event_type', { length: 255 }).notNull(),
   message: text('message'),
   metadata: jsonb('metadata').default({}).notNull(),
+  translations: jsonb('translations').default({}).notNull(),
   visible_to_customer: boolean('visible_to_customer').default(true).notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => ({

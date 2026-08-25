@@ -360,7 +360,7 @@ export class UserController {
 
   static async addPushToken(req: Request, res: Response, next: NextFunction) {
     try {
-      const { token, platform } = req.body;
+      const { token, platform } = req.body || {};
       const userId = req.user?.userId;
       if (!token) {
         return sendResponse({ res, statusCode: 400, success: false, message: 'Push token required' });
@@ -378,11 +378,11 @@ export class UserController {
 
   static async removePushToken(req: Request, res: Response, next: NextFunction) {
     try {
-      const { token } = req.body;
+      const token = req.body?.token || req.query?.token;
       if (!token) {
         return sendResponse({ res, statusCode: 400, success: false, message: 'Push token required' });
       }
-      await PushTokenRepository.removeToken(token);
+      await PushTokenRepository.removeToken(token as string);
       return sendResponse({ res, message: 'Push token removed successfully' });
     } catch (error) {
       next(error);

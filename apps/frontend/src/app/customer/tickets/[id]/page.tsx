@@ -14,6 +14,7 @@ import { useSocketStore } from "@/store/useSocketStore";
 import { toast } from "sonner";
 import { useRef } from "react";
 import ReopenTicketModal from "@/components/ReopenTicketModal";
+import LanguageToggle from "@/components/LanguageToggle";
 
 interface Ticket {
   id: number;
@@ -190,6 +191,12 @@ export default function TicketDetailPage() {
           if (!prev) return null;
           return { ...prev, ...data.ticket };
         });
+      } else if (data.type === "TRANSLATION_READY") {
+        setEvents((prev) => prev.map(e =>
+          e.id === data.eventId
+            ? { ...e, translations: { ...(e as any).translations, [data.targetLang]: data.translatedText } }
+            : e
+        ));
       }
     };
 
@@ -247,7 +254,7 @@ export default function TicketDetailPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
-    
+
     const newFiles = Array.from(e.target.files);
     if (selectedFiles.length + newFiles.length > 10) {
       toast.error("Maximum of 10 images allowed.");
@@ -288,7 +295,7 @@ export default function TicketDetailPage() {
         formData.append("event_type", "USER_REPLY");
         if (replyMessage.trim()) formData.append("message", replyMessage.trim());
         selectedFiles.forEach(f => formData.append("images", f));
-        
+
         await api.post(`/tickets/${id}/events`, formData);
       } else {
         await api.post(`/tickets/${id}/events`, {
@@ -300,7 +307,7 @@ export default function TicketDetailPage() {
       setReplyMessage("");
       setSelectedFiles([]);
       toast.success("Reply sent successfully");
-      
+
       const response = await api.get(`/tickets/${id}`);
       setEvents(response.data.events);
     } catch (err: any) {
@@ -353,30 +360,7 @@ export default function TicketDetailPage() {
         </div>
 
         <div className="ml-auto flex items-center gap-6">
-          <div className="relative hidden grid-cols-2 rounded-xl border border-slate-200 bg-slate-100 p-1">
-            <input
-              type="radio"
-              name="language"
-              id="lang-en"
-              className="peer/en sr-only hover:cursor-pointer"
-              defaultChecked
-            />
-            <input type="radio" name="language" id="lang-hi" className="peer/hi sr-only hover:cursor-pointer" />
-            <div className="absolute inset-y-1 left-1 w-12 rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out peer-checked/hi:translate-x-12" />
-            <label
-              htmlFor="lang-en"
-              className="relative z-10 flex h-9 w-12 cursor-pointer items-center justify-center rounded-lg text-xs font-medium text-slate-900 transition-colors duration-300 peer-checked/hi:text-slate-500 hover:cursor-pointer"
-            >
-              EN
-            </label>
-            <label
-              htmlFor="lang-hi"
-              className="relative z-10 flex h-9 w-12 cursor-pointer items-center justify-center rounded-lg text-xs font-medium text-slate-500 transition-colors duration-300 peer-checked/hi:text-slate-900 hover:cursor-pointer"
-            >
-              हिन्दी
-            </label>
-          </div>
-
+          <LanguageToggle />
           {ticket.status === "RESOLVED" && ticket.resolved_at && (() => {
             const resolvedAt = new Date(ticket.resolved_at);
             const now = new Date();
@@ -401,8 +385,17 @@ export default function TicketDetailPage() {
       {/* Layout */}
       <main className="flex flex-1 overflow-hidden max-w-[1400px] mx-auto w-full">
         <section className="flex-1 flex flex-col relative px-5 overflow-y-auto pt-6">
-          <Timeline events={events} />
-          
+          <Timeline 
+            events={events} 
+            onTranslationUpdate={(eventId, lang, text) => {
+              setEvents((prev) => prev.map(e => 
+                e.id === eventId 
+                  ? { ...e, translations: { ...(e as any).translations, [lang]: text } } 
+                  : e
+              ));
+            }} 
+          />
+
           {ticket.allow_customer_reply && !["RESOLVED", "CLOSED"].includes(ticket.status) && (
             <div className={`mt-4 mb-6 rounded-lg border bg-white p-2 shadow-xl transition-all shrink-0 ${sending ? "border-slate-200 opacity-80" : "border-slate-200 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5"}`}>
               <div className="px-4 pt-3 flex items-center justify-between mb-1">
@@ -420,13 +413,13 @@ export default function TicketDetailPage() {
                   <span className="material-symbols-outlined text-[18px]">attach_file</span>
                   Attach Image
                 </button>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  multiple 
-                  accept="image/jpeg, image/png, image/webp, image/heic, image/heif" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  multiple
+                  accept="image/jpeg, image/png, image/webp, image/heic, image/heif"
+                  className="hidden"
                 />
               </div>
 
@@ -435,16 +428,16 @@ export default function TicketDetailPage() {
                   {selectedFiles.map((file, idx) => (
                     <div key={idx} className="relative group">
                       <div className="w-16 h-16 rounded-lg border border-slate-200 overflow-hidden bg-slate-50">
-                        <Image 
-                          src={URL.createObjectURL(file)} 
-                          alt="preview" 
+                        <Image
+                          src={URL.createObjectURL(file)}
+                          alt="preview"
                           width={64} height={64}
                           className={`object-cover ${sending ? "opacity-50" : ""}`}
                           onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
                         />
                       </div>
                       {!sending && (
-                        <button 
+                        <button
                           onClick={() => removeFile(idx)}
                           className="absolute -top-2 -right-2 bg-slate-800 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
                         >
@@ -515,10 +508,10 @@ export default function TicketDetailPage() {
                     {ticket.rca_images && ticket.rca_images.length > 0 && (
                       <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-2">
                         {ticket.rca_images.map((img, idx) => (
-                          <button 
-                            key={idx} 
-                            onClick={() => setLightboxData({ images: ticket.rca_images!, currentIndex: idx })} 
-                            type="button" 
+                          <button
+                            key={idx}
+                            onClick={() => setLightboxData({ images: ticket.rca_images!, currentIndex: idx })}
+                            type="button"
                             className="relative aspect-square rounded-lg border border-slate-200 overflow-hidden shadow-xs hover:opacity-90 hover:scale-[1.02] transition-all bg-slate-100 cursor-zoom-in"
                           >
                             <Image src={img} alt={`RCA Image ${idx + 1}`} fill className="object-cover" />
@@ -597,12 +590,12 @@ export default function TicketDetailPage() {
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-40" />
                       <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
                     </div>
-                  ) : ( ticket.status === "ESCALATED" ? (
+                  ) : (ticket.status === "ESCALATED" ? (
                     <div className="relative flex h-4 w-4 items-center justify-center">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-40" />
                       <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(255,0,0,0.8)]" />
-                    </div>): (
-                  <span className={`h-4 w-4 rounded-full border-4 border-white shadow-sm ${["RESOLVED", "CLOSED"].includes(ticket.status) ? "bg-primary" : "bg-slate-300"}`} />
+                    </div>) : (
+                    <span className={`h-4 w-4 rounded-full border-4 border-white shadow-sm ${["RESOLVED", "CLOSED"].includes(ticket.status) ? "bg-primary" : "bg-slate-300"}`} />
                   ))}
                 </div>
 
@@ -755,9 +748,8 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
             return (
               <span
                 key={i}
-                className={`material-symbols-outlined text-[24px] ${
-                  isFilled ? "text-amber-500" : "text-slate-300"
-                }`}
+                className={`material-symbols-outlined text-[24px] ${isFilled ? "text-amber-500" : "text-slate-300"
+                  }`}
                 style={{ fontVariationSettings: isFilled ? "'FILL' 1" : "'FILL' 0" }}
               >
                 star
@@ -801,9 +793,8 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
               className="focus:outline-hidden hover:scale-110 transition-transform"
             >
               <span
-                className={`material-symbols-outlined text-[32px] ${
-                  isActive ? "text-amber-500" : "text-slate-300"
-                }`}
+                className={`material-symbols-outlined text-[32px] ${isActive ? "text-amber-500" : "text-slate-300"
+                  }`}
                 style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
               >
                 star

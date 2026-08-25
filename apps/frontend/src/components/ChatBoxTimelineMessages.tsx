@@ -4,117 +4,69 @@ import { useAuthStore } from "@/store/useAuthStore";
 import FAB5Logo from "@/assets/FAB5-logo.webp";
 import Image from "next/image";
 import Lightbox from "@/components/Lightbox";
-
-interface TicketEvent {
-  id: number;
-  event_type: string;
-  message: string;
-  actor_name: string | null;
-  created_at: string;
-  metadata: any;
-}
+import { api } from "@/lib/api";
+import { useEffect } from "react";
+import { useLanguageStore } from "@/store/useLanguageStore";
+import { getEventDetails , TicketEvent } from "@/lib/eventDetails";
 
 interface TimelineProps {
   events: TicketEvent[];
+  onTranslationUpdate?: (eventId: number, lang: string, text: string) => void;
 }
 
-export default function Timeline({ events }: TimelineProps) {
+export default function Timeline({ events, onTranslationUpdate }: TimelineProps) {
   const { user } = useAuthStore();
   const isEmployee = !!user && user.role !== "USER";
   const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
-
-
+  
+  const { targetLang } = useLanguageStore();
+  const [translatingEvents, setTranslatingEvents] = useState<Set<number>>(new Set());
 
   const visibleEvents = events;
 
-  const getEventIcon = (type: string) => {
-    switch (type) {
-      case "TICKET_CREATED":
-        return "confirmation_number";
-      case "TICKET_ASSIGNED":
-        return "person_add";
-      case "AGENT_REPLY":
-      case "MANAGER_REPLY":
-      case "ADMIN_REPLY":
-        return "support_agent";
-      case "USER_REPLY":
-        return "person";
-      case "SYSTEM_MESSAGE":
-        return "robot_2";
-      case "STATUS_CHANGED":
-        return "published_with_changes";
-      case "TICKET_RCA_UPDATED":
-        return "troubleshoot";
-      case "TICKET_RESOLVED":
-        return "task_alt";
-      case "AUTOMATED_UPDATE":
-        return "robot_2";
-      default:
-        return "info";
+  // Function to translate on-demand
+  const requestTranslation = async (eventId: number, lang: string) => {
+    if (translatingEvents.has(eventId)) return;
+    setTranslatingEvents((prev) => new Set(prev).add(eventId));
+    try {
+      const res = await api.post(`/events/${eventId}/translate`, { targetLang: lang });
+      if (res.data?.data?.translation && onTranslationUpdate) {
+        onTranslationUpdate(eventId, lang, res.data.data.translation);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTranslatingEvents((prev) => {
+        const next = new Set(prev);
+        next.delete(eventId);
+        return next;
+      });
     }
   };
 
-  const getRoleLabel = (type: string) => {
-    switch (type) {
-      case "AGENT_REPLY":
-        return "Support Agent";
-      case "ADMIN_REPLY":
-        return "Support Admin";
-      default:
-        return "Support Team";
-    }
-  };
-
-  const getEventTitle = (event: TicketEvent) => {
-    switch (event.event_type) {
-      case "TICKET_CREATED":
-        return "Ticket Opened";
-      case "TICKET_ASSIGNED": {
-        const isReassign = event.metadata?.is_reassign || (event.message && /reassigned/i.test(event.message));
-        return isReassign ? "Expert Tech Support" : "Agent Assigned";
-      }
-      case "STATUS_CHANGED": {
-        const rawStatus = event.metadata?.newStatus || event.metadata?.new_status || event.metadata?.status;
-        if (!rawStatus) return 'Status: "Updated"';
-        const formattedStatus = rawStatus.replace(/_/g, ' ').replace(/\w\S*/g, (txt: string) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
-        return `Status: "${formattedStatus}"`;
-      }
-      case "TICKET_RCA_UPDATED":
-        return "Root Cause Analysis";
-      case "TICKET_RESOLVED":
-        return "Ticket Resolved";
-      case "AGENT_REPLY":
-      case "ADMIN_REPLY":
-      case "MANAGER_REPLY":
-      case "USER_REPLY": {
-        const actorName = event.actor_name || event.metadata?.actor_name;
-        if (actorName) {
-          const firstName = actorName.split(" ")[0];
-          return `${firstName}`;
+  // Effect to trigger translations when changing targetLang
+  useEffect(() => {
+    if (targetLang !== "en") {
+      visibleEvents.forEach((event) => {
+        if (!event.translations?.[targetLang] && event.message && event.message.trim() !== "") {
+          requestTranslation(event.id, targetLang);
         }
-        return event.event_type === "USER_REPLY" ? "Customer Reply" : "Support Reply";
-      }
-      case "AUTOMATED_UPDATE":
-        return event.metadata?.heading || "System Update";
-      default:
-        return "System Update";
+      });
     }
-  };
+  }, [targetLang, visibleEvents]);
+
 
   return (
     <section
-      className="xl:col-span-2 px-0 pb-20 mt-10"
+      className="xl:col-span-2 px-0 pb-20 mt-10 relative"
       data-purpose="ticket-timeline"
     >
       <div className="relative pl-6 sm:pl-10 pb-8">
         {visibleEvents.map((event, index) => {
-          const isUser =
-            event.event_type === "TICKET_CREATED" ||
-            event.event_type === "USER_REPLY";
-          const isLast =
-            index === visibleEvents.length - 1 &&
-            events[0].event_type === "CLOSED";
-
+          const isUser = event.event_type === "TICKET_CREATED" || event.event_type === "USER_REPLY";
+          const isLast = index === visibleEvents.length - 1 && events[0].event_type === "CLOSED";
+          
+          const { icon, title } = getEventDetails(event, targetLang, isEmployee);
           return (
             <div key={event.id} className="relative mb-10 timeline-item z-10">
               {/* Spine Line - Only show if not the very last overall node */}
@@ -127,7 +79,7 @@ export default function Timeline({ events }: TimelineProps) {
                 className={`absolute -left-3 sm:-left-[32px] top-1 w-8 h-8 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center z-10 shadow-sm`}
               >
                 <span className="material-symbols-outlined text-lg text-slate-500">
-                  {getEventIcon(event.event_type)}
+                  {icon}
                 </span>
               </div>
 
@@ -135,7 +87,7 @@ export default function Timeline({ events }: TimelineProps) {
                 className={`mb-2 ml-2 flex ${isUser ? "justify-end" : "justify-start"}`}
               >
                 <h3 className="font-heading font-semibold text-lg text-black flex items-center gap-2 mt-1">
-                  {getEventTitle(event)}
+                  {title}
                 </h3>
               </div>
 
@@ -213,7 +165,14 @@ export default function Timeline({ events }: TimelineProps) {
                                   ""
                                 )}
                                 <p className="text-[15px] leading-relaxed font-body font-medium whitespace-pre-wrap">
-                                  {event.message}
+                                  {targetLang === "hi" && !event.translations?.hi && translatingEvents.has(event.id) ? (
+                                    <span className="flex items-center gap-2 text-slate-400">
+                                      <span className="h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></span>
+                                      Translating...
+                                    </span>
+                                  ) : (
+                                    targetLang !== "en" && event.translations?.[targetLang] ? event.translations[targetLang] : event.message
+                                  )}
                                 </p>
                                 {event.event_type === "TICKET_RCA_UPDATED" && event.metadata?.rca && (
                                   <div className="mt-2 p-3 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700 whitespace-pre-wrap font-medium">

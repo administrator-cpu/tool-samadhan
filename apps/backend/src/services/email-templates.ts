@@ -505,7 +505,7 @@ export const passwordResetOtpTemplate = ( { name, otpCode }: any) => ( {
 });
 
 
-export const serverErrorTemplate = ( { timestamp, errorType, errorMessage, stackTrace, path, method, payload }: any) => ({
+export const serverErrorTemplate = ( { timestamp, errorType, errorMessage, stackTrace, path, method, payload, user }: any) => ({
   subject: `[ALERT] Server Error: ${errorType} - ${errorMessage.substring(0, 50)}...`,
   html: emeraldLayout(
     "Critical Server Error Detected",
@@ -528,6 +528,28 @@ export const serverErrorTemplate = ( { timestamp, errorType, errorMessage, stack
           </tr>
         </table>
       </div>
+
+      ${user ? `
+      <div style="margin-top: 20px;">
+        <p style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">User Information:</p>
+        <div style="background-color: #f3f4f6; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px; color: #1f2937; word-break: break-word;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <tr>
+              <td style="padding: 4px 0; color: #4b5563; width: 30%;">User ID:</td>
+              <td style="padding: 4px 0; font-weight: 600;">${user.userId || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; color: #4b5563;">Email:</td>
+              <td style="padding: 4px 0; font-weight: 600;">${user.email || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; color: #4b5563;">Role:</td>
+              <td style="padding: 4px 0; font-weight: 600;">${user.role || 'N/A'}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      ` : ''}
 
       <div style="margin-top: 20px;">
         <p style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Error Message:</p>

@@ -12,6 +12,9 @@ import { ArrowLeft, Info } from "lucide-react";
 import Image from "next/image";
 import AgentImage from "@/assets/agent.png";
 import ReopenTicketModal from "@/components/ReopenTicketModal";
+import LanguageToggle from "@/components/LanguageToggle";
+import { translateTitle } from "@/lib/eventDetails";
+import { useLanguageStore } from "@/store/useLanguageStore";
 
 interface TicketEvent {
   id: number;
@@ -112,6 +115,7 @@ const getSeverityConfig = (category: string) => {
 
 export default function SalesTicketDetailPage() {
   const { id } = useParams();
+  const { targetLang } = useLanguageStore();
   const [data, setData] = useState<TicketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [lightboxData, setLightboxData] = useState<{ images: string[], currentIndex: number } | null>(null);
@@ -167,35 +171,15 @@ export default function SalesTicketDetailPage() {
   return (
     <div className="h-screen bg-[#F8FAFC] flex flex-col antialiased overflow-hidden">
       {/* Header */}
-      <header className="border-b border-slate-100 bg-white px-8 py-5 flex items-center justify-between shadow-xs z-10">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/employee/sales/tickets"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50"
-          >
-            <ArrowLeft size={18} />
-          </Link>
+      <header className="border-b border-slate-100 bg-white px-8 py-5 flex items-center shadow-xs z-10">
+        <Link
+          href="/employee/sales/tickets"
+          className="mr-6 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50"
+        >
+          <ArrowLeft size={18} />
+        </Link>
 
-
-          {/* <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-black text-slate-900 font-heading">
-                Ticket #{ticket.ticket_no}
-              </h1>
-              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-black uppercase tracking-tight ${statusConfig.textClass}`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${statusConfig.dotClass}`} />
-                {ticket.status.replace("_", " ")}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 mt-1">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{ticket.subject}</p>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getSeverityConfig(ticket.subject).classes}`}>
-                {getSeverityConfig(ticket.subject).label}
-              </span>
-            </div>
-          </div> */}
-
-                  <div className="flex-1">
+        <div>
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-xl font-bold tracking-tight text-slate-900 break-words">{ticket.subject}</h1>
             <span className="px-2.5 py-0.5 rounded-md text-[12px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border border-slate-200">
@@ -205,39 +189,55 @@ export default function SalesTicketDetailPage() {
               {getSeverityConfig(ticket.subject).label}
             </span>
           </div>
-          <p className="text-sm font-medium text-slate-500 mt-1">Opened by {ticket.customer.name}</p>
+          <p className="text-sm font-medium text-slate-500 mt-1">Opened by {translateTitle("Customer", targetLang as any)}</p>
         </div>
 
+        <div className="ml-auto flex items-center gap-6">
+          <LanguageToggle />
+          
+          {/* Reopen Button */}
+          {ticket.status === "RESOLVED" && ticket.resolved_at && (() => {
+            const resolvedAt = new Date(ticket.resolved_at);
+            const now = new Date();
+            const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
 
+            if (diffHours <= 24) {
+              return (
+                <button
+                  onClick={() => setIsReopenModalOpen(true)}
+                  disabled={updating}
+                  className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-[18px]">restart_alt</span>
+                  Reopen Ticket
+                </button>
+              );
+            }
+            return null;
+          })()}
         </div>
-
-        {/* Reopen Button */}
-        {ticket.status === "RESOLVED" && ticket.resolved_at && (() => {
-          const resolvedAt = new Date(ticket.resolved_at);
-          const now = new Date();
-          const diffHours = (now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60);
-
-          if (diffHours <= 24) {
-            return (
-              <button
-                onClick={() => setIsReopenModalOpen(true)}
-                disabled={updating}
-                className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined text-[18px]">restart_alt</span>
-                Reopen Ticket
-              </button>
-            );
-          }
-          return null;
-        })()}
       </header>
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 overflow-y-auto px-5 py-8 border-r border-slate-100 flex flex-col">
           <div className="max-w-4xl mx-auto w-full flex-1">
-            <Timeline events={events} />
+            <Timeline 
+              events={events} 
+              onTranslationUpdate={(eventId, lang, text) => {
+                setData((prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    events: prev.events.map(e => 
+                      e.id === eventId 
+                        ? { ...e, translations: { ...(e as any).translations, [lang]: text } } 
+                        : e
+                    )
+                  };
+                });
+              }} 
+            />
 
             {/* RCA Report in Main Chat Box */}
             {["RESOLVED", "CLOSED"].includes(ticket.status) && ticket.rca && (
@@ -302,7 +302,7 @@ export default function SalesTicketDetailPage() {
                 {/* Customer */}
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Customer</p>
-                  <p className="text-[14px] font-bold text-slate-900">{ticket.customer.name}</p>
+                  <p className="text-[14px] font-bold text-slate-900">{translateTitle("Customer", targetLang as any)}</p>
                   {ticket.customer.phone && (
                     <span className="text-[11px] font-bold text-slate-400 block mt-0.5">
                       +91 {ticket.customer.phone}
