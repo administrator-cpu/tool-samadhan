@@ -256,7 +256,7 @@ export const sendPasswordResetEmail = async ({ name, email, otpCode }: any) => {
 const errorThrottleMap = new Map<string, number>();
 const THROTTLE_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
-export const sendServerErrorEmail = async (errorDetails: { timestamp: string; errorType: string; errorMessage: string; stackTrace?: string; path?: string; method?: string; payload?: any; }) => {
+export const sendServerErrorEmail = async (errorDetails: { timestamp: string; errorType: string; errorMessage: string; stackTrace?: string; path?: string; method?: string; payload?: any; user?: any; }) => {
   const adminEmail = 'ajaynegi3345@gmail.com';
   
   // Throttle by error message and path

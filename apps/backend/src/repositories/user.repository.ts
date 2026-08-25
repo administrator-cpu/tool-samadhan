@@ -35,7 +35,10 @@ export class UserRepository {
     const { name, email, phone, profile_image } = data;
     const updates: any = { updated_at: sql`NOW()` };
     
-    if (name !== undefined) updates.name = name;
+    if (name !== undefined) {
+      updates.name = name;
+      updates.translated_names = {};
+    }
     if (email !== undefined) updates.email = email.toLowerCase();
     if (phone !== undefined) updates.phone = phone;
     if (profile_image !== undefined) updates.profile_image = profile_image;
@@ -57,6 +60,12 @@ export class UserRepository {
   static async clearMustChangePassword(tx: any, userId: string): Promise<void> {
     await tx.update(users)
       .set({ must_change_password: false })
+      .where(eq(users.id, parseInt(userId, 10)));
+  }
+
+  static async updateTranslatedNames(tx: any, userId: string, translatedNames: Record<string, string>): Promise<void> {
+    await tx.update(users)
+      .set({ translated_names: translatedNames })
       .where(eq(users.id, parseInt(userId, 10)));
   }
 

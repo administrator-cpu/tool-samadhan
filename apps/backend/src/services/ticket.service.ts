@@ -12,7 +12,8 @@ import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
 import { UserRole } from '../types/dto.js';
-import { ticketAutomationQueue } from '../config/redis.js';
+import { formatTicketEvent } from '../utils/event-formatter.js';
+import { ticketAutomationQueue, translationQueue } from '../config/redis.js';
 import { logger } from '../lib/logger.js';
 
 export class TicketService {
@@ -85,13 +86,18 @@ export class TicketService {
            }
         }
 
-        await TicketEventRepository.insertEvent(tx, {
+        const event = await TicketEventRepository.insertEvent(tx, {
           ticket_id: ticket.id,
           actor_user_id: null,
           event_type: 'TICKET_ASSIGNED',
           message: `Ticket assign to ${assignedAgentName}`,
           metadata: { assigned_to: assignedAgentId },
           visible_to_customer: true
+        });
+
+        await translationQueue.add('TRANSLATE_MESSAGE', { 
+          eventId: event.id,
+          targetLang: 'hi' // Defaulting to Hindi for now
         });
       }
 
@@ -183,6 +189,7 @@ export class TicketService {
         searchQuery: filters.searchQuery,
         sortField: filters.sortField,
         sortOrder: filters.sortOrder,
+        isCustomer: role === UserRole.USER,
       };
 
       if (role === UserRole.USER) {
@@ -244,6 +251,8 @@ export class TicketService {
         events = await TicketEventRepository.findByTicketId(tx, ticketId, role === UserRole.USER);
       }
 
+      events = events.map(e => formatTicketEvent(e));
+
       const formattedTicket = {
         ...ticketInfo,
         customer: {
@@ -303,7 +312,8 @@ export class TicketService {
       });
 
       const actor = await UserRepository.findById(tx, actorUserId);
-      const event = { ...rawEvent, actor_name: actor?.name || null };
+      const eventRaw = { ...rawEvent, actor_name: actor?.name || null, actor_translated_names: actor?.translated_names || null };
+      const event = formatTicketEvent(eventRaw);
 
       if (ticket.status === 'OPEN') {
         await TicketRepository.updateStatus(tx, ticketId, 'IN_PROGRESS');
@@ -347,6 +357,14 @@ export class TicketService {
         data: { type: 'NEW_EVENT', event }
       });
 
+      // Queue for background translation for LIVE ticket bursts
+      if (dto.message) {
+        await translationQueue.add('TRANSLATE_MESSAGE', { 
+          eventId: event.id,
+          targetLang: 'hi' // Defaulting to Hindi for now
+        });
+      }
+
       return event;
     });
   }
@@ -377,7 +395,7 @@ export class TicketService {
       const updatedStatus = newStatus === 'REOPENED' ? 'IN_PROGRESS' : newStatus;
       const updatedTicket = await TicketRepository.updateStatus(tx, ticketId, updatedStatus);
       
-      const event = await TicketEventRepository.insertEvent(tx, {
+      const eventRaw = await TicketEventRepository.insertEvent(tx, {
         ticket_id: ticketId,
         actor_user_id: actorUserId,
         event_type: 'STATUS_CHANGED',
@@ -385,6 +403,7 @@ export class TicketService {
         metadata: { oldStatus, newStatus },
         visible_to_customer: true
       });
+      const event = formatTicketEvent(eventRaw);
 
       const info = await TicketRepository.getCustomerContactInfo(tx, ticketId);
       
@@ -493,7 +512,7 @@ export class TicketService {
       const updatedTicket = await TicketRepository.updateFields(tx, ticketId, fieldsToUpdate);
 
       // Create an event for the RCA update so it's recorded in the timeline history
-      const rcaEvent = await TicketEventRepository.insertEvent(tx, {
+      const rcaEventRaw = await TicketEventRepository.insertEvent(tx, {
         ticket_id: ticketId,
         actor_user_id: actorUserId,
         event_type: 'TICKET_RCA_UPDATED',
@@ -501,10 +520,11 @@ export class TicketService {
         metadata: { rca, attachments: combinedImages },
         visible_to_customer: true
       });
+      const rcaEvent = formatTicketEvent(rcaEventRaw);
 
       let statusEvent = null;
       if (autoClosed) {
-        statusEvent = await TicketEventRepository.insertEvent(tx, {
+        const statusEventRaw = await TicketEventRepository.insertEvent(tx, {
           ticket_id: ticketId,
           actor_user_id: null,
           event_type: 'STATUS_CHANGED',
@@ -512,6 +532,7 @@ export class TicketService {
           metadata: { old_status: 'RESOLVED', new_status: 'CLOSED' },
           visible_to_customer: true
         });
+        statusEvent = formatTicketEvent(statusEventRaw);
       }
 
       const info = await TicketRepository.getCustomerContactInfo(tx, ticketId);
@@ -605,13 +626,19 @@ export class TicketService {
          }
       }
 
-      const event = await TicketEventRepository.insertEvent(tx, {
+      const eventRaw = await TicketEventRepository.insertEvent(tx, {
         ticket_id: ticketId,
         actor_user_id: actorUserId,
         event_type: 'TICKET_ASSIGNED',
         message: `Ticket reassigned to ${agentName}`,
         metadata: { assigned_to: employeeId },
         visible_to_customer: true
+      });
+      const event = formatTicketEvent(eventRaw);
+
+      await translationQueue.add('TRANSLATE_MESSAGE', { 
+        eventId: event.id,
+        targetLang: 'hi' // Defaulting to Hindi for now
       });
 
       ticketEventEmitter.emit('ticket_updated', {

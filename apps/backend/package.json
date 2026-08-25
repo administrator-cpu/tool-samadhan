@@ -16,6 +16,7 @@
     "db:migrate": "tsx src/database/run-migration.ts"
   },
   "dependencies": {
+    "@google-cloud/translate": "^9.4.2",
     "argon2": "^0.44.0",
     "bullmq": "^5.77.3",
     "busboy": "^1.6.0",
@@ -31,6 +32,7 @@
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "nodemon": "^3.1.14",
+    "p-limit": "^3.1.0",
     "pg": "^8.21.0",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3",

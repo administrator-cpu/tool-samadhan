@@ -9,6 +9,7 @@ export interface User {
   role: UserRole;
   profile_image?: string | null;
   must_change_password?: boolean;
+  translated_names?: Record<string, string>;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -66,6 +67,8 @@ export interface TicketEvent {
   metadata: Record<string, any>;
   visible_to_customer: boolean;
   created_at: Date;
+  icon?: string;
+  title_translations?: Record<string, string>;
 }
 
 export interface Session {

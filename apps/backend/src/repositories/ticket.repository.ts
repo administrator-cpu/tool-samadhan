@@ -222,6 +222,7 @@ export class TicketRepository {
       searchQuery?: string;
       sortField?: string;
       sortOrder?: string;
+      isCustomer?: boolean;
     },
     limit: number,
     offset: number = 0
@@ -333,6 +334,17 @@ export class TicketRepository {
         },
         assignedEmployee: {
           with: { user: { columns: { name: true } } }
+        },
+        events: {
+          where: and(
+            isNotNull(ticketEvents.message),
+            filters.isCustomer ? eq(ticketEvents.visible_to_customer, true) : undefined
+          ),
+          orderBy: [desc(ticketEvents.created_at), desc(ticketEvents.id)],
+          limit: 1,
+          columns: {
+            message: true
+          }
         }
       }
     });
@@ -348,6 +360,7 @@ export class TicketRepository {
       customer_name: t.customer?.user?.name || null,
       assigned_employee_name: t.assignedEmployee?.user?.name || null,
       current_assigned_employee_id: t.current_assigned_employee_id ? String(t.current_assigned_employee_id) : null,
+      last_text: t.events && t.events.length > 0 ? t.events[0].message : null,
     }));
 
     return {
