@@ -51,8 +51,14 @@ export const parseTicketEventUpload = async (req: Request, res: Response, next: 
   let fileError: Error | null = null;
 
   bb.on('field', (fieldname, val) => {
+  if (req.body[fieldname] === undefined) {
     req.body[fieldname] = val;
-  });
+  } else if (Array.isArray(req.body[fieldname])) {
+    req.body[fieldname].push(val);
+  } else {
+    req.body[fieldname] = [req.body[fieldname], val];
+  }
+});
 
   bb.on('file', (name, file, info) => {
     // If an error already occurred (e.g. invalid type), discard remaining files
@@ -163,8 +169,14 @@ export const parseTicketCreationUpload = async (req: Request, res: Response, nex
   let fileError: Error | null = null;
 
   bb.on('field', (fieldname, val) => {
+  if (req.body[fieldname] === undefined) {
     req.body[fieldname] = val;
-  });
+  } else if (Array.isArray(req.body[fieldname])) {
+    req.body[fieldname].push(val);
+  } else {
+    req.body[fieldname] = [req.body[fieldname], val];
+  }
+});
 
   bb.on('file', (name, file, info) => {
     // If an error already occurred (e.g. invalid type), discard remaining files
