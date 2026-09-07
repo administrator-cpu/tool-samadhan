@@ -147,7 +147,7 @@ export default function TicketRcaEditor({ rca, rcaImages: initialRcaImages, onUp
                  type="button"
                  onClick={() => fileInputRef.current?.click()}
                  disabled={rcaImages.length + rcaFiles.length >= 10 || savingRca}
-                 className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-emerald-600 disabled:opacity-50"
+                 className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-ember disabled:opacity-50"
               >
                  <span className="material-symbols-outlined text-[16px]">image</span>
                  Attach Image
@@ -190,7 +190,7 @@ export default function TicketRcaEditor({ rca, rcaImages: initialRcaImages, onUp
               <button
                 onClick={handleSave}
                 disabled={savingRca || !rcaText.trim()}
-                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-ember-gradient px-6 py-2.5 text-sm font-black text-white hover:bg-ember-gradient-hover transition-all disabled:opacity-50"
               >
                 {savingRca ? "Saving Report..." : rca ? "Save Changes" : "Submit RCA"}
                 <CheckCircle2 size={16} />

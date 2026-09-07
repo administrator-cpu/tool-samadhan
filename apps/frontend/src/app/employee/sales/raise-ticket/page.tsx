@@ -223,7 +223,7 @@ export default function SalesCreateTicketPage() {
                   type="button"
                   onClick={handleVerifyEmail}
                   disabled={fetchingConnections || !formData.customerEmail.trim()}
-                  className="h-[56px] px-6 rounded-lg bg-emerald-700 text-white font-bold shadow-md hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                  className="h-[56px] px-6 rounded-lg bg-ember-gradient text-white font-bold shadow-md hover:bg-ember-gradient-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
                 >
                   {fetchingConnections ? "Verifying..." : "Verify"}
                 </button>
@@ -379,7 +379,7 @@ export default function SalesCreateTicketPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-bold transition-all hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-ember-gradient text-white text-[15px] font-bold transition-all hover:bg-ember-gradient-hover disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-500/20"
               >
                 {loading ? (
                   <span>Submitting...</span>

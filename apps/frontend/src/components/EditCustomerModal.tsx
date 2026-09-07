@@ -130,7 +130,7 @@ export default function EditCustomerModal({ isOpen, onClose, onSuccess, customer
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-emerald-700 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-700/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 disabled:opacity-50 disabled:translate-y-0"
+              className="w-full rounded-lg bg-ember-gradient py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5 hover:bg-ember-gradient-hover disabled:opacity-50 disabled:translate-y-0"
             >
               {loading ? "Saving Changes..." : "Save Changes"}
             </button>

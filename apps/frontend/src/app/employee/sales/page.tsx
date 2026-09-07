@@ -91,7 +91,7 @@ export default function SalesDashboard() {
 
           <Link
             href="/employee/sales/raise-ticket"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-700/20 transition-all hover:bg-emerald-800 hover:-translate-y-0.5"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-ember-gradient px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-ember-gradient-hover hover:-translate-y-0.5"
           >
             <PlusCircle size={18} />
             Raise Ticket

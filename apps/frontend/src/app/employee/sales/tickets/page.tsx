@@ -137,7 +137,7 @@ export default function SalesTicketsPage() {
               <div className="relative">
                 <button
                   onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${statusFilter !== "ALL" ? "bg-emerald-600 text-white shadow-lg " : "text-slate-500 hover:bg-slate-50"}`}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${statusFilter !== "ALL" ? "bg-ember-gradient text-white shadow-lg border-none" : "text-slate-500 hover:bg-slate-50"}`}
                 >
                   <Filter size={14} />
                   {statusFilter === "ALL" ? "Status" : statusFilter.replace("_", " ")}
@@ -173,7 +173,7 @@ export default function SalesTicketsPage() {
                   if (sortField === "date") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
                   else { setSortField("date"); setSortOrder("desc"); }
                 }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-emerald-600 text-white shadow-lg " : "text-slate-500 hover:bg-slate-50"}`}
+                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-ember-gradient text-white shadow-lg border-none" : "text-slate-500 hover:bg-slate-50"}`}
               >
                 <Calendar size={14} />
                 Date
