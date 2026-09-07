@@ -206,7 +206,7 @@ export default function SalesTicketDetailPage() {
                 <button
                   onClick={() => setIsReopenModalOpen(true)}
                   disabled={updating}
-                  className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-xl bg-orange-50 px-4 py-2 text-sm font-bold text-ember hover:bg-orange-100 transition-all disabled:opacity-50"
                 >
                   <span className="material-symbols-outlined text-[18px]">restart_alt</span>
                   Reopen Ticket

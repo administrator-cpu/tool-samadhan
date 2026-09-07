@@ -140,7 +140,7 @@ export default function ReopenTicketModal({ isOpen, onClose, onConfirm }: Reopen
           <button
             onClick={handleConfirm}
             disabled={isConfirmDisabled}
-            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-emerald-700 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-ember-gradient px-6 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5 hover:bg-ember-gradient-hover active:scale-95 disabled:pointer-events-none disabled:opacity-50"
           >
             {isSubmitting ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />

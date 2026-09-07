@@ -349,7 +349,7 @@ export default function ProfilePage() {
                   <button
                     type="submit"
                     disabled={updatingProfile}
-                    className="flex-1 h-12 rounded-lg bg-[#4b8264] text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-50 active:scale-[0.98] transition-all"
+                    className="flex-1 h-12 rounded-lg bg-ember-gradient text-sm font-black text-white hover:bg-ember-gradient-hover disabled:opacity-50 active:scale-[0.98] transition-all"
                   >
                     {updatingProfile ? "Saving..." : "Save Changes"}
                   </button>
@@ -380,7 +380,7 @@ export default function ProfilePage() {
               {!isEditing && (
                 <button 
                   onClick={() => setIsEditing(true)}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#4b8264] text-sm font-black text-white hover:bg-emerald-700 transition-all active:scale-[0.98]"
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-ember-gradient text-sm font-black text-white hover:bg-ember-gradient-hover transition-all active:scale-[0.98]"
                 >
                   <span className="material-symbols-outlined text-sm font-bold">edit</span>
                   Edit Profile
@@ -458,7 +458,7 @@ export default function ProfilePage() {
                 <button 
                   onClick={handleCropSave}
                   disabled={uploadingImage}
-                  className="flex-1 h-12 rounded-xl bg-[#4b8264] text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                  className="flex-1 h-12 rounded-xl bg-ember-gradient text-sm font-black text-white hover:bg-ember-gradient-hover disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                   {uploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Photo"}
                 </button>

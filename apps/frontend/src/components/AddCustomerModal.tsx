@@ -119,7 +119,7 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }: AddCust
               <button 
                 type="button" 
                 onClick={() => setPassword(generatePassword())}
-                className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700"
+                className="flex items-center gap-1 text-xs text-ember transition-opacity hover:opacity-80"
               >
                 <RefreshCw size={12} />
                 Regenerate
@@ -142,7 +142,7 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }: AddCust
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-emerald-700 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-700/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 disabled:opacity-50 disabled:translate-y-0"
+              className="w-full rounded-lg bg-ember-gradient py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5 hover:bg-ember-gradient-hover disabled:opacity-50 disabled:translate-y-0"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>

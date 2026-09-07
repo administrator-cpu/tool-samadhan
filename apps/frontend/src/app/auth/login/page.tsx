@@ -95,12 +95,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`min-h-screen bg-slate-50 antialiased selection:bg-indigo-200 selection:text-indigo-900`}>
+    <div className={`min-h-screen bg-slate-50 antialiased selection:bg-ember selection:text-white`}>
       
       {/* Background blobs */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-40">
-        <div className="absolute -left-40 -top-40 h-[800px] w-[800px] rounded-full bg-indigo-300/30 blur-[120px] mix-blend-multiply" />
-        <div className="absolute bottom-0 right-0 h-[600px] w-[600px] rounded-full bg-indigo-500/10 blur-[100px] mix-blend-multiply" />
+        <div className="absolute -left-40 -top-40 h-[800px] w-[800px] rounded-full bg-[#F5821F]/20 blur-[120px] mix-blend-multiply" />
+        <div className="absolute bottom-0 right-0 h-[600px] w-[600px] rounded-full bg-[#D9430F]/20 blur-[100px] mix-blend-multiply" />
       </div>
 
       <main className="relative z-10 flex min-h-screen items-center justify-center p-6">
@@ -141,7 +141,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="name@company.com"
-                  className={`w-full rounded-lg border ${errors.email ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-indigo-700 focus:ring-indigo-700'} bg-white py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:outline-none focus:ring-1`}
+                  className={`w-full rounded-lg border ${errors.email ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-ember focus:ring-ember'} bg-white py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:outline-none focus:ring-1`}
                 />
               </div>
               {errors.email && (
@@ -161,7 +161,7 @@ export default function LoginPage() {
 
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm font-medium text-emerald-700 transition hover:underline"
+                  className="text-sm font-medium text-ember transition hover:underline"
                 >
                   Forgot Password?
                 </Link>
@@ -177,7 +177,7 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className={`w-full rounded-lg border ${errors.password ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-indigo-700 focus:ring-indigo-700'} bg-white py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:outline-none focus:ring-1`}
+                  className={`w-full rounded-lg border ${errors.password ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-ember focus:ring-ember'} bg-white py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:outline-none focus:ring-1`}
                 />
               </div>
               {errors.password && (
@@ -189,7 +189,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 px-6 py-4 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-emerald-700/20 transition duration-200 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-ember-gradient px-6 py-4 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-ember/20 transition duration-200 hover:bg-ember-gradient-hover border-none active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

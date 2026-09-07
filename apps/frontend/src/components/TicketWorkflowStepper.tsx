@@ -82,18 +82,14 @@ export default function TicketWorkflowStepper() {
             {/* desktop line */}
             <div className="absolute left-0 right-0 top-8 hidden h-1 rounded-full bg-slate-200 md:block" />
             <div
-              className="absolute left-0 top-8 hidden h-1 rounded-full bg-emerald-500 md:block"
-              style={{
-                width: `${progress * 100}%`,
-              }}
+              className="absolute left-0 top-8 hidden h-1 rounded-full bg-ember-gradient md:block"
+              style={{ width: `${progress * 100}%`, transition: "width 0.5s ease" }}
             />
 
             {/* mobile line */}
             <div className="absolute bottom-0 left-12 top-0 w-1 rounded-full bg-slate-200 md:hidden" />
-            <div className="absolute left-12 top-0 w-1 rounded-full bg-emerald-500 md:hidden"
-              style={{
-                height: `${progress * 100}%`,
-              }}
+            <div className="absolute left-12 top-0 w-1 rounded-full bg-ember-gradient md:hidden"
+              style={{ height: `${progress * 100}%`, transition: "height 0.5s ease" }}
             />
 
             <div className="grid grid-cols-1 gap-10 md:grid-cols-5 md:gap-4">
@@ -115,8 +111,8 @@ export default function TicketWorkflowStepper() {
                       className={[
                         "relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 ",
                         isActive || isDone
-                          ? "border-emerald-500 bg-emerald-100 text-slate-700 shadow-lg"
-                          : "border-slate-200 text-slate-400 bg-white ",
+                          ? "border-ember bg-orange-50 text-slate-700 shadow-lg"
+                          : "border-slate-200 bg-white text-slate-400",
                       ].join(" ")}
                     >
                       <Icon size={28} />

@@ -173,7 +173,7 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
               <button
                 onClick={handleSend}
                 disabled={sending || (!replyMessage.trim() && attachments.length === 0)}
-                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50 shadow-lg shadow-black/5"
+                className="flex items-center gap-2 rounded-xl bg-ember-gradient px-6 py-2.5 text-sm font-black text-white hover:bg-ember-gradient-hover transition-all disabled:opacity-50 shadow-lg shadow-orange-500/20"
               >
                 {sending ? "Transmitting..." : "Send Reply"}
                 <Send size={16} />
