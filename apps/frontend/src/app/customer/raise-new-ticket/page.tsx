@@ -285,7 +285,7 @@ export default function CreateTicketPage() {
                 onChange={handleChange}
                 disabled={ connections.length === 0 || loadingConnection}
                 placeholder="user1@eg.com, user2@eg.com, user3@eg.com"
-                className="h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-emerald-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                className="h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-ember focus:ring-1 focus:ring-ember outline-none focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
               />
             </div>
 
@@ -303,7 +303,7 @@ export default function CreateTicketPage() {
                 onChange={handleChange}
                 disabled={ connections.length === 0 || loadingConnection}
                 placeholder="Tell us exactly what's happening..."
-                className="h-40 w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-emerald-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 focus:outline-none"
+                className="h-40 w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-ember focus:ring-1 focus:ring-ember disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 outline-none focus:outline-none"
               />
             </div>
 
@@ -317,7 +317,7 @@ export default function CreateTicketPage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={loading || attachments.length >= 10 || connections.length === 0 || loadingConnection}
-                  className="p-2 flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-500/80 disabled:opacity-50 transition-colors"
+                  className="p-2 flex items-center gap-1.5 text-sm font-medium text-ember hover:text-[#cc3e0b] disabled:opacity-50 transition-colors"
                 >
                   <Paperclip size={16} />
                   Add Images
@@ -361,7 +361,7 @@ export default function CreateTicketPage() {
               <button
                 type="submit"
                 disabled={loading || connections.length === 0 || loadingConnection}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-medium shadow-sm transition-all hover:opacity-90 disabled:opacity-50  disabled:cursor-not-allowed enabled:hover:cursor-pointer"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-ember-gradient text-white text-[15px] font-bold shadow-md transition-all hover:bg-ember-gradient-hover disabled:opacity-50 disabled:cursor-not-allowed enabled:hover:cursor-pointer border-none"
               >
                 {loading ? (
                   <span>Submitting...</span>

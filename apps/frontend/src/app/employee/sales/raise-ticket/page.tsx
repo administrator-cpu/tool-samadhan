@@ -217,7 +217,7 @@ export default function SalesCreateTicketPage() {
                   onChange={handleChange}
                   placeholder="customer@example.com"
                   required
-                  className="h-[56px] flex-1 rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+                  className="h-[56px] flex-1 rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/10 font-medium"
                 />
                 <button
                   type="button"
@@ -229,7 +229,7 @@ export default function SalesCreateTicketPage() {
                 </button>
               </div>
               {emailVerified && customerName && (
-                <p className="text-sm text-emerald-600 font-medium">
+                <p className="text-sm text-ember font-medium">
                   ✓ Verified Customer: {customerName}
                 </p>
               )}
@@ -252,7 +252,7 @@ export default function SalesCreateTicketPage() {
                 value={formData.alternateEmail}
                 onChange={handleChange}
                 placeholder="secondary@example.com"
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/10 font-medium"
               />
             </div>
 
@@ -268,7 +268,7 @@ export default function SalesCreateTicketPage() {
                 onChange={handleChange}
                 disabled={!emailVerified || connections.length === 0}
                 required
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 transition-shadow cursor-pointer focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 transition-shadow cursor-pointer focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/10 font-medium disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
               >
                 {!emailVerified ? (
                   <option value="">Verify customer email first</option>
@@ -297,7 +297,7 @@ export default function SalesCreateTicketPage() {
                 name="categoryId"
                 value={formData.categoryId}
                 onChange={handleChange}
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 transition-shadow cursor-pointer focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 transition-shadow cursor-pointer focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/10 font-medium"
               >
                 <option value="" disabled>
                   Select an issue type
@@ -320,8 +320,8 @@ export default function SalesCreateTicketPage() {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe the problem details..."
-                className="h-40 w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+                placeholder="Tell us exactly what's happening..."
+                className="h-40 w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/10 font-medium"
               />
             </div>
 
