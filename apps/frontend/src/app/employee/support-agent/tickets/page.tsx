@@ -254,7 +254,7 @@ export default function AgentTicketsPage() {
                       <td className="px-8 py-6 text-right">
                         <Link
                           href={`/employee/support-agent/tickets/${ticket.id}`}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-indigo-600 hover:text-white hover:border-indigo-600 hover:-translate-y-0.5 active:scale-95"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-[#F5821F]/10 hover:text-ember hover:border-ember hover:-translate-y-0.5 active:scale-95"
                         >
                           <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                         </Link>

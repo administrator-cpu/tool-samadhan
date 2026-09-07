@@ -110,7 +110,7 @@ export default function TicketsPage() {
 
           <Link
             href="/customer/raise-new-ticket"
-            className="flow-gradient-btn inline-flex items-center gap-2 rounded-lg px-4 py-3 font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
+            className="bg-ember-gradient inline-flex items-center gap-2 rounded-lg px-4 py-3 font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
           >
             <span className="material-symbols-outlined">add_circle</span>
             Raise New Ticket
@@ -190,7 +190,7 @@ export default function TicketsPage() {
                 <tbody className="divide-y divide-slate-100">
                   {tickets.map((ticket) => (
                     <tr key={ticket.id} className="transition-colors hover:bg-slate-50/80">
-                      <td className="px-6 py-4 text-sm font-bold text-emerald-700">
+                      <td className="px-6 py-4 text-sm font-bold text-ember">
                         {ticket.ticket_no}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
@@ -215,11 +215,11 @@ export default function TicketsPage() {
                           aria-label={`View ticket ${ticket.ticket_no}`}
                           className="
     group inline-flex items-center gap-1.5 rounded-lg
-    border border-emerald-700 bg-white px-3 py-1.5
-    text-sm font-medium text-emerald-700
+    border border-slate-200 bg-white px-3 py-1.5
+    text-sm font-medium text-slate-600
     shadow-sm transition-all duration-200
-    hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 hover:shadow
-    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2
+    hover:-translate-y-0.5 hover:border-ember hover:bg-[#F5821F]/5 hover:text-ember hover:shadow
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2
     active:translate-y-0
   "
                         >
