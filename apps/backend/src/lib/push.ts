@@ -6,7 +6,7 @@ import { logger } from './logger.js';
 
 const expo = new Expo();
 
-export async function sendPushToEmail(email, { title, body, data }) {
+export async function sendPushToEmail(email: string, { title, body, data }: { title: string, body: string, data?: any }) {
   try {
     const res = await db.execute(sql`
       SELECT pt.token
