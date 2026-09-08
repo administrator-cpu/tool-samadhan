@@ -73,19 +73,19 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
             key={idx}
             onClick={() => setReplyMessage(qr.text)}
             disabled={sending}
-            className="text-left p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-200 transition-all group disabled:opacity-50"
+            className="text-left p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-[#F5821F]/10 hover:border-ember/20 transition-all group disabled:opacity-50"
           >
-            <p className="text-xs font-medium text-slate-600 line-clamp-3 group-hover:text-emerald-700">{qr.text}</p>
+            <p className="text-xs font-medium text-slate-600 line-clamp-3 group-hover:text-ember">{qr.text}</p>
           </button>
         ))}
       </div>
 
       <div className="relative">
         <div className="mb-3 flex items-center gap-2">
-          <MessageSquare size={18} className="text-emerald-600" />
+          <MessageSquare size={18} className="text-ember" />
           <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Custom Response</h3>
         </div>
-        <div className="relative rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/50 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all">
+        <div className="relative rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/50 focus-within:border-ember focus-within:ring-4 focus-within:ring-ember/10 transition-all">
           <textarea
             value={replyMessage}
             onChange={(e) => setReplyMessage(e.target.value)}
@@ -131,9 +131,9 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
                     checked={sendEmail}
                     onChange={(e) => setSendEmail(e.target.checked)}
                     disabled={sending}
-                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded-sm focus:ring-emerald-600 cursor-pointer disabled:opacity-50"
+                    className="w-4 h-4 text-ember border-slate-300 rounded-sm focus:ring-ember cursor-pointer disabled:opacity-50"
                   />
-                  <span className={`text-[11px] font-black uppercase tracking-wider transition-colors ${sendEmail ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                  <span className={`text-[11px] font-black uppercase tracking-wider transition-colors ${sendEmail ? 'text-ember' : 'text-slate-400 group-hover:text-slate-600'}`}>
                     Email {sendEmail ? 'ON' : 'OFF'}
                   </span>
                 </label>
@@ -143,9 +143,9 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
                     checked={sendSms}
                     onChange={(e) => setSendSms(e.target.checked)}
                     disabled={sending}
-                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded-sm focus:ring-emerald-600 cursor-pointer disabled:opacity-50"
+                    className="w-4 h-4 text-ember border-slate-300 rounded-sm focus:ring-ember cursor-pointer disabled:opacity-50"
                   />
-                  <span className={`text-[11px] font-black uppercase tracking-wider transition-colors ${sendSms ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                  <span className={`text-[11px] font-black uppercase tracking-wider transition-colors ${sendSms ? 'text-ember' : 'text-slate-400 group-hover:text-slate-600'}`}>
                     SMS {sendSms ? 'ON' : 'OFF'}
                   </span>
                 </label> */}
