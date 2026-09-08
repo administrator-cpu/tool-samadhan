@@ -1,4 +1,3 @@
-// lib/push.js
 import { Expo } from 'expo-server-sdk';
 import { db } from '../config/database.js';
 import { sql } from 'drizzle-orm';
@@ -20,11 +19,11 @@ export async function sendPushToEmail(email: string, { title, body, data }: { ti
 
     const messages = tokens.map((token) => ({
       to: token,
-      sound: 'default',
+      sound: 'default' as const,
       title,
       body,
       data,
-      priority: 'high',
+      priority: 'high' as const,
       channelId: 'default',
     }));
 
