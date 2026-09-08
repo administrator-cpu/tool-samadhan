@@ -148,7 +148,7 @@ export default function ResolvedTicketsPage() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-(--break-2xl) mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-lg ">
+            <div className="h-12 w-12 rounded-2xl bg-ember-gradient flex items-center justify-center text-white shadow-lg ">
               <History size={24} />
             </div>
             <div>
@@ -169,7 +169,7 @@ export default function ResolvedTicketsPage() {
               </span>
             ) : (
               <>
-                <Download size={18} className="text-emerald-600" />
+                <Download size={18} className="text-ember" />
                 Export Full Log
               </>
             )}
@@ -262,7 +262,7 @@ export default function ResolvedTicketsPage() {
                           </p>
                           <button
                             onClick={() => setSelectedRca(ticket)}
-                            className="text-[10px] font-black text-emerald-600 hover:text-emerald-800 uppercase tracking-widest flex items-center gap-1 w-fit"
+                            className="text-[10px] font-black text-ember hover:opacity-80 uppercase tracking-widest flex items-center gap-1 w-fit"
                           >
                             <Eye size={12} />
                             View More
@@ -282,7 +282,7 @@ export default function ResolvedTicketsPage() {
                               return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
                             })()}
                           </span>
-                          <div className="flex items-center gap-1.5 text-xs font-black text-emerald-600">
+                          <div className="flex items-center gap-1.5 text-xs font-black text-ember">
                             {format(new Date(ticket.resolved_at || ticket.closed_at || ticket.updated_at), "MMM dd, yyyy · hh:mm a")}
                           </div>
                         </div>
@@ -316,7 +316,7 @@ export default function ResolvedTicketsPage() {
                       key={p}
                       onClick={() => setCurrentPage(p)}
                       className={`h-9 w-9 rounded-lg text-xs font-black transition-all ${currentPage === p
-                          ? "bg-emerald-700 hover:bg-emerald-800 text-white"
+                          ? "bg-ember text-white"
                           : "bg-white border border-slate-200 text-slate-600 hover:border-indigo-300"
                         }`}
                     >
@@ -348,13 +348,13 @@ export default function ResolvedTicketsPage() {
             <div className="p-8 sm:p-10">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                  <div className="h-14 w-14 rounded-2xl bg-[#F5821F]/10 flex items-center justify-center text-ember">
                     <ShieldCheck size={28} />
                   </div>
                   <div>
                     <h2 className="text-xl font-black text-slate-900 tracking-tight">Root Cause Analysis</h2>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] font-black bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded uppercase tracking-widest border border-emerald-100">Verified</span>
+                      <span className="text-[10px] font-black bg-[#F5821F]/10 text-ember px-2 py-0.5 rounded uppercase tracking-widest border border-ember/20">Verified</span>
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Case #{selectedRca.ticket_no}</span>
                     </div>
                   </div>
@@ -496,7 +496,7 @@ export default function ResolvedTicketsPage() {
                 </button>
                 <button
                   onClick={handleDownloadCSV}
-                  className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-black hover:bg-emerald-800 transition-all shadow flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-lg bg-ember-gradient text-white text-sm font-black hover:opacity-90 transition-all shadow flex items-center gap-2"
                 >
                   <Download size={16} />
                   Download CSV

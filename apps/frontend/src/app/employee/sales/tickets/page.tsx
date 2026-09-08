@@ -23,7 +23,7 @@ interface Ticket {
 }
 
 const statusColors: Record<string, string> = {
-  OPEN: "bg-emerald-50 text-emerald-600",
+  OPEN: "bg-[#F5821F]/10 text-ember",
   IN_PROGRESS: "bg-indigo-50 text-[#2a14b4]",
   ON_HOLD: "bg-amber-50 text-amber-600",
   ESCALATED: "bg-red-50 text-red-600",
@@ -158,7 +158,7 @@ export default function SalesTicketsPage() {
                             setStatusFilter(status);
                             setIsStatusDropdownOpen(false);
                           }}
-                          className={`block w-full text-left px-4 py-2 text-xs font-bold transition-colors ${statusFilter === status ? "bg-slate-50 text-emerald-600" : "text-slate-600 hover:bg-emerald-50 hover:text-slate-900"}`}
+                          className={`block w-full text-left px-4 py-2 text-xs font-bold transition-colors ${statusFilter === status ? "bg-[#F5821F]/10 text-ember" : "text-slate-600 hover:bg-[#F5821F]/5 hover:text-slate-900"}`}
                         >
                           {status === "ALL" ? "All Statuses" : status.replace("_", " ")}
                         </button>

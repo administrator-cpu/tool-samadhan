@@ -161,7 +161,7 @@ export default function CustomersPage() {
                   setAppliedSearchTerm(searchTerm);
                 }
               }}
-              className="h-12 w-full sm:w-64 rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-900 focus:border-emerald-500 focus:outline-hidden focus:ring-4 focus:ring-emerald-500/10 transition-all"
+              className="h-12 w-full sm:w-64 rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-900 focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/20 transition-all"
             />
             {appliedSearchTerm && (
               <button
@@ -178,7 +178,7 @@ export default function CustomersPage() {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex h-12 items-center justify-center rounded-lg bg-emerald-700 px-8 text-sm font-bold tracking-wide text-white shadow transition-all hover:-translate-y-0.5 hover:bg-emerald-800 shrink-0"
+            className="flex h-12 items-center justify-center rounded-lg bg-ember-gradient px-8 text-sm font-bold tracking-wide text-white shadow transition-all hover:-translate-y-0.5 hover:opacity-90 shrink-0"
           >
             Add Customer
           </button>
@@ -188,7 +188,7 @@ export default function CustomersPage() {
       <div className="relative overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
         {loading ? (
           <div className="flex h-64 items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-emerald-700"></div>
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-ember"></div>
           </div>
         ) : customers.length === 0 ? (
           <div className="flex h-64 flex-col items-center justify-center gap-4 text-slate-500">
@@ -217,7 +217,7 @@ export default function CustomersPage() {
                   <tr key={customer.customer_row_id} className="group transition-colors hover:bg-slate-50">
                     <td className="px-4 py-4 max-w-125">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold overflow-hidden relative">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F5821F]/10 text-ember font-bold overflow-hidden relative">
                           {customer.profile_image ? (
                             <Image src={customer.profile_image} alt={customer.name} fill className="object-cover" />
                           ) : (
@@ -273,7 +273,7 @@ export default function CustomersPage() {
                         </button>
                         <button 
                           onClick={() => { setCustomerToEdit(customer); setIsEditModalOpen(true); }}
-                          className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-emerald-600 transition-all hover:bg-emerald-50 rounded-lg active:scale-95"
+                          className="pt-1.5 pb-0 px-2 text-slate-400 hover:text-ember transition-all hover:bg-[#F5821F]/10 rounded-lg active:scale-95"
                           title="Edit Customer"
                         >
                           <span className="material-symbols-outlined">edit</span>

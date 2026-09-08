@@ -24,7 +24,7 @@ interface Ticket {
 }
 
 const statusColors: Record<string, string> = {
-  OPEN: "bg-emerald-50 text-emerald-600",
+  OPEN: "bg-[#F5821F]/10 text-ember",
   IN_PROGRESS: "bg-indigo-50 text-[#2a14b4]",
   ESCALATED: "bg-red-50 text-red-600",
   RESOLVED: "bg-slate-100 text-slate-600",
@@ -144,7 +144,7 @@ export default function AgentTicketsPage() {
               <div className="relative">
                 <button
                   onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${statusFilter !== "ALL" ? "bg-emerald-700 text-white shadow-lg" : "text-slate-500 hover:bg-slate-50"}`}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${statusFilter !== "ALL" ? "bg-ember text-white shadow-lg" : "text-slate-500 hover:bg-slate-50"}`}
                 >
                   <Filter size={14} />
                   {statusFilter === "ALL" ? "Status" : statusFilter.replace("_", " ")}
@@ -179,7 +179,7 @@ export default function AgentTicketsPage() {
                   if (sortField === "date") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
                   else { setSortField("date"); setSortOrder("desc"); }
                 }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-emerald-700 text-white shadow-lg shadow-indigo-200" : "text-slate-500 hover:bg-slate-50"}`}
+                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-ember text-white shadow-lg shadow-ember/20" : "text-slate-500 hover:bg-slate-50"}`}
               >
                 <Calendar size={14} />
                 Date
@@ -220,7 +220,7 @@ export default function AgentTicketsPage() {
                 <tbody className="divide-y divide-slate-50">
                   {filteredAndSortedTickets.map((ticket) => (
                     <tr key={ticket.id} className="group transition-all hover:bg-slate-50/80">
-                      <td className="px-8 py-6 font-bold text-sm text-emerald-700">
+                      <td className="px-8 py-6 font-bold text-sm text-ember">
                         {ticket.ticket_no}
                       </td>
                       <td className="px-8 py-6 text-xs font-bold text-slate-600">
