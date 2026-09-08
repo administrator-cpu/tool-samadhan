@@ -36,13 +36,13 @@ export default function HomeClient() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased selection:bg-[#D9430F] selection:text-white">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/60 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 bg-white/10 backdrop-blur-md">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="group flex flex-row justify-center cursor-pointer items-center gap-3">
-            <div className="h-8 w-8 text-ember transition-transform group-hover:scale-105">
+            <div className="h-8 w-8 mb-2 text-ember transition-transform group-hover:scale-105">
               <Image src={SamadhanLogo} alt="Samadhan Logo" width={60} height={60}/>
             </div>
-            <span className="text-2xl font-bold tracking-tight">Samadhan</span>
+            <span className="text-2xl font-bold tracking-tight text-ember">Samadhan</span>
           </div>
 
           <Link
