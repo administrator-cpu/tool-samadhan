@@ -23,7 +23,7 @@ interface Ticket {
 }
 
 const statusColors: Record<string, string> = {
-  OPEN: "bg-emerald-50 text-emerald-600",
+  OPEN: "bg-[#F5821F]/10 text-ember",
   IN_PROGRESS: "bg-indigo-50 text-[#2a14b4]",
   ON_HOLD: "bg-amber-50 text-amber-600",
   ESCALATED: "bg-red-50 text-red-600",
@@ -137,7 +137,7 @@ export default function SalesTicketsPage() {
               <div className="relative">
                 <button
                   onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${statusFilter !== "ALL" ? "bg-emerald-600 text-white shadow-lg " : "text-slate-500 hover:bg-slate-50"}`}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${statusFilter !== "ALL" ? "bg-ember-gradient text-white shadow-lg border-none" : "text-slate-500 hover:bg-slate-50"}`}
                 >
                   <Filter size={14} />
                   {statusFilter === "ALL" ? "Status" : statusFilter.replace("_", " ")}
@@ -158,7 +158,7 @@ export default function SalesTicketsPage() {
                             setStatusFilter(status);
                             setIsStatusDropdownOpen(false);
                           }}
-                          className={`block w-full text-left px-4 py-2 text-xs font-bold transition-colors ${statusFilter === status ? "bg-slate-50 text-emerald-600" : "text-slate-600 hover:bg-emerald-50 hover:text-slate-900"}`}
+                          className={`block w-full text-left px-4 py-2 text-xs font-bold transition-colors ${statusFilter === status ? "bg-[#F5821F]/10 text-ember" : "text-slate-600 hover:bg-[#F5821F]/5 hover:text-slate-900"}`}
                         >
                           {status === "ALL" ? "All Statuses" : status.replace("_", " ")}
                         </button>
@@ -173,7 +173,7 @@ export default function SalesTicketsPage() {
                   if (sortField === "date") setSortOrder(sortOrder === "asc" ? "desc" : "asc");
                   else { setSortField("date"); setSortOrder("desc"); }
                 }}
-                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-emerald-600 text-white shadow-lg " : "text-slate-500 hover:bg-slate-50"}`}
+                className={`flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold transition-all ${sortField === "date" ? "bg-ember-gradient text-white shadow-lg border-none" : "text-slate-500 hover:bg-slate-50"}`}
               >
                 <Calendar size={14} />
                 Date
@@ -230,7 +230,7 @@ export default function SalesTicketsPage() {
                 <tbody className="divide-y divide-slate-50">
                   {filteredAndSortedTickets.map((ticket) => (
                     <tr key={ticket.id} className="group transition-all hover:bg-slate-50/80">
-                      <td className="px-8 py-6 font-bold text-sm text-emerald-700">
+                      <td className="px-8 py-6 font-bold text-sm text-ember">
                         {ticket.ticket_no}
                       </td>
                       <td className="px-8 py-6 text-xs font-bold text-slate-600">
@@ -256,7 +256,7 @@ export default function SalesTicketsPage() {
                       <td className="px-8 py-6 text-right">
                         <Link
                           href={`/employee/sales/tickets/${ticket.id}`}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-indigo-600 hover:text-white hover:border-indigo-600 hover:-translate-y-0.5 active:scale-95"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-[#F5821F]/10 hover:text-ember hover:border-ember hover:-translate-y-0.5 active:scale-95"
                         >
                           <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                         </Link>

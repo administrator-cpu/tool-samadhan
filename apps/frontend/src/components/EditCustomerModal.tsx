@@ -76,10 +76,10 @@ export default function EditCustomerModal({ isOpen, onClose, onSuccess, customer
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-300">
-        <div className="bg-emerald-700 px-6 py-4 flex items-center justify-between">
+        <div className="bg-ember-gradient px-6 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white font-heading">Edit Customer</h2>
-            <p className="text-emerald-200 text-xs font-medium mt-0.5 uppercase tracking-widest">{customer.customer_id}</p>
+            <p className="text-white/80 text-xs font-medium mt-0.5 uppercase tracking-widest">{customer.customer_id}</p>
           </div>
           <button onClick={onClose} className="text-white/80 hover:text-white">
             <span className="material-symbols-outlined">close</span>
@@ -96,7 +96,7 @@ export default function EditCustomerModal({ isOpen, onClose, onSuccess, customer
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Ajay Negi"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
           </div>
 
@@ -109,7 +109,7 @@ export default function EditCustomerModal({ isOpen, onClose, onSuccess, customer
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. ajaynegi@example.com"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
           </div>
 
@@ -122,7 +122,7 @@ export default function EditCustomerModal({ isOpen, onClose, onSuccess, customer
               onChange={(e) => setPhone(e.target.value)}
               placeholder="e.g. 9876543210"
               maxLength={10}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
           </div>
 
@@ -130,7 +130,7 @@ export default function EditCustomerModal({ isOpen, onClose, onSuccess, customer
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-emerald-700 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-700/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 disabled:opacity-50 disabled:translate-y-0"
+              className="w-full rounded-lg bg-ember-gradient py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5 hover:bg-ember-gradient-hover disabled:opacity-50 disabled:translate-y-0"
             >
               {loading ? "Saving Changes..." : "Save Changes"}
             </button>

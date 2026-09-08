@@ -17,7 +17,7 @@ export default function LanguageToggle() {
         onClick={() => setTargetLang("en")}
         className={`px-4 py-1.5 rounded-md text-xs font-black uppercase tracking-widest transition-all ${
           targetLang === "en"
-            ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+            ? "bg-ember-gradient text-white shadow-md shadow-[#F5821F]/20"
             : "text-slate-500 hover:bg-slate-200"
         }`}
       >
@@ -27,7 +27,7 @@ export default function LanguageToggle() {
         onClick={() => setTargetLang("hi")}
         className={`px-4 py-1.5 rounded-md text-xs font-black uppercase tracking-widest transition-all ${
           targetLang === "hi"
-            ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+            ? "bg-ember-gradient text-white shadow-md shadow-[#F5821F]/20"
             : "text-slate-500 hover:bg-slate-200"
         }`}
       >

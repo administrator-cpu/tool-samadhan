@@ -217,19 +217,19 @@ export default function SalesCreateTicketPage() {
                   onChange={handleChange}
                   placeholder="customer@example.com"
                   required
-                  className="h-[56px] flex-1 rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+                  className="h-[56px] flex-1 rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/10 font-medium"
                 />
                 <button
                   type="button"
                   onClick={handleVerifyEmail}
                   disabled={fetchingConnections || !formData.customerEmail.trim()}
-                  className="h-[56px] px-6 rounded-lg bg-emerald-700 text-white font-bold shadow-md hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                  className="h-[56px] px-6 rounded-lg bg-ember-gradient text-white font-bold shadow-md hover:bg-ember-gradient-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
                 >
                   {fetchingConnections ? "Verifying..." : "Verify"}
                 </button>
               </div>
               {emailVerified && customerName && (
-                <p className="text-sm text-emerald-600 font-medium">
+                <p className="text-sm text-ember font-medium">
                   ✓ Verified Customer: {customerName}
                 </p>
               )}
@@ -252,7 +252,7 @@ export default function SalesCreateTicketPage() {
                 value={formData.alternateEmail}
                 onChange={handleChange}
                 placeholder="secondary@example.com"
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/10 font-medium"
               />
             </div>
 
@@ -268,7 +268,7 @@ export default function SalesCreateTicketPage() {
                 onChange={handleChange}
                 disabled={!emailVerified || connections.length === 0}
                 required
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 transition-shadow cursor-pointer focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 text-base text-slate-900 transition-shadow cursor-pointer focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/10 font-medium disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
               >
                 {!emailVerified ? (
                   <option value="">Verify customer email first</option>
@@ -297,7 +297,7 @@ export default function SalesCreateTicketPage() {
                 name="categoryId"
                 value={formData.categoryId}
                 onChange={handleChange}
-                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 transition-shadow cursor-pointer focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+                className="h-[56px] w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 transition-shadow cursor-pointer focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/10 font-medium"
               >
                 <option value="" disabled>
                   Select an issue type
@@ -320,8 +320,8 @@ export default function SalesCreateTicketPage() {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe the problem details..."
-                className="h-40 w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-indigo-600 focus:outline-hidden focus:ring-4 focus:ring-indigo-600/5 font-medium"
+                placeholder="Tell us exactly what's happening..."
+                className="h-40 w-full resize-none rounded-lg border border-slate-200 bg-white p-4 text-base text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-ember focus:outline-hidden focus:ring-4 focus:ring-ember/10 font-medium"
               />
             </div>
 
@@ -379,7 +379,7 @@ export default function SalesCreateTicketPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 text-white text-[15px] font-bold transition-all hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-ember-gradient text-white text-[15px] font-bold transition-all hover:bg-ember-gradient-hover disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-500/20"
               >
                 {loading ? (
                   <span>Submitting...</span>

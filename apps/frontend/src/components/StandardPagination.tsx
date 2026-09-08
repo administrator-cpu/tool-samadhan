@@ -53,7 +53,7 @@ export default function StandardPagination({
               disabled={loading}
               className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0 disabled:opacity-50 ${
               currentPage === p
-                ? 'z-10 bg-emerald-600 hover:bg-emerald-800 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                ? 'z-10 bg-ember-gradient hover:bg-ember-gradient-hover text-white border-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
                 : 'text-slate-900 ring-1 ring-inset ring-slate-300 hover:bg-emerald-50'
             }`}
             >

@@ -77,7 +77,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-300">
-        <div className="bg-emerald-700 px-6 py-4 flex items-center justify-between">
+        <div className="bg-ember-gradient px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white font-heading">Add New Staff</h2>
           <button onClick={onClose} className="text-white/80 hover:text-white">
             <span className="material-symbols-outlined">close</span>
@@ -94,7 +94,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Ajay Negi"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
           </div>
 
@@ -107,7 +107,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. ajaynegi@example.com"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
           </div>
 
@@ -116,7 +116,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as "SUPPORT_AGENT" | "SALES")}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden text-sm font-medium"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden text-sm font-medium"
             >
               <option value="SUPPORT_AGENT">Support Agent</option>
               <option value="SALES">Sales Person</option>
@@ -139,7 +139,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
                           setSelectedCategories(selectedCategories.filter(name => name !== cat.name));
                         }
                       }}
-                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      className="h-4 w-4 rounded border-slate-300 text-ember focus:ring-ember"
                     />
                     <span className="text-sm font-medium text-slate-600">{cat.name}</span>
                   </label>
@@ -152,7 +152,7 @@ export default function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffMo
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-emerald-700 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-700/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 disabled:opacity-50 disabled:translate-y-0"
+              className="w-full rounded-lg bg-ember-gradient py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5 hover:bg-ember-gradient-hover disabled:opacity-50 disabled:translate-y-0"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>

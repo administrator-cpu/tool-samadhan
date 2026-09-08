@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 /*---break---*/
+@theme {
+  --color-ember: #D9430F;
+}
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -262,7 +265,7 @@ button:disabled {
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
    }
   body {
     @apply bg-background text-foreground;
@@ -271,3 +274,12 @@ button:disabled {
     @apply font-sans;
    }
 }
+
+@utility bg-ember-gradient {
+  background: linear-gradient(to right, #F5821F, #D9430F);
+  color: white;
+}
+@utility bg-ember-gradient-hover {
+  background: linear-gradient(to right, #e8771a, #cc3e0b);
+  color: white;
+}

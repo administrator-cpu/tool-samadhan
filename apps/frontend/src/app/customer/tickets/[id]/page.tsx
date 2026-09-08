@@ -74,9 +74,9 @@ const getStatusBadgeConfig = (status: string) => {
       };
     case "RESOLVED":
       return {
-        dotClass: "bg-emerald-500",
-        pingClass: "bg-emerald-400",
-        textClass: "text-emerald-600",
+        dotClass: "bg-ember",
+        pingClass: "bg-ember",
+        textClass: "text-ember",
       };
     case "CLOSED":
     default:
@@ -320,7 +320,7 @@ export default function TicketDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf9fa]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-700"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ember"></div>
       </div>
     );
   }
@@ -329,7 +329,7 @@ export default function TicketDetailPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#faf9fa] p-6 text-center">
         <h1 className="text-2xl font-bold text-slate-800 mb-4">{error || "Ticket not found"}</h1>
-        <Link href="/customer/tickets" className="text-emerald-700 font-medium hover:underline">
+        <Link href="/customer/tickets" className="text-ember font-medium hover:underline">
           Back to My Tickets
         </Link>
       </div>
@@ -370,7 +370,7 @@ export default function TicketDetailPage() {
               return (
                 <button
                   onClick={() => setIsReopenModalOpen(true)}
-                  className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-emerald-100"
+                  className="flex items-center gap-2 px-3 py-2 bg-[#F5821F]/10 text-ember border border-ember/20 rounded-xl text-sm font-semibold active:scale-95 transition-transform hover:bg-[#F5821F]/20"
                 >
                   <span className="material-symbols-outlined text-sm">restart_alt</span>
                   Reopen Ticket
@@ -397,17 +397,17 @@ export default function TicketDetailPage() {
           />
 
           {ticket.allow_customer_reply && !["RESOLVED", "CLOSED"].includes(ticket.status) && (
-            <div className={`mt-4 mb-6 rounded-lg border bg-white p-2 shadow-xl transition-all shrink-0 ${sending ? "border-slate-200 opacity-80" : "border-slate-200 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/5"}`}>
+            <div className={`mt-4 mb-6 rounded-lg border bg-white p-2 shadow-xl transition-all shrink-0 ${sending ? "border-slate-200 opacity-80" : "border-slate-200 focus-within:border-ember focus-within:ring-4 focus-within:ring-ember/10"}`}>
               <div className="px-4 pt-3 flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-emerald-600 text-[18px]">chat</span>
+                  <span className="material-symbols-outlined text-ember text-[18px]">chat</span>
                   <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Send a Reply</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={sending || selectedFiles.length >= 10}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-ember hover:bg-[#F5821F]/10 rounded-lg transition-colors disabled:opacity-50"
                   title="Attach images (Max 10)"
                 >
                   <span className="material-symbols-outlined text-[18px]">attach_file</span>
@@ -469,7 +469,7 @@ export default function TicketDetailPage() {
                 <button
                   onClick={handleSendReply}
                   disabled={sending || (!replyMessage.trim() && selectedFiles.length === 0)}
-                  className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-black text-white hover:bg-emerald-700 transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-lg bg-ember-gradient px-6 py-2.5 text-sm font-black text-white hover:opacity-90 transition-all disabled:opacity-50"
                 >
                   {sending ? (
                     <>
@@ -488,20 +488,20 @@ export default function TicketDetailPage() {
           )}
 
           {["RESOLVED", "CLOSED"].includes(ticket.status) && ticket.rca && (
-            <div className="mt-0 mb-6 rounded-lg border border-emerald-100 bg-emerald-50/30 p-6 shadow-xs backdrop-blur-xs shrink-0">
+            <div className="mt-0 mb-6 rounded-lg border border-ember/20 bg-[#F5821F]/5 p-6 shadow-xs backdrop-blur-xs shrink-0">
               <div className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-2xl font-bold text-emerald-500">verified</span>
+                <span className="material-symbols-outlined text-2xl font-bold text-ember">verified</span>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-black uppercase tracking-wider text-emerald-900">Root Cause Analysis (RCA)</h3>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-ember">Root Cause Analysis (RCA)</h3>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#F5821F]/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-ember">
                       OFFICIAL REPORT
                     </span>
                   </div>
                   <p className="mt-1 text-[10px] font-bold text-slate-400 leading-snug uppercase tracking-widest">
                     Technical Resolution Summary
                   </p>
-                  <div className="mt-3 rounded-lg bg-white/80 border border-emerald-50 px-4 py-2 shadow-2xs">
+                  <div className="mt-3 rounded-lg bg-white/80 border border-ember/10 px-4 py-2 shadow-2xs">
                     <p className="whitespace-pre-line text-sm font-medium text-slate-800 leading-relaxed">
                       {ticket.rca}
                     </p>
@@ -520,7 +520,7 @@ export default function TicketDetailPage() {
                       </div>
                     )}
                     {ticket.resolved_at && (
-                      <span className="flex justify-end text-[11px] font-bold text-emerald-700/80">
+                      <span className="flex justify-end text-[11px] font-bold text-ember/80">
                         Resolved on {format(new Date(ticket.resolved_at), "MMM d, yyyy, h:mm a")}
                       </span>
                     )}
@@ -603,8 +603,8 @@ export default function TicketDetailPage() {
                 <div className="relative flex flex-col items-center">
                   {/* {["RESOLVED", "CLOSED"].includes(ticket.status) ? (
                     <div className="relative flex h-4 w-4 items-center justify-center">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-40" />
-                      <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ember opacity-40" />
+                      <span className="relative inline-flex h-3 w-3 rounded-full bg-ember shadow-[0_0_10px_rgba(245,130,31,0.8)]" />
                     </div>
                   ) : (
                     <span className="h-4 w-4 rounded-full border-4 border-white shadow-sm bg-slate-300" />
@@ -621,7 +621,7 @@ export default function TicketDetailPage() {
               <span className={ticket.status === "ESCALATED" ? "text-red-500 font-bold" : ticket.status === "IN_PROGRESS" ? "text-amber-500 font-bold" : "text-slate-400"}>
                 Investigating
               </span>
-              <span className={["RESOLVED", "CLOSED"].includes(ticket.status) ? "text-emerald-500 font-bold" : "text-slate-400"}>
+              <span className={["RESOLVED", "CLOSED"].includes(ticket.status) ? "text-ember font-bold" : "text-slate-400"}>
                 Resolved
               </span>
             </div>
@@ -735,7 +735,7 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
           </div>
           <button
             onClick={() => setIsEditing(true)}
-            className="flex items-center gap-1 text-xs font-bold text-[#4b8264] hover:text-emerald-700 transition-colors"
+            className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-ember transition-colors"
           >
             <span className="material-symbols-outlined text-[16px]">edit</span>
             Edit Feedback
@@ -820,7 +820,7 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
           onChange={(e) => setFeedback(e.target.value)}
           placeholder="Share your thoughts on how we handled your issue..."
           rows={3}
-          className="w-full mt-2 rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-500 focus:bg-white outline-hidden transition-all placeholder:text-slate-400 font-medium"
+          className="w-full mt-2 rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 focus:border-ember focus:bg-white outline-hidden transition-all placeholder:text-slate-400 font-medium"
         />
       </div>
 
@@ -838,7 +838,7 @@ function RatingSection({ ticket, onUpdateRating }: { ticket: Ticket; onUpdateRat
           type="button"
           onClick={handleSubmit}
           disabled={loading || rating === 0}
-          className="px-5 py-2.5 bg-[#4b8264] hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-bold shadow-sm transition-all"
+          className="px-5 py-2.5 bg-ember-gradient hover:opacity-90 disabled:opacity-50 text-white rounded-lg text-sm font-bold shadow-sm transition-all"
         >
           {loading ? "Submitting..." : ticket.rating ? "Update Feedback" : "Submit Feedback"}
         </button>

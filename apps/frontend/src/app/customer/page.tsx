@@ -57,7 +57,7 @@ export default function Home() {
       
       {/* Status Card */}
       <section className="relative overflow-hidden rounded-2xl border border-slate-100/50 bg-white px-8 py-8 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] backdrop-blur-sm">
-        <div className="absolute -right-10 -top-20 h-64 w-90 rounded-full bg-emerald-500/10 blur-3xl transition-colors duration-700" />
+        <div className="absolute -right-10 -top-20 h-64 w-90 rounded-full bg-[#F5821F]/10 blur-3xl transition-colors duration-700" />
 
         <div className="relative z-10 flex flex-col gap-2">
           <div className="flex items-center gap-4">
@@ -68,8 +68,8 @@ export default function Home() {
               Samadhan - Delivering Reliable Support Service
             </h2>
             <div className="relative flex h-4 w-4 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-40" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ember opacity-40" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-ember shadow-[0_0_10px_rgba(245,130,31,0.8)]" />
             </div>
           </div>
           
@@ -88,7 +88,7 @@ export default function Home() {
           >
             Network & Support Quality Highlights
           </h3>
-          <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-3 py-1 rounded-full">
+          <span className="text-xs font-semibold text-ember bg-[#F5821F]/10 border border-ember/20 px-3 py-1 rounded-full">
             Live SLA Performance
           </span>
         </div> */}
@@ -116,7 +116,7 @@ export default function Home() {
       {/*<section className="flex flex-wrap items-center gap-4">
         <Link
           href="/customer/raise-new-ticket"
-          className="flex h-12 min-w-[140px] items-center justify-center rounded-full  bg-emerald-700 px-8 text-sm font-semibold tracking-wide text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm"
+          className="flex h-12 min-w-[140px] items-center justify-center rounded-full  bg-ember-gradient px-8 text-sm font-semibold tracking-wide text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm"
           style={{ fontFamily: "'Outfit', sans-serif" }}
         >
           Report Issue
@@ -149,7 +149,7 @@ export default function Home() {
         <div className="flex flex-col gap-4">
           {loading ? (
             <div className="flex justify-center p-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-700"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ember"></div>
             </div>
           ) : tickets.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-slate-500 bg-white">
@@ -163,7 +163,7 @@ export default function Home() {
                 className="group flex cursor-pointer items-center gap-4 rounded-[1rem] border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)]"
               >
                 <div className="flex flex-1 items-center gap-5">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-slate-500 transition-colors group-hover:bg-emerald-200/70 group-hover:text-emerald-700">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-slate-500 transition-colors group-hover:bg-[#F5821F]/10 group-hover:text-ember">
                     <span className="material-symbols-outlined">
                       confirmation_number
                     </span>
@@ -200,9 +200,9 @@ export default function Home() {
 
       {/* Support Guidelines Link */}
       <section className="mt-4 border-t border-slate-100 pt-8">
-        <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-slate-50 to-emerald-50/50 p-6 border border-slate-200/70">
+        <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-slate-50 to-[#F5821F]/5 p-6 border border-slate-200/70">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm text-emerald-600">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm text-ember">
               <span className="material-symbols-outlined">policy</span>
             </div>
             <div>
@@ -212,7 +212,7 @@ export default function Home() {
           </div>
           <Link 
             href="/customer/support-guidelines"
-            className="flex items-center gap-2 rounded-full bg-white border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-emerald-600 hover:border-emerald-200"
+            className="flex items-center gap-2 rounded-full bg-white border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-[#F5821F]/5 hover:text-ember hover:border-ember/30"
           >
             View Guidelines
             <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
