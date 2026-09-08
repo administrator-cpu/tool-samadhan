@@ -147,7 +147,7 @@ export default function StaffPage() {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex h-12 items-center justify-center rounded-lg bg-emerald-700 px-8 text-sm font-bold tracking-wide text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-emerald-800"
+          className="flex h-12 items-center justify-center rounded-lg bg-ember-gradient px-8 text-sm font-bold tracking-wide text-white shadow-md transition-all hover:-translate-y-0.5 hover:opacity-90"
         >
           Add Staff
         </button>
@@ -174,7 +174,7 @@ export default function StaffPage() {
       <div className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
         {loading ? (
           <div className="flex h-64 items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-emerald-700"></div>
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-ember"></div>
           </div>
         ) : employees.length === 0 ? (
           <div className="flex h-64 flex-col items-center justify-center gap-4 text-slate-500">
@@ -219,7 +219,7 @@ export default function StaffPage() {
                     <td className="px-2 py-4">
                       <div className="flex flex-wrap gap-1 max-w-sm">
                         {emp.categories.map((cat) => (
-                          <span key={cat.id} className="inline-flex rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700 uppercase border border-emerald-100 mb-1 mr-1">
+                          <span key={cat.id} className="inline-flex rounded-md bg-[#F5821F]/10 px-2 py-1 text-[10px] font-bold text-ember uppercase border border-ember/20 mb-1 mr-1">
                             {cat.name}
                           </span>
                         ))}

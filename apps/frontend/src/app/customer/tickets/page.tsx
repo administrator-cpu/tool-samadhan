@@ -20,7 +20,7 @@ interface Ticket {
 const getStatusClassName = (status: string) => {
   switch (status) {
     case "OPEN":
-      return "bg-emerald-50 text-emerald-600";
+      return "bg-[#F5821F]/10 text-ember";
     case "IN_PROGRESS":
       return "bg-indigo-50 text-[#2a14b4]";
     case "ESCALATED":
@@ -100,13 +100,7 @@ export default function TicketsPage() {
 
 
 
-          {/* <Link
-            href="/customer/raise-new-ticket"
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 font-bold text-white shadow-lg shadow-emerald-700/20 transition-all hover:opacity-90 active:scale-95"
-          >
-            <span className="material-symbols-outlined">add_circle</span>
-            Raise New Ticket
-          </Link> */}
+
 
           <Link
             href="/customer/raise-new-ticket"
@@ -134,7 +128,7 @@ export default function TicketsPage() {
           </div>
 
           <div className="flex flex-row gap-4 items-center rounded-2xl p-6 bg-white border border-slate-100 shadow-sm shadow-indigo-500/5">
-            <span className="material-symbols-outlined text-4xl text-emerald-500">
+            <span className="material-symbols-outlined text-4xl text-ember">
               task_alt
             </span>
             <div>
@@ -153,7 +147,7 @@ export default function TicketsPage() {
           <div className="overflow-x-auto">
             {loading ? (
               <div className="flex justify-center items-center p-20">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-700"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ember"></div>
               </div>
             ) : error ? (
               <div className="p-10 text-center text-red-500">{error}</div>

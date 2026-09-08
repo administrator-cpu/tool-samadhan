@@ -55,7 +55,7 @@ export default function CustomerConnectionsModal({ isOpen, onClose, customerRowI
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden rounded-xl bg-white shadow-2xl animate-in fade-in zoom-in duration-300">
-        <div className="bg-emerald-600 px-6 py-4 flex items-center justify-between shrink-0">
+        <div className="bg-ember-gradient px-6 py-4 flex items-center justify-between shrink-0">
           <h2 className="text-xl font-bold text-white font-heading">
             Connections: {customerName || "Customer"}
           </h2>

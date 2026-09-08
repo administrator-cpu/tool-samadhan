@@ -66,7 +66,7 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }: AddCust
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl animate-in fade-in zoom-in duration-300">
-        <div className="bg-emerald-700 px-6 py-4 flex items-center justify-between">
+        <div className="bg-ember-gradient px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white font-heading">Add New Customer</h2>
           <button onClick={onClose} className="text-white/80 hover:text-white">
             <span className="material-symbols-outlined">close</span>
@@ -82,7 +82,7 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }: AddCust
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Ajay Negi"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
           </div>
 
@@ -94,7 +94,7 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }: AddCust
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. ajay@example.com"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
           </div>
 
@@ -109,7 +109,7 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }: AddCust
               }}
               placeholder="e.g. 1234567890"
               maxLength={10}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
           </div>
 
@@ -131,7 +131,7 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }: AddCust
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Temporary Password"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 font-mono tracking-widest focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 font-mono tracking-widest focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
             <p className="text-xs text-slate-500 mt-1">
               An email will be sent to the customer with these login details. They will be forced to change this password on their first login.

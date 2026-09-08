@@ -89,10 +89,10 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-300">
-        <div className="bg-indigo-700 px-6 py-4 flex items-center justify-between">
+        <div className="bg-ember-gradient px-6 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white font-heading">Edit Staff</h2>
-            <p className="text-indigo-200 text-xs font-medium mt-0.5">{employee.employee_id} · {employee.role.replace("_", " ")}</p>
+            <p className="text-white/80 text-xs font-medium mt-0.5">{employee.employee_id} · {employee.role.replace("_", " ")}</p>
           </div>
           <button onClick={onClose} className="text-white/80 hover:text-white">
             <span className="material-symbols-outlined">close</span>
@@ -109,7 +109,7 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Ajay Negi"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
           </div>
 
@@ -122,7 +122,7 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. ajaynegi@example.com"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
           </div>
 
@@ -135,7 +135,7 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
               onChange={(e) => setPhone(e.target.value)}
               placeholder="e.g. 9876543210"
               maxLength={10}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-hidden"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-ember focus:ring-1 focus:ring-ember/20 transition-all outline-hidden"
             />
             {/* <p className="text-xs text-slate-400">Optional · 10 digits only</p> */}
           </div>
@@ -156,7 +156,7 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
                           setSelectedCategories(selectedCategories.filter(n => n !== cat.name));
                         }
                       }}
-                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      className="h-4 w-4 rounded border-slate-300 text-ember focus:ring-ember/20"
                     />
                     <span className="text-sm font-medium text-slate-600">{cat.name}</span>
                   </label>
@@ -169,7 +169,7 @@ export default function EditStaffModal({ isOpen, onClose, onSuccess, employee }:
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-indigo-700 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-700/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-800 disabled:opacity-50 disabled:translate-y-0"
+              className="w-full rounded-lg bg-ember-gradient py-4 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:opacity-90 disabled:opacity-50 disabled:translate-y-0"
             >
               {loading ? "Saving Changes..." : "Save Changes"}
             </button>
