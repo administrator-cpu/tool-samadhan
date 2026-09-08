@@ -50,7 +50,7 @@ export default function AgentDashboard() {
     return (
       <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent"></div>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-ember border-t-transparent"></div>
           <p className="text-sm font-bold text-slate-500 animate-pulse">Calculating Performance Metrics...</p>
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function AgentDashboard() {
         <header className="mb-10 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-200">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ember text-white shadow-lg shadow-[#F5821F]/20">
                 <Target size={20} />
               </div>
               <div>
@@ -83,8 +83,8 @@ export default function AgentDashboard() {
           </div>
           {/*<div className="mt-4 flex items-center gap-2 rounded-xl bg-white px-4 py-2 shadow-sm border border-slate-100 md:mt-0">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ember opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-ember"></span>
             </span>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Live Mission Status</span>
           </div>*/}
@@ -113,8 +113,8 @@ export default function AgentDashboard() {
             label="Resolved Today" 
             value={summary.resolved_today} 
             sublabel="Last 24 hours"
-            color="text-emerald-600"
-            bg="bg-emerald-50"
+            color="text-ember"
+            bg="bg-[#F5821F]/10"
             highlight={Number(summary.resolved_today) > 0}
           />
           <StatCard 
@@ -165,7 +165,7 @@ export default function AgentDashboard() {
                       <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
                         ticket.status === 'OPEN' ? 'bg-amber-100 text-amber-700' :
                         ticket.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' :
-                        'bg-emerald-100 text-emerald-700'
+                        'bg-[#F5821F]/10 text-ember'
                       }`}>
                         {ticket.status.replace('_', ' ')}
                       </span>
@@ -206,17 +206,17 @@ export default function AgentDashboard() {
 
             <div className="rounded-[1rem] border border-slate-100 bg-white p-8 shadow-xl shadow-slate-200/30">
               <h3 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
-                <Target size={18} className="text-emerald-500" />
+                <Target size={18} className="text-ember" />
                 Daily Target
               </h3>
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Resolution Progress</span>
-                  <span className="text-sm font-black text-emerald-600">{Math.min(100, Math.round((Number(summary.resolved_today) / 10) * 100))}%</span>
+                  <span className="text-sm font-black text-ember">{Math.min(100, Math.round((Number(summary.resolved_today) / 10) * 100))}%</span>
                 </div>
                 <div className="h-4 w-full rounded-full bg-slate-50 border border-slate-100 overflow-hidden shadow-inner">
                   <div 
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-1000 shadow-sm"
+                    className="h-full bg-ember rounded-full transition-all duration-1000 shadow-sm"
                     style={{ width: `${Math.min(100, (Number(summary.resolved_today) / 10) * 100)}%` }}
                   ></div>
                 </div>
@@ -235,7 +235,7 @@ export default function AgentDashboard() {
 
 function StatCard({ icon, label, value, sublabel, color, bg, alert, highlight }: any) {
   return (
-    <div className={`group relative overflow-hidden rounded-[1rem] border ${alert ? 'border-red-200 shadow-red-100' : highlight ? 'border-emerald-200 shadow-emerald-100' : 'border-slate-100'} bg-white p-7 shadow-xl shadow-slate-200/40 transition-all hover:-translate-y-1 hover:shadow-2xl`}>
+    <div className={`group relative overflow-hidden rounded-[1rem] border ${alert ? 'border-red-200 shadow-red-100' : highlight ? 'border-ember/20 shadow-[#F5821F]/10' : 'border-slate-100'} bg-white p-7 shadow-xl shadow-slate-200/40 transition-all hover:-translate-y-1 hover:shadow-2xl`}>
       <div className="flex flex-col gap-4">
         <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${bg} ${color} transition-transform group-hover:scale-110`}>
           {icon}
@@ -245,7 +245,7 @@ function StatCard({ icon, label, value, sublabel, color, bg, alert, highlight }:
           <h2 className="text-4xl font-black text-slate-900 leading-tight">{value}</h2>
         </div>
         <div className="pt-2 border-t border-slate-50 mt-1">
-          <span className={`text-[10px] font-black uppercase tracking-widest ${alert ? 'text-red-500' : highlight ? 'text-emerald-500' : 'text-slate-400'}`}>{sublabel}</span>
+          <span className={`text-[10px] font-black uppercase tracking-widest ${alert ? 'text-red-500' : highlight ? 'text-ember' : 'text-slate-400'}`}>{sublabel}</span>
         </div>
       </div>
     </div>
