@@ -2,6 +2,7 @@ import { db } from '../config/database.js';
 import { sql } from 'drizzle-orm';
 import { tickets, customers, issueCategories } from '../database/drizzle/schema.js';
 import { env } from '../config/environment.js';
+import { inMemoryCache } from '../utils/cache.js';
 
 export function getTotalSecondsInMonth(year: number, month: number): number {
   // month: 1 = January, 12 = December
@@ -466,6 +467,104 @@ export class MetricService {
       mttrTrend,
       faultSeverity
     };
+  }
+
+  static async getAdminDristhiMetrics(timeWindow: '30d' | '6m' | 'all' = '6m') {
+    const cacheKey = `admin_dristhi_metrics_${timeWindow}`;
+    const cachedData = inMemoryCache.get<any>(cacheKey);
+    if (cachedData) {
+      return cachedData;
+    }
+
+    let timeFilter = sql``;
+    if (timeWindow === '30d') {
+      timeFilter = sql`WHERE t.created_at >= NOW() - INTERVAL '30 days'`;
+    } else if (timeWindow === '6m') {
+      timeFilter = sql`WHERE t.created_at >= NOW() - INTERVAL '6 months'`;
+    }
+
+    let andTimeFilter = sql``;
+    if (timeWindow === '30d') {
+      andTimeFilter = sql`AND t.created_at >= NOW() - INTERVAL '30 days'`;
+    } else if (timeWindow === '6m') {
+      andTimeFilter = sql`AND t.created_at >= NOW() - INTERVAL '6 months'`;
+    }
+
+    // 1. Top 10 Customers with Highest Number of Faults
+    const topFaultsCustomers = await db.execute(sql`
+      SELECT 
+        u.name as customer_name, 
+        c.id as customer_id, 
+        COUNT(t.id) as fault_count 
+      FROM tickets t 
+      JOIN customers c ON c.id = t.customer_id 
+      JOIN users u ON u.id = c.user_id 
+      ${timeFilter}
+      GROUP BY c.id, u.name 
+      ORDER BY fault_count DESC 
+      LIMIT 10
+    `);
+
+    // 2. Top 10 Customers with Highest % of Downtime
+    const topDowntimeCustomers = await db.execute(sql`
+      SELECT 
+        u.name as customer_name, 
+        c.id as customer_id, 
+        SUM(EXTRACT(EPOCH FROM (COALESCE(t.resolved_at, NOW()) - t.created_at))) / 3600.0 as total_downtime_hours,
+        COUNT(DISTINCT t.circuit_description) as active_links
+      FROM tickets t 
+      JOIN customers c ON c.id = t.customer_id 
+      JOIN users u ON u.id = c.user_id 
+      JOIN issue_categories ic ON t.primary_issue_category_id = ic.id
+      WHERE ic.name ILIKE '%link down%'
+      ${andTimeFilter}
+      GROUP BY c.id, u.name 
+      ORDER BY (SUM(EXTRACT(EPOCH FROM (COALESCE(t.resolved_at, NOW()) - t.created_at))) / 3600.0 / NULLIF(COUNT(DISTINCT t.circuit_description), 0)) DESC 
+      LIMIT 10
+    `);
+
+    // 3. Top 10 Links with Highest Repeat Faults
+    const topRepeatFaultLinks = await db.execute(sql`
+      SELECT 
+        t.circuit_description as link_id, 
+        COUNT(t.id) as fault_count 
+      FROM tickets t 
+      JOIN issue_categories ic ON t.primary_issue_category_id = ic.id
+      WHERE t.circuit_description IS NOT NULL 
+      AND (ic.name ILIKE '%link down%' OR ic.name ILIKE '%packet drops%' OR ic.name ILIKE '%latency%' OR ic.name ILIKE '%link fluctuating%')
+      ${andTimeFilter}
+      GROUP BY t.circuit_description 
+      HAVING COUNT(t.id) > 1 
+      ORDER BY fault_count DESC 
+      LIMIT 10
+    `);
+
+    // 4. Top 10 Links with Highest MTTR
+    const topMttrLinks = await db.execute(sql`
+      SELECT 
+        t.circuit_description as link_id, 
+        AVG(EXTRACT(EPOCH FROM (COALESCE(t.resolved_at, NOW()) - t.created_at))) / 3600.0 as mttr_hours 
+      FROM tickets t 
+      JOIN issue_categories ic ON t.primary_issue_category_id = ic.id
+      WHERE t.circuit_description IS NOT NULL 
+      AND ic.name ILIKE '%link down%'
+      ${andTimeFilter}
+      GROUP BY t.circuit_description 
+      ORDER BY mttr_hours DESC 
+      LIMIT 10
+    `);
+
+    const result = {
+      topFaultsCustomers: topFaultsCustomers.rows,
+      topDowntimeCustomers: topDowntimeCustomers.rows,
+      topRepeatFaultLinks: topRepeatFaultLinks.rows,
+      topMttrLinks: topMttrLinks.rows
+    };
+
+    // Store in cache for 5 hours (18000 seconds)
+    inMemoryCache.set(cacheKey, result, 18000);
+
+    return result;
   }
 }
 
