@@ -16,6 +16,7 @@ router.get('/', TicketController.getTickets);
 
 // Dashboard Stats
 router.get('/stats', requireRole([UserRole.ADMIN, UserRole.SALES]), TicketController.getAdminStats);
+router.get('/admin-dristhi', requireRole([UserRole.ADMIN]), TicketController.getAdminDristhi);
 router.get('/agent-stats', requireRole([UserRole.SUPPORT_AGENT]), TicketController.getAgentStats);
 router.get('/customer-metrics', requireRole([UserRole.USER]), TicketController.getCustomerMetrics);
 
