@@ -195,4 +195,14 @@ export class TicketController {
       next(error);
     }
   }
+
+  static async getAdminDristhi(req: Request, res: Response, next: NextFunction) {
+    try {
+      const timeWindow = req.query.timeWindow as '30d' | '6m' | 'all' || '6m';
+      const metrics = await MetricService.getAdminDristhiMetrics(timeWindow);
+      return sendResponse({ res, data: metrics });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
