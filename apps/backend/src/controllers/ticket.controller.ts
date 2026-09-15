@@ -198,8 +198,13 @@ export class TicketController {
 
   static async getAdminDristhi(req: Request, res: Response, next: NextFunction) {
     try {
-      const timeWindow = req.query.timeWindow as '30d' | '6m' | 'all' || '6m';
-      const metrics = await MetricService.getAdminDristhiMetrics(timeWindow);
+      const timeWindow = req.query.timeWindow as string;
+      
+      // Default to current month if invalid
+      const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+      const validTimeWindow = /^\d{4}-\d{2}$/.test(timeWindow) ? timeWindow : currentMonth;
+      
+      const metrics = await MetricService.getAdminDristhiMetrics(validTimeWindow);
       return sendResponse({ res, data: metrics });
     } catch (error) {
       next(error);

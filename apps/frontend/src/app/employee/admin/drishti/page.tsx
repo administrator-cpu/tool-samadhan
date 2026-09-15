@@ -41,8 +41,32 @@ interface AdminDristhiMetrics {
   topMttrLinks: MttrLink[];
 }
 
+const getMonthOptions = () => {
+  const options = [];
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
+  
+  const startYear = 2026;
+  const startMonth = 6; // July
+  
+  const startMonthForYear = currentYear === startYear ? startMonth : 0;
+  
+  for (let m = currentMonth; m >= startMonthForYear; m--) {
+    const date = new Date(currentYear, m, 1);
+    const value = `${currentYear}-${String(m + 1).padStart(2, '0')}`;
+    const label = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+    options.push({ value, label });
+  }
+  
+  return options;
+};
+
 export default function AdminDristhiPage() {
-  const [timeWindow, setTimeWindow] = useState<'30d' | '6m' | 'all'>('6m');
+  const monthOptions = getMonthOptions();
+  const initialMonth = monthOptions.length > 0 ? monthOptions[0].value : '2026-07';
+  
+  const [timeWindow, setTimeWindow] = useState<string>(initialMonth);
   const [metrics, setMetrics] = useState<AdminDristhiMetrics | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -73,12 +97,12 @@ export default function AdminDristhiPage() {
           <CalendarDays className="w-4 h-4 text-slate-400 mr-2" />
           <select 
             value={timeWindow} 
-            onChange={(e) => setTimeWindow(e.target.value as any)}
+            onChange={(e) => setTimeWindow(e.target.value)}
             className="bg-transparent text-sm font-medium text-slate-700 focus:outline-none focus:ring-0 cursor-pointer outline-none border-none pr-1"
           >
-            <option value="30d">Last 30 Days</option>
-            <option value="6m">Last 6 Months</option>
-            <option value="all">All Time</option>
+            {monthOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
         </div>
       </div>

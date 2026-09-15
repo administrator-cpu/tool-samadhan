@@ -173,7 +173,7 @@ const SidebarNavbar = () => {
     { label: "Customers", icon: "groups", href: "/employee/admin/customers" },
     { label: "Connections", icon: "cable", href: "/employee/admin/connections" },
     { label: "Resolution Log", icon: "history_edu", href: "/employee/admin/reports/resolved" },
-    { label: "Profile", icon: "person", href: "/profile" },
+    // { label: "Profile", icon: "person", href: "/profile" },
   ];
 
   const salesItems: NavItem[] = [
