@@ -529,7 +529,7 @@ export class MetricService {
       FROM tickets t 
       JOIN issue_categories ic ON t.primary_issue_category_id = ic.id
       WHERE t.circuit_description IS NOT NULL 
-      AND (ic.name ILIKE '%link down%' OR ic.name ILIKE '%packet drops%' OR ic.name ILIKE '%latency%' OR ic.name ILIKE '%link fluctuating%')
+      AND (ic.name ILIKE '%link down%' OR ic.name ILIKE '%packet drops%' OR ic.name ILIKE '%latency%')
       ${andTimeFilter}
       GROUP BY t.circuit_description 
       HAVING COUNT(t.id) > 1 
@@ -545,7 +545,7 @@ export class MetricService {
       FROM tickets t 
       JOIN issue_categories ic ON t.primary_issue_category_id = ic.id
       WHERE t.circuit_description IS NOT NULL 
-      AND ic.name ILIKE '%link down%'
+      AND (ic.name ILIKE '%link down%' OR ic.name ILIKE '%packet drops%' OR ic.name ILIKE '%latency%')
       ${andTimeFilter}
       GROUP BY t.circuit_description 
       ORDER BY mttr_hours DESC 
