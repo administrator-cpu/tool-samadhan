@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { CheckCircle2, Clock, Activity, ArrowRight, Target, Zap, Inbox } from "lucide-react";
 import Link from "next/link";
+import DashboardSkeleton from "@/components/DashboardSkeleton";
 
 interface AgentStats {
   summary: {
@@ -47,14 +48,7 @@ export default function AgentDashboard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-ember border-t-transparent"></div>
-          <p className="text-sm font-bold text-slate-500 animate-pulse">Calculating Performance Metrics...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!stats) return null;

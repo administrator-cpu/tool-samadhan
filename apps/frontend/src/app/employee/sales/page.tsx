@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { FileText, ArrowRight, ShieldCheck, Target, PlusCircle, LayoutDashboard, CheckCircle2, Archive, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import DashboardSkeleton from "@/components/DashboardSkeleton";
 
 interface Ticket {
   id: number;
@@ -61,14 +62,7 @@ export default function SalesDashboard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent"></div>
-          <p className="text-sm font-bold text-slate-500 animate-pulse">Initializing Sales Dashboard...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (

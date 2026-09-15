@@ -148,8 +148,17 @@ export default function Home() {
 
         <div className="flex flex-col gap-4">
           {loading ? (
-            <div className="flex justify-center p-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ember"></div>
+            <div className="flex flex-col gap-4 animate-pulse">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-4 rounded-[1rem] border border-slate-100 bg-white p-5 shadow-sm">
+                  <div className="flex h-14 w-14 shrink-0 rounded-xl bg-slate-100"></div>
+                  <div className="flex flex-col justify-center gap-2 flex-1">
+                    <div className="h-5 w-48 rounded bg-slate-200"></div>
+                    <div className="h-3 w-32 rounded bg-slate-100"></div>
+                  </div>
+                  <div className="h-8 w-24 rounded-full bg-slate-100"></div>
+                </div>
+              ))}
             </div>
           ) : tickets.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-slate-500 bg-white">
