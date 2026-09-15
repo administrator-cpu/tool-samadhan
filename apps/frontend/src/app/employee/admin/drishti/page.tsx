@@ -130,7 +130,7 @@ export default function AdminDristhiPage() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           
           {/* Card 1: Top Faults */}
-          <div className="bg-white rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 p-6 transition-all hover:shadow-lg">
+          {/* <div className="bg-white rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 p-6 transition-all hover:shadow-lg">
             <div className="flex items-center gap-3 mb-6 border-b border-slate-50 pb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#D9430F] border border-orange-100">
                 <AlertTriangle className="h-5 w-5" />
@@ -154,10 +154,10 @@ export default function AdminDristhiPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Card 2: Highest Downtime % */}
-          <div className="bg-white rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 p-6 transition-all hover:shadow-lg">
+          {/* <div className="bg-white rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 p-6 transition-all hover:shadow-lg">
             <div className="flex items-center gap-3 mb-6 border-b border-slate-50 pb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 border border-red-100">
                 <Clock className="h-5 w-5" />
@@ -187,7 +187,7 @@ export default function AdminDristhiPage() {
                 );
               })}
             </div>
-          </div>
+          </div> */}
 
           {/* Card 3: Repeat Faults */}
           <div className="bg-white rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 p-6 transition-all hover:shadow-lg">
@@ -197,7 +197,7 @@ export default function AdminDristhiPage() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Repeat Faults</h2>
-                <p className="text-xs text-slate-500">Top 10 Links with recurring major issues</p>
+                <p className="text-xs text-slate-500">Top 10 Links with recurring issues (Link Down, Packet Loss, Latency)</p>
               </div>
             </div>
             <div className="flex flex-col gap-2">
@@ -224,7 +224,7 @@ export default function AdminDristhiPage() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Highest MTTR</h2>
-                <p className="text-xs text-slate-500">Top 10 Links with longest repair time (Link Down)</p>
+                <p className="text-xs text-slate-500">Top 10 Links with longest repair time (Link Down, Packet Loss, Latency)</p>
               </div>
             </div>
             <div className="flex flex-col gap-2">
