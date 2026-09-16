@@ -469,25 +469,23 @@ export class MetricService {
     };
   }
 
-  static async getAdminDristhiMetrics(timeWindow: '30d' | '6m' | 'all' = '6m') {
+  static async getAdminDristhiMetrics(timeWindow: string) {
     const cacheKey = `admin_dristhi_metrics_${timeWindow}`;
     const cachedData = inMemoryCache.get<any>(cacheKey);
     if (cachedData) {
       return cachedData;
     }
 
-    let timeFilter = sql``;
-    if (timeWindow === '30d') {
-      timeFilter = sql`WHERE t.created_at >= NOW() - INTERVAL '30 days'`;
-    } else if (timeWindow === '6m') {
-      timeFilter = sql`WHERE t.created_at >= NOW() - INTERVAL '6 months'`;
-    }
+    const [yearStr, monthStr] = timeWindow.split('-');
+    const year = Number(yearStr);
+    const month = Number(monthStr);
 
-    let andTimeFilter = sql``;
-    if (timeWindow === '30d') {
-      andTimeFilter = sql`AND t.created_at >= NOW() - INTERVAL '30 days'`;
-    } else if (timeWindow === '6m') {
-      andTimeFilter = sql`AND t.created_at >= NOW() - INTERVAL '6 months'`;
+    let timeFilter = sql`WHERE t.created_at >= '2026-07-26 00:00:00'`;
+    let andTimeFilter = sql`AND t.created_at >= '2026-07-26 00:00:00'`;
+
+    if (year && month) {
+      timeFilter = sql`WHERE t.created_at >= '2026-07-26 00:00:00' AND EXTRACT(YEAR FROM t.created_at) = ${year} AND EXTRACT(MONTH FROM t.created_at) = ${month}`;
+      andTimeFilter = sql`AND t.created_at >= '2026-07-26 00:00:00' AND EXTRACT(YEAR FROM t.created_at) = ${year} AND EXTRACT(MONTH FROM t.created_at) = ${month}`;
     }
 
     // 1. Top 10 Customers with Highest Number of Faults
@@ -531,7 +529,7 @@ export class MetricService {
       FROM tickets t 
       JOIN issue_categories ic ON t.primary_issue_category_id = ic.id
       WHERE t.circuit_description IS NOT NULL 
-      AND (ic.name ILIKE '%link down%' OR ic.name ILIKE '%packet drops%' OR ic.name ILIKE '%latency%' OR ic.name ILIKE '%link fluctuating%')
+      AND (ic.name ILIKE '%link down%' OR ic.name ILIKE '%packet drops%' OR ic.name ILIKE '%latency%')
       ${andTimeFilter}
       GROUP BY t.circuit_description 
       HAVING COUNT(t.id) > 1 
@@ -547,7 +545,7 @@ export class MetricService {
       FROM tickets t 
       JOIN issue_categories ic ON t.primary_issue_category_id = ic.id
       WHERE t.circuit_description IS NOT NULL 
-      AND ic.name ILIKE '%link down%'
+      AND (ic.name ILIKE '%link down%' OR ic.name ILIKE '%packet drops%' OR ic.name ILIKE '%latency%')
       ${andTimeFilter}
       GROUP BY t.circuit_description 
       ORDER BY mttr_hours DESC 

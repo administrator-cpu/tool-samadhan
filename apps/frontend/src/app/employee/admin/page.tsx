@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useUICacheStore } from "@/store/useUICacheStore";
 import { Ticket, AlertTriangle, CheckCircle2, Users, Activity, ArrowRight, ShieldAlert, BarChart3, TrendingUp, TrendingDown } from "lucide-react";
 import Link from "next/link";
+import DashboardSkeleton from "@/components/DashboardSkeleton";
 
 interface AgentStat {
   id: string;
@@ -69,14 +70,7 @@ export default function AdminDashboard() {
   }, [dashboardStats, dashboardLastFetched, setDashboardStats]);
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
-          <p className="text-sm font-bold text-slate-500 animate-pulse">Synchronizing Neural Network...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!dashboardStats) return null;

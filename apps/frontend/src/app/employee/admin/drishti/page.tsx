@@ -41,8 +41,32 @@ interface AdminDristhiMetrics {
   topMttrLinks: MttrLink[];
 }
 
+const getMonthOptions = () => {
+  const options = [];
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
+  
+  const startYear = 2026;
+  const startMonth = 6; // July
+  
+  const startMonthForYear = currentYear === startYear ? startMonth : 0;
+  
+  for (let m = currentMonth; m >= startMonthForYear; m--) {
+    const date = new Date(currentYear, m, 1);
+    const value = `${currentYear}-${String(m + 1).padStart(2, '0')}`;
+    const label = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+    options.push({ value, label });
+  }
+  
+  return options;
+};
+
 export default function AdminDristhiPage() {
-  const [timeWindow, setTimeWindow] = useState<'30d' | '6m' | 'all'>('6m');
+  const monthOptions = getMonthOptions();
+  const initialMonth = monthOptions.length > 0 ? monthOptions[0].value : '2026-07';
+  
+  const [timeWindow, setTimeWindow] = useState<string>(initialMonth);
   const [metrics, setMetrics] = useState<AdminDristhiMetrics | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -73,12 +97,12 @@ export default function AdminDristhiPage() {
           <CalendarDays className="w-4 h-4 text-slate-400 mr-2" />
           <select 
             value={timeWindow} 
-            onChange={(e) => setTimeWindow(e.target.value as any)}
+            onChange={(e) => setTimeWindow(e.target.value)}
             className="bg-transparent text-sm font-medium text-slate-700 focus:outline-none focus:ring-0 cursor-pointer outline-none border-none pr-1"
           >
-            <option value="30d">Last 30 Days</option>
-            <option value="6m">Last 6 Months</option>
-            <option value="all">All Time</option>
+            {monthOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -106,7 +130,7 @@ export default function AdminDristhiPage() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           
           {/* Card 1: Top Faults */}
-          <div className="bg-white rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 p-6 transition-all hover:shadow-lg">
+          {/* <div className="bg-white rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 p-6 transition-all hover:shadow-lg">
             <div className="flex items-center gap-3 mb-6 border-b border-slate-50 pb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#D9430F] border border-orange-100">
                 <AlertTriangle className="h-5 w-5" />
@@ -130,10 +154,10 @@ export default function AdminDristhiPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Card 2: Highest Downtime % */}
-          <div className="bg-white rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 p-6 transition-all hover:shadow-lg">
+          {/* <div className="bg-white rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 p-6 transition-all hover:shadow-lg">
             <div className="flex items-center gap-3 mb-6 border-b border-slate-50 pb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 border border-red-100">
                 <Clock className="h-5 w-5" />
@@ -163,7 +187,7 @@ export default function AdminDristhiPage() {
                 );
               })}
             </div>
-          </div>
+          </div> */}
 
           {/* Card 3: Repeat Faults */}
           <div className="bg-white rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 p-6 transition-all hover:shadow-lg">
@@ -173,7 +197,7 @@ export default function AdminDristhiPage() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Repeat Faults</h2>
-                <p className="text-xs text-slate-500">Top 10 Links with recurring major issues</p>
+                <p className="text-xs text-slate-500">Top 10 Links with recurring issues (Link Down, Packet Loss, Latency)</p>
               </div>
             </div>
             <div className="flex flex-col gap-2">
@@ -200,7 +224,7 @@ export default function AdminDristhiPage() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Highest MTTR</h2>
-                <p className="text-xs text-slate-500">Top 10 Links with longest repair time (Link Down)</p>
+                <p className="text-xs text-slate-500">Top 10 Links with longest repair time (Link Down, Packet Loss, Latency)</p>
               </div>
             </div>
             <div className="flex flex-col gap-2">
