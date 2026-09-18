@@ -115,7 +115,7 @@ export default function CustomerGraphModal({ isOpen, onClose, customerRowId, cus
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative w-full max-w-7xl max-h-[90vh] flex flex-col overflow-hidden rounded-xl bg-slate-50 shadow-2xl animate-in fade-in zoom-in duration-300">
-        <div className="bg-ember-gradient px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between shrink-0 gap-4">
+        <div className="bg-brand-gradient px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between shrink-0 gap-4">
           <div>
             <h2 className="text-xl font-bold text-white font-heading">
               Network Analytics: {customerName || "Customer"}

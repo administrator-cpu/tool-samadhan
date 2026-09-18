@@ -11,6 +11,7 @@ import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import ticketRoutes from './routes/ticket.routes.js';
 import eventRoutes from './routes/event.routes.js';
+import guestRoutes from './routes/guest.routes.js';
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.get('/api/categories/unassigned', TicketController.getUnassignedCategories);
 app.use('/api/users', userRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/guest', guestRoutes);
 
 // Catch 404
 app.use((req, res, next) => {

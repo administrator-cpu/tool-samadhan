@@ -82,13 +82,13 @@ export default function TicketWorkflowStepper() {
             {/* desktop line */}
             <div className="absolute left-0 right-0 top-8 hidden h-1 rounded-full bg-slate-200 md:block" />
             <div
-              className="absolute left-0 top-8 hidden h-1 rounded-full bg-ember-gradient md:block"
+              className="absolute left-0 top-8 hidden h-1 rounded-full bg-brand-gradient md:block"
               style={{ width: `${progress * 100}%`, transition: "width 0.5s ease" }}
             />
 
             {/* mobile line */}
             <div className="absolute bottom-0 left-12 top-0 w-1 rounded-full bg-slate-200 md:hidden" />
-            <div className="absolute left-12 top-0 w-1 rounded-full bg-ember-gradient md:hidden"
+            <div className="absolute left-12 top-0 w-1 rounded-full bg-brand-gradient md:hidden"
               style={{ height: `${progress * 100}%`, transition: "height 0.5s ease" }}
             />
 
@@ -111,7 +111,7 @@ export default function TicketWorkflowStepper() {
                       className={[
                         "relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 ",
                         isActive || isDone
-                          ? "border-ember bg-orange-50 text-slate-700 shadow-lg"
+                          ? "border-primary bg-orange-50 text-slate-700 shadow-lg"
                           : "border-slate-200 bg-white text-slate-400",
                       ].join(" ")}
                     >

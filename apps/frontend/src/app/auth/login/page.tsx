@@ -13,7 +13,9 @@ import Image from "next/image";
 export default function LoginPage() {
   const router = useRouter();
   const {
+    user,
     setAuth,
+    clearAuth,
     isAuthenticated,
     _hasHydrated,
     isSessionChecked,
@@ -22,9 +24,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (_hasHydrated && isSessionChecked && isAuthenticated) {
-      router.replace(getDashboardPath());
+      if (user?.role === "GUEST") {
+        clearAuth();
+      } else {
+        router.replace(getDashboardPath());
+      }
     }
-  }, [isAuthenticated, isSessionChecked, _hasHydrated, router, getDashboardPath]);
+  }, [isAuthenticated, isSessionChecked, _hasHydrated, router, getDashboardPath, user, clearAuth]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -95,7 +101,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`min-h-screen bg-slate-50 antialiased selection:bg-ember selection:text-white`}>
+    <div className={`min-h-screen bg-slate-50 antialiased selection:bg-primary selection:text-white`}>
       
       {/* Background blobs */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-40">
@@ -141,7 +147,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="name@company.com"
-                  className={`w-full rounded-lg border ${errors.email ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-ember focus:ring-ember'} bg-white py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:outline-none focus:ring-1`}
+                  className={`w-full rounded-lg border ${errors.email ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary'} bg-white py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:outline-none focus:ring-1`}
                 />
               </div>
               {errors.email && (
@@ -161,7 +167,7 @@ export default function LoginPage() {
 
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm font-medium text-ember transition hover:underline"
+                  className="text-sm font-medium text-primary transition hover:underline"
                 >
                   Forgot Password?
                 </Link>
@@ -177,7 +183,7 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className={`w-full rounded-lg border ${errors.password ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-ember focus:ring-ember'} bg-white py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:outline-none focus:ring-1`}
+                  className={`w-full rounded-lg border ${errors.password ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary'} bg-white py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:outline-none focus:ring-1`}
                 />
               </div>
               {errors.password && (
@@ -189,7 +195,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-ember-gradient px-6 py-4 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-ember/20 transition duration-200 hover:bg-ember-gradient-hover border-none active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-brand-gradient px-6 py-4 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-ember/20 transition duration-200 hover:bg-brand-gradient-hover border-none active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -198,12 +204,21 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  Sign In
+                  Sign In to Dashboard
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </button>
           </form>
+
+          <div className="mt-8 text-center border-t border-slate-100 pt-6">
+            <Link 
+              href="/guest/login" 
+              className="text-sm font-medium text-slate-600 hover:text-primary transition"
+            >
+              Want to raise a ticket without an account?<br/><span className="text-primary underline underline-offset-4 font-semibold">Continue as Guest</span>
+            </Link>
+          </div>
 
         </div>
       </main>

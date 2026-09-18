@@ -255,7 +255,7 @@ export default function ProfilePage() {
             <div className="mb-10">
               <h2 className="text-3xl font-black tracking-tight text-slate-900">{user.name}</h2>
               <div className="mt-2 flex items-center justify-center gap-2">
-                <span className="rounded-full bg-[#F5821F]/10 px-3 mt-2 py-1 text-[10px] font-black uppercase tracking-widest text-ember border border-ember/20">
+                <span className="rounded-full bg-[#F5821F]/10 px-3 mt-2 py-1 text-[10px] font-black uppercase tracking-widest text-primary border border-primary/20">
                   {user.role === 'USER' ? 'Customer' : user.role.replace('_', ' ')}
                 </span>
               </div>
@@ -315,7 +315,7 @@ export default function ProfilePage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-ember focus:ring-4 focus:ring-ember/10 outline-hidden transition-all"
+                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-hidden transition-all"
                     required
                   />
                 </div>
@@ -331,7 +331,7 @@ export default function ProfilePage() {
                       }
                     }}
                     placeholder="e.g. 1234567890"
-                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-ember focus:ring-4 focus:ring-ember/10 outline-hidden transition-all"
+                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-hidden transition-all"
                   />
                 </div>
                 <div className="flex gap-4 pt-4">
@@ -349,7 +349,7 @@ export default function ProfilePage() {
                   <button
                     type="submit"
                     disabled={updatingProfile}
-                    className="flex-1 h-12 rounded-lg bg-ember-gradient text-sm font-black text-white hover:bg-ember-gradient-hover disabled:opacity-50 active:scale-[0.98] transition-all"
+                    className="flex-1 h-12 rounded-lg bg-brand-gradient text-sm font-black text-white hover:bg-brand-gradient-hover disabled:opacity-50 active:scale-[0.98] transition-all"
                   >
                     {updatingProfile ? "Saving..." : "Save Changes"}
                   </button>
@@ -380,7 +380,7 @@ export default function ProfilePage() {
               {!isEditing && (
                 <button 
                   onClick={() => setIsEditing(true)}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-ember-gradient text-sm font-black text-white hover:bg-ember-gradient-hover transition-all active:scale-[0.98]"
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient text-sm font-black text-white hover:bg-brand-gradient-hover transition-all active:scale-[0.98]"
                 >
                   <span className="material-symbols-outlined text-sm font-bold">edit</span>
                   Edit Profile
@@ -458,7 +458,7 @@ export default function ProfilePage() {
                 <button 
                   onClick={handleCropSave}
                   disabled={uploadingImage}
-                  className="flex-1 h-12 rounded-xl bg-ember-gradient text-sm font-black text-white hover:bg-ember-gradient-hover disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                  className="flex-1 h-12 rounded-xl bg-brand-gradient text-sm font-black text-white hover:bg-brand-gradient-hover disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                   {uploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Photo"}
                 </button>

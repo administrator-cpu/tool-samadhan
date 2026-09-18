@@ -59,6 +59,7 @@ interface TicketData {
     allow_customer_reply: boolean;
     resolved_at?: string | null;
     alternate_email?: string | null;
+    contact_phone?: string | null;
   };
   events: TicketEvent[];
 }
@@ -356,7 +357,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                 {severityConfig.label}
               </span>
             </div>
-            <p className="text-sm font-medium text-slate-500 mt-1">Opened by {ticket.customer.name}</p>
+            <p className="text-sm font-medium text-slate-500 mt-1">Opened by {ticket.contact_phone ? "Operator" : ticket.customer.name}</p>
           </div>
           <div className="mr-6">
             <LanguageToggle />
@@ -579,6 +580,15 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                     <p className="text-[14px] font-bold text-slate-900">{ticket.circuit_description}</p>
                   </div>
                 )}
+
+                {/* Contact Phone (Guest) */}
+                {ticket.contact_phone && (
+                  <div className="-mt-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Contact Phone</p>
+                    <p className="text-[14px] font-bold text-slate-900">{ticket.contact_phone}</p>
+                  </div>
+                )}
+
 
                 {/* Outage Details */}
                 <ProviderOutageTracker

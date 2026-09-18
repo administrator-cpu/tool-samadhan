@@ -17,6 +17,7 @@ import {
   ticketRcaTemplate,
   
   passwordResetOtpTemplate,
+  guestOtpTemplate,
   
   serverErrorTemplate,
   mttrBreachEscalationTemplate,
@@ -245,9 +246,14 @@ export const sendTicketRcaEmail = async ({ name, email, ticketNo, rca, rcaImages
 
 
 
-export const sendPasswordResetEmail = async ({ name, email, otpCode }: any) => {
+export const sendPasswordResetEmail = async ({ name, email, otpCode }: { name: string, email: string, otpCode: string }) => {
   const { subject, html } = passwordResetOtpTemplate({ name, otpCode });
-  await sendEmail({ toEmail: email, subject, htmlContent: html });
+  return sendEmail({ toEmail: email, subject, htmlContent: html });
+};
+
+export const sendGuestOtpEmail = async ({ email, otpCode }: { email: string, otpCode: string }) => {
+  const { subject, html } = guestOtpTemplate({ otpCode });
+  return sendEmail({ toEmail: email, subject, htmlContent: html });
 };
 
 // --- System Alert Email ---
