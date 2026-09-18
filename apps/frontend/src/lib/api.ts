@@ -101,7 +101,7 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
   const performRefresh = refreshToken;
 
   // 2. Prevent requests if unauthenticated (except public routes)
-  const publicRoutes = ["/login", "/register", "/refresh", "/forgot-password", "/verify-otp", "/reset-password", "/logout"];
+  const publicRoutes = ["/login", "/register", "/refresh", "/forgot-password", "/verify-otp", "/reset-password", "/logout", "/guest/send-otp", "/guest/verify-otp"];
   const isAuthenticated = useAuthStore.getState().isAuthenticated;
   let accessToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 

@@ -2,7 +2,8 @@ export enum UserRole {
   USER = 'USER',
   SUPPORT_AGENT = 'SUPPORT_AGENT',
   ADMIN = 'ADMIN',
-  SALES = 'SALES'
+  SALES = 'SALES',
+  GUEST = 'GUEST'
 }
 
 export enum TicketStatus {

@@ -16,6 +16,7 @@ export class TicketRepository {
       issueCategoryId: string;
       circuitDescription: string;
       alternateEmail?: string;
+      contactPhone?: string | null;
     }
   ): Promise<Ticket> {
     const result = await tx.insert(tickets).values({
@@ -26,6 +27,7 @@ export class TicketRepository {
       status: 'OPEN',
       circuit_description: data.circuitDescription,
       alternate_email: data.alternateEmail || null,
+      contact_phone: data.contactPhone || null,
     }).returning();
 
     return { ...result[0], id: String(result[0].id) } as any;
@@ -196,6 +198,7 @@ export class TicketRepository {
       rating_feedback: t.rating_feedback,
       alternate_email: t.alternate_email,
       allow_customer_reply: t.allow_customer_reply,
+      contact_phone: t.contact_phone,
     };
   }
 
@@ -223,6 +226,7 @@ export class TicketRepository {
       sortField?: string;
       sortOrder?: string;
       isCustomer?: boolean;
+      crmCircuitIds?: string[];
     },
     limit: number,
     offset: number = 0
@@ -231,7 +235,16 @@ export class TicketRepository {
 
     // Role filters
     if (filters.customerId) {
-      whereConditions.push(eq(tickets.customer_id, parseInt(filters.customerId, 10)));
+      if (filters.crmCircuitIds && filters.crmCircuitIds.length > 0) {
+        whereConditions.push(
+          or(
+            eq(tickets.customer_id, parseInt(filters.customerId, 10)),
+            inArray(tickets.circuit_description, filters.crmCircuitIds)
+          )
+        );
+      } else {
+        whereConditions.push(eq(tickets.customer_id, parseInt(filters.customerId, 10)));
+      }
     } else if (filters.employeeId) {
       whereConditions.push(eq(tickets.current_assigned_employee_id, parseInt(filters.employeeId, 10)));
     } else if (filters.salesUserId) {
