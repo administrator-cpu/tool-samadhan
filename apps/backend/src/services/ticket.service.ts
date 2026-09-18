@@ -10,6 +10,7 @@ import { sendTicketConfirmationEmail, sendTicketCreatedHelpdeskEmail, sendImmedi
 import { sendTicketCreatedSms, sendStaffUpdateSms, sendTicketResolvedSms, sendTicketReopenedSms, sendRootCauseAnalysisSms } from './sms.service.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
+import { UserService } from './user.service.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
 import { UserRole } from '../types/dto.js';
 import { formatTicketEvent } from '../utils/event-formatter.js';
@@ -50,21 +51,25 @@ export class TicketService {
 
       const ticket = await TicketRepository.create(tx, {
         customerId: customerId as string,
-        createdByUserId: actorRole !== UserRole.USER ? actorUserId : null,
+        createdByUserId: (actorRole !== UserRole.USER && actorRole !== 'GUEST') ? actorUserId : null,
         assignedEmployeeId: null,
         issueCategoryId: dto.issueCategoryId,
         circuitDescription: dto.circuitDescription ? String(dto.circuitDescription) : '',
-        // alternateEmail: dto.alternateEmail ? String(dto.alternateEmail).trim() : undefined,
         alternateEmail: dto.alternateEmail?.join(",") || undefined,
+        contactPhone: dto.contactPhone || undefined,
       });
 
       const initialMessage = dto.message && dto.message.trim() !== '' ? dto.message.trim() : null;
       await TicketEventRepository.insertEvent(tx, {
         ticket_id: ticket.id,
-        actor_user_id: actorUserId,
+        actor_user_id: actorRole === 'GUEST' ? null : actorUserId,
         event_type: 'TICKET_CREATED',
         message: initialMessage,
-        metadata: { source: 'WEB', attachments: dto.metadata?.attachments || [] },
+        metadata: { 
+          source: 'WEB', 
+          attachments: dto.metadata?.attachments || [], 
+          ...(actorRole === 'GUEST' ? { isGuest: true, circuitId: dto.circuitDescription } : {}) 
+        },
         visible_to_customer: true
       });
 
@@ -196,6 +201,19 @@ export class TicketService {
         const cust = await CustomerRepository.findByUserId(tx, userId);
         if (!cust) return { tickets: [], pagination: { totalPages: 0, currentPage: page, limit, totalCount: 0 } };
         queryFilters.customerId = cust.id;
+
+        // Fetch circuits from CRM
+        const user = await UserRepository.findById(tx, userId);
+        if (user) {
+           try {
+             const crmData = await UserService.getCustomerConnectionsFromCrm(user.name);
+             if (crmData && crmData.connections) {
+                queryFilters.crmCircuitIds = crmData.connections.map(c => c.id).filter(Boolean);
+             }
+           } catch (e) {
+             console.error("Failed to fetch CRM connections for ticket filtering");
+           }
+        }
       } else if (role === UserRole.SUPPORT_AGENT) {
         const emp = await EmployeeRepository.findByUserId(tx, userId);
         if (!emp) return { tickets: [], pagination: { totalPages: 0, currentPage: page, limit, totalCount: 0 } };

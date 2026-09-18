@@ -3,15 +3,19 @@
 @import "shadcn/tailwind.css";
 /*---break---*/
 @theme {
-  --color-ember: #D9430F;
+  --color-brand-magenta: #FF007A;
+  --color-brand-coral: #FF5757;
+  --color-brand-amber: #FFB900;
+  --color-brand-dark: #18181B;
+  --color-brand-offwhite: #F4F4F5;
 }
 @custom-variant dark (&:is(.dark *));
 
 :root {
    /*--color-primary: #4338CA;*/
-  --color-primary: #094cb2;
+  --color-primary: #FF007A;
   /*--color-primary: #4b8264;*/
-  --color-background: #F8FAFC;
+  --color-background: #F4F4F5;
   --color-surface: #FFFFFF;
   --color-text: #0F172A;
   --color-muted: #64748B;
@@ -126,7 +130,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Custom selection color to match primary blue */
 ::selection {
-  background-color: #3F704D;
+  background-color: #FF007A;
   color: white;
 }
 
@@ -275,11 +279,11 @@ button:disabled {
    }
 }
 
-@utility bg-ember-gradient {
-  background: linear-gradient(to right, #F5821F, #D9430F);
+@utility bg-brand-gradient {
+  background: linear-gradient(to right, #FF007A, #FF5757, #FFB900);
   color: white;
 }
-@utility bg-ember-gradient-hover {
-  background: linear-gradient(to right, #e8771a, #cc3e0b);
+@utility bg-brand-gradient-hover {
+  background: linear-gradient(to right, #e6006e, #e64f4f, #e6a600);
   color: white;
-}
+}

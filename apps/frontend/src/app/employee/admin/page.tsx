@@ -98,7 +98,7 @@ export default function AdminDashboard() {
         <header className="mb-10 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-ember-gradient text-white shadow-lg">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-gradient text-white shadow-lg">
                 <Activity size={25} />
               </div>
               <h1 className="text-3xl font-black tracking-tight text-slate-900 font-heading">
@@ -111,8 +111,8 @@ export default function AdminDashboard() {
           </div>
           {/*<div className="mt-4 flex items-center gap-2 rounded-xl bg-white px-4 py-2 shadow-sm border border-slate-100 md:mt-0">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ember opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-ember"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
             <span className="text-xs font-black uppercase tracking-widest text-slate-400">System Live</span>
           </div>*/}
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
             label="Resolved Today" 
             value={summary.resolved_today} 
             trend={`${summary.resolved_today} completed in 24h`}
-            color="text-ember"
+            color="text-primary"
             bg="bg-[#F5821F]/10"
           />
           <StatCard 
@@ -297,7 +297,7 @@ function StatCard({ icon, label, value, trend, color, bg, alert, trendUp }: { ic
         </div>
         <div className="pt-2 flex items-center gap-1">
           {trendUp !== undefined && (
-            trendUp ? <TrendingUp size={14} className="text-ember" /> : <TrendingDown size={14} className="text-red-500" />
+            trendUp ? <TrendingUp size={14} className="text-primary" /> : <TrendingDown size={14} className="text-red-500" />
           )}
           <span className={`text-[11px] font-black uppercase tracking-widest ${alert ? 'text-red-500' : 'text-slate-400'}`}>{trend}</span>
         </div>

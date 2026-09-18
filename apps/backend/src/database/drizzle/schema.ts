@@ -2,7 +2,7 @@ import { pgTable, bigint, varchar, text, boolean, timestamp, pgEnum, jsonb, seri
 import { relations, sql } from 'drizzle-orm';
 
 // Enums
-export const userRoleEnum = pgEnum('user_role', ['USER', 'SUPPORT_AGENT', 'ADMIN', 'SALES']);
+export const userRoleEnum = pgEnum('user_role', ['USER', 'SUPPORT_AGENT', 'ADMIN', 'SALES', 'GUEST']);
 export const ticketStatusEnum = pgEnum('ticket_status', ['OPEN', 'IN_PROGRESS', 'ESCALATED', 'RESOLVED', 'CLOSED']);
 
 // Sequences
@@ -116,6 +116,7 @@ export const tickets = pgTable('tickets', {
   rating: integer('rating'),
   rating_feedback: text('rating_feedback'),
   alternate_email: text("alternate_email"),
+  contact_phone: varchar('contact_phone', { length: 20 }),
   allow_customer_reply: boolean('allow_customer_reply').default(false).notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),

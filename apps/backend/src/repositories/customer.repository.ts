@@ -18,6 +18,26 @@ export class CustomerRepository {
     } as Customer;
   }
 
+  static async findByName(tx: any, name: string): Promise<Customer | null> {
+    const result = await tx.select({
+      id: customers.id,
+      user_id: customers.user_id,
+      customer_id: customers.customer_id,
+      joined_at: customers.joined_at
+    })
+    .from(customers)
+    .innerJoin(users, eq(customers.user_id, users.id))
+    .where(ilike(users.name, name))
+    .limit(1);
+
+    if (result.length === 0) return null;
+    return {
+      ...result[0],
+      id: String(result[0].id),
+      user_id: String(result[0].user_id)
+    } as Customer;
+  }
+
   static async findByUserId(tx: any, userId: string): Promise<Customer | null> {
     const result = await tx.query.customers.findFirst({
       where: eq(customers.user_id, parseInt(userId, 10))

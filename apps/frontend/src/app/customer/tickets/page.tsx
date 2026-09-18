@@ -20,7 +20,7 @@ interface Ticket {
 const getStatusClassName = (status: string) => {
   switch (status) {
     case "OPEN":
-      return "bg-[#F5821F]/10 text-ember";
+      return "bg-[#F5821F]/10 text-primary";
     case "IN_PROGRESS":
       return "bg-indigo-50 text-[#2a14b4]";
     case "ESCALATED":
@@ -104,7 +104,7 @@ export default function TicketsPage() {
 
           <Link
             href="/customer/raise-new-ticket"
-            className="bg-ember-gradient inline-flex items-center gap-2 rounded-lg px-4 py-3 font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
+            className="bg-brand-gradient inline-flex items-center gap-2 rounded-lg px-4 py-3 font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
           >
             <span className="material-symbols-outlined">add_circle</span>
             Raise New Ticket
@@ -128,7 +128,7 @@ export default function TicketsPage() {
           </div>
 
           <div className="flex flex-row gap-4 items-center rounded-2xl p-6 bg-white border border-slate-100 shadow-sm shadow-indigo-500/5">
-            <span className="material-symbols-outlined text-4xl text-ember">
+            <span className="material-symbols-outlined text-4xl text-primary">
               task_alt
             </span>
             <div>
@@ -147,7 +147,7 @@ export default function TicketsPage() {
           <div className="overflow-x-auto">
             {loading ? (
               <div className="flex justify-center items-center p-20">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ember"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : error ? (
               <div className="p-10 text-center text-red-500">{error}</div>
@@ -184,7 +184,7 @@ export default function TicketsPage() {
                 <tbody className="divide-y divide-slate-100">
                   {tickets.map((ticket) => (
                     <tr key={ticket.id} className="transition-colors hover:bg-slate-50/80">
-                      <td className="px-6 py-4 text-sm font-bold text-ember">
+                      <td className="px-6 py-4 text-sm font-bold text-primary">
                         {ticket.ticket_no}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
@@ -212,8 +212,8 @@ export default function TicketsPage() {
     border border-slate-200 bg-white px-3 py-1.5
     text-sm font-medium text-slate-600
     shadow-sm transition-all duration-200
-    hover:-translate-y-0.5 hover:border-ember hover:bg-[#F5821F]/5 hover:text-ember hover:shadow
-    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2
+    hover:-translate-y-0.5 hover:border-primary hover:bg-[#F5821F]/5 hover:text-primary hover:shadow
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
     active:translate-y-0
   "
                         >

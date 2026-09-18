@@ -73,19 +73,19 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
             key={idx}
             onClick={() => setReplyMessage(qr.text)}
             disabled={sending}
-            className="text-left p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-[#F5821F]/10 hover:border-ember/20 transition-all group disabled:opacity-50"
+            className="text-left p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-[#F5821F]/10 hover:border-primary/20 transition-all group disabled:opacity-50"
           >
-            <p className="text-xs font-medium text-slate-600 line-clamp-3 group-hover:text-ember">{qr.text}</p>
+            <p className="text-xs font-medium text-slate-600 line-clamp-3 group-hover:text-primary">{qr.text}</p>
           </button>
         ))}
       </div>
 
       <div className="relative">
         <div className="mb-3 flex items-center gap-2">
-          <MessageSquare size={18} className="text-ember" />
+          <MessageSquare size={18} className="text-primary" />
           <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Custom Response</h3>
         </div>
-        <div className="relative rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/50 focus-within:border-ember focus-within:ring-4 focus-within:ring-ember/10 transition-all">
+        <div className="relative rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/50 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all">
           <textarea
             value={replyMessage}
             onChange={(e) => setReplyMessage(e.target.value)}
@@ -131,9 +131,9 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
                     checked={sendEmail}
                     onChange={(e) => setSendEmail(e.target.checked)}
                     disabled={sending}
-                    className="w-4 h-4 text-ember border-slate-300 rounded-sm focus:ring-ember cursor-pointer disabled:opacity-50"
+                    className="w-4 h-4 text-primary border-slate-300 rounded-sm focus:ring-primary cursor-pointer disabled:opacity-50"
                   />
-                  <span className={`text-[11px] font-black uppercase tracking-wider transition-colors ${sendEmail ? 'text-ember' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                  <span className={`text-[11px] font-black uppercase tracking-wider transition-colors ${sendEmail ? 'text-primary' : 'text-slate-400 group-hover:text-slate-600'}`}>
                     Email {sendEmail ? 'ON' : 'OFF'}
                   </span>
                 </label>
@@ -143,9 +143,9 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
                     checked={sendSms}
                     onChange={(e) => setSendSms(e.target.checked)}
                     disabled={sending}
-                    className="w-4 h-4 text-ember border-slate-300 rounded-sm focus:ring-ember cursor-pointer disabled:opacity-50"
+                    className="w-4 h-4 text-primary border-slate-300 rounded-sm focus:ring-primary cursor-pointer disabled:opacity-50"
                   />
-                  <span className={`text-[11px] font-black uppercase tracking-wider transition-colors ${sendSms ? 'text-ember' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                  <span className={`text-[11px] font-black uppercase tracking-wider transition-colors ${sendSms ? 'text-primary' : 'text-slate-400 group-hover:text-slate-600'}`}>
                     SMS {sendSms ? 'ON' : 'OFF'}
                   </span>
                 </label> */}
@@ -173,7 +173,7 @@ export default function TicketReplyForm({ onSendReply, sending }: TicketReplyFor
               <button
                 onClick={handleSend}
                 disabled={sending || (!replyMessage.trim() && attachments.length === 0)}
-                className="flex items-center gap-2 rounded-xl bg-ember-gradient px-6 py-2.5 text-sm font-black text-white hover:bg-ember-gradient-hover transition-all disabled:opacity-50 shadow-lg shadow-orange-500/20"
+                className="flex items-center gap-2 rounded-xl bg-brand-gradient px-6 py-2.5 text-sm font-black text-white hover:bg-brand-gradient-hover transition-all disabled:opacity-50 shadow-lg shadow-orange-500/20"
               >
                 {sending ? "Transmitting..." : "Send Reply"}
                 <Send size={16} />

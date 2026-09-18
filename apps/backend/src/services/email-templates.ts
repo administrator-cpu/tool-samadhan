@@ -622,3 +622,25 @@ export const mttrBreachEscalationTemplate = ({ customerName, ticketNo, category,
   )
 });
 
+export const guestOtpTemplate = ( { otpCode }: any) => ( {
+  subject: "Fab5 - Guest Ticket Verification",
+  html: emeraldLayout(
+    "Guest Verification",
+    `
+      <p>Hello,</p>
+      <p>We received a request to raise a support ticket as a guest. Use the verification code below to proceed. <strong style="color: #dc2626;">This code will expire in 10 minutes.</strong></p>
+      
+      <div style="background-color: #f0fdf4; border: 2px dashed #059669; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
+        <div style="color: #065f46; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Verification Code</div>
+        <div style="color: #059669; font-size: 36px; font-weight: 900; letter-spacing: 0.2em; font-family: monospace;">${otpCode}</div>
+      </div>
+      
+      <p style="font-size: 13px; color: #6b7280;">If you did not request this verification code, you can safely ignore this email.</p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
+        <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
+      </div>
+    `
+  )
+});
+
