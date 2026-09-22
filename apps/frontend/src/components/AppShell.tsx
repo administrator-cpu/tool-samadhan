@@ -26,13 +26,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!_hasHydrated || !isSessionChecked || !isMounted) return;
 
-    const publicRoutes = ["/", "/auth/login", "/auth/signup", "/auth/logout", "/privacy"];
+    const publicRoutes = ["/", "/auth/login", "/auth/signup", "/auth/logout", "/privacy", "/download"];
     const isPublicRoute = publicRoutes.includes(pathname);
     const isDashboardRoute = pathname.startsWith("/customer") || pathname.startsWith("/employee") || pathname.startsWith("/profile");
 
     if (isAuthenticated && user) {
-      // If logged in and on a public route (except /privacy), redirect to dashboard
-      if (isPublicRoute && pathname !== "/privacy") {
+      // If logged in and on a public route (except /privacy and /download), redirect to dashboard
+      if (isPublicRoute && pathname !== "/privacy" && pathname !== "/download") {
         router.replace(getDashboardPath());
         return;
       }
@@ -68,8 +68,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   ]);
 
   // Prevent flash of unauthenticated content during hydration
-  // EXCEPT on the home page and privacy policy, where we want immediate visibility
-  if ((!_hasHydrated || !isSessionChecked || !isMounted) && pathname !== "/" && pathname !== "/privacy") {
+  // EXCEPT on the home page, privacy policy, and download where we want immediate visibility
+  if ((!_hasHydrated || !isSessionChecked || !isMounted) && pathname !== "/" && pathname !== "/privacy" && pathname !== "/download") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
