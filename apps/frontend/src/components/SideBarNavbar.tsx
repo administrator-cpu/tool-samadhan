@@ -162,7 +162,7 @@ const SidebarNavbar = () => {
   const employeeItems: NavItem[] = [
     { label: "Dashboard", icon: "dashboard", href: "/employee/support-agent" },
     { label: "All Tickets", icon: "list_alt", href: "/employee/support-agent/tickets" },
-    { label: "Samadhan Desk", icon: "bolt", href: "/employee/samadhan-desk" },
+    { label: "Remotix", icon: "bolt", href: "/employee/remotix" },
     { label: "Profile", icon: "person", href: "/profile" },
   ];
 
@@ -170,7 +170,7 @@ const SidebarNavbar = () => {
     { label: "Dashboard", icon: "dashboard", href: "/employee/admin" },
     { label: "All Tickets", icon: "list_alt", href: "/employee/admin/tickets" },
     { label: "Dristhi", icon: "analytics", href: "/employee/admin/drishti" },
-    { label: "Samadhan Desk", icon: "bolt", href: "/employee/samadhan-desk" },
+    { label: "Remotix", icon: "bolt", href: "/employee/remotix" },
     { label: "Staff", icon: "badge", href: "/employee/admin/staff" },
     { label: "Customers", icon: "groups", href: "/employee/admin/customers" },
     { label: "Connections", icon: "cable", href: "/employee/admin/connections" },
