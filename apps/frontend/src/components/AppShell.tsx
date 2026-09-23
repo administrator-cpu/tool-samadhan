@@ -84,8 +84,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       return <ForcePasswordChange />;
     }
 
-    // Hide sidebar for standalone share routes and guest users
-    if (pathname.startsWith("/share/image") || user?.role === "GUEST") {
+    // Hide sidebar for standalone share routes, download page and guest users
+    if (pathname.startsWith("/share/image") || pathname === "/download" || user?.role === "GUEST") {
       return <>{children}</>;
     }
 
