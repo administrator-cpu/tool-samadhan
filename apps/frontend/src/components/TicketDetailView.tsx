@@ -372,7 +372,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
               <button
                 onClick={handleToggleCustomerReply}
                 disabled={updating || togglingReply || ticket.status === "RESOLVED"}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all disabled:opacity-50 ${ticket.allow_customer_reply
+                className={`flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold transition-all disabled:opacity-50 ${ticket.allow_customer_reply
                     ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
@@ -387,7 +387,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                   <button
                     onClick={() => handleUpdate({ status: "RESOLVED" })}
                     disabled={updating}
-                    className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
                   >
                     <CheckCircle2 size={18} />
                     Resolve
@@ -398,12 +398,22 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                     <button
                       onClick={() => handleUpdate({ status: "ESCALATED" })}
                       disabled={updating}
-                      className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 shadow-lg shadow-red-200 transition-all disabled:opacity-50"
+                      className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 border border-red-700 transition-all disabled:opacity-50"
                     >
                       <TrendingUp size={18} />
                       Escalate
                     </button>
                   )}
+
+                  {/* Samadhan Desk Button */}
+                  <button
+                    onClick={() => handleUpdate({ status: "RESOLVED" })}
+                    disabled={updating}
+                    className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                  >
+                    <CheckCircle2 size={18} />
+                    Samadhan Desk
+                  </button>
                 </>
               )}
 
