@@ -20,9 +20,9 @@ interface SidebarContentProps {
 }
 
 const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen, user, handleLogout }: SidebarContentProps) => (
-  <div className={`flex h-full flex-col ${mobile ? "p-6" : "p-4 md:p-6 lg:p-3"}`}>
+  <div className={`flex h-full flex-col overflow-y-auto overflow-x-hidden ${mobile ? "p-6" : "p-4 md:p-6 lg:p-3"}`}>
     {/* Logo */}
-    <div className="flex flex-col items-center gap-0 overflow-hidden ">
+    <div className="flex flex-col items-center gap-0 shrink-0">
       <Image
         src={FAB5Logo}
         alt="Samadhan-Logo"
@@ -49,7 +49,7 @@ const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen
     </div>
 
     {/* Navigation */}
-    <nav className="flex flex-1 flex-col gap-2">
+    <nav className="flex flex-1 flex-col gap-2 shrink-0 my-4">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (
@@ -80,7 +80,7 @@ const SidebarContent = ({ collapsed, mobile, navItems, pathname, setIsMobileOpen
     </nav>
 
     {/* Profile Info & Logout */}
-    <div className="mt-auto flex flex-col gap-3 border-t border-slate-100 pt-6 overflow-hidden">
+    <div className="mt-auto flex flex-col gap-3 border-t border-slate-100 pt-6 shrink-0 overflow-hidden">
       <Link
         href="/profile"
         className="group flex w-full items-center gap-3 rounded-lg px-1 py-3 transition-colors hover:bg-slate-50"
@@ -162,6 +162,7 @@ const SidebarNavbar = () => {
   const employeeItems: NavItem[] = [
     { label: "Dashboard", icon: "dashboard", href: "/employee/support-agent" },
     { label: "All Tickets", icon: "list_alt", href: "/employee/support-agent/tickets" },
+    { label: "Samadhan Desk", icon: "bolt", href: "/employee/samadhan-desk" },
     { label: "Profile", icon: "person", href: "/profile" },
   ];
 
@@ -169,6 +170,7 @@ const SidebarNavbar = () => {
     { label: "Dashboard", icon: "dashboard", href: "/employee/admin" },
     { label: "All Tickets", icon: "list_alt", href: "/employee/admin/tickets" },
     { label: "Dristhi", icon: "analytics", href: "/employee/admin/drishti" },
+    { label: "Samadhan Desk", icon: "bolt", href: "/employee/samadhan-desk" },
     { label: "Staff", icon: "badge", href: "/employee/admin/staff" },
     { label: "Customers", icon: "groups", href: "/employee/admin/customers" },
     { label: "Connections", icon: "cable", href: "/employee/admin/connections" },

@@ -7,7 +7,7 @@ import AgentImage from "@/assets/agent.png";
 import Timeline from "@/components/ChatBoxTimelineMessages";
 import { api } from "@/lib/api";
 import { quickReplies } from "@/lib/quickReplies";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { ChevronDown, CheckCircle2, XCircle, TrendingUp, User as UserIcon, Calendar, Info, Send, MessageSquare, Zap } from "lucide-react";
@@ -73,6 +73,7 @@ interface TicketDetailViewProps {
 
 export default function TicketDetailView({ userRole, basePath, replyEventType }: TicketDetailViewProps) {
   const { id } = useParams();
+  const router = useRouter();
   const [data, setData] = useState<TicketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -372,9 +373,9 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
               <button
                 onClick={handleToggleCustomerReply}
                 disabled={updating || togglingReply || ticket.status === "RESOLVED"}
-                className={`flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold transition-all disabled:opacity-50 ${ticket.allow_customer_reply
-                    ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold transition-all disabled:opacity-50 ${ticket.allow_customer_reply
+                    ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300"
                   }`}
               >
                 <MessageSquare size={18} />
@@ -387,14 +388,14 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                   <button
                     onClick={() => handleUpdate({ status: "RESOLVED" })}
                     disabled={updating}
-                    className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
                   >
                     <CheckCircle2 size={18} />
                     Resolve
                   </button>
 
                   {/* Escalate Button - For OPEN or IN_PROGRESS */}
-                  {["OPEN", "IN_PROGRESS"].includes(ticket.status) && (
+                  {/* {["OPEN", "IN_PROGRESS"].includes(ticket.status) && (
                     <button
                       onClick={() => handleUpdate({ status: "ESCALATED" })}
                       disabled={updating}
@@ -403,15 +404,14 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                       <TrendingUp size={18} />
                       Escalate
                     </button>
-                  )}
+                  )} */}
 
                   {/* Samadhan Desk Button */}
                   <button
-                    onClick={() => handleUpdate({ status: "RESOLVED" })}
-                    disabled={updating}
-                    className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                    onClick={() => router.push('/employee/samadhan-desk')}
+                    className="flex items-center gap-2 rounded-lg border border-[#F5821F]/20 bg-[#F5821F]/10 px-4 py-2 text-sm font-bold text-[#F5821F] hover:bg-[#F5821F]/20 transition-all disabled:opacity-50"
                   >
-                    <CheckCircle2 size={18} />
+                    <Zap size={18} />
                     Samadhan Desk
                   </button>
                 </>
@@ -422,7 +422,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                 <button
                   onClick={() => handleUpdate({ status: "CLOSED" })}
                   disabled={updating}
-                  className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 transition-all disabled:opacity-50"
                 >
                   <XCircle size={18} />
                   Close
@@ -440,7 +440,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
                     <button
                       onClick={() => setIsReopenModalOpen(true)}
                       disabled={updating}
-                      className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                      className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-100 transition-all disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-[18px]">restart_alt</span>
                       Reopen Ticket
