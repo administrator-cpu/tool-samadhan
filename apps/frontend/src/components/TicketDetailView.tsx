@@ -408,11 +408,11 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
 
                   {/* Samadhan Desk Button */}
                   <button
-                    onClick={() => router.push('/employee/samadhan-desk')}
+                    onClick={() => router.push('/employee/remotix')}
                     className="flex items-center gap-2 rounded-lg border border-[#F5821F]/20 bg-[#F5821F]/10 px-4 py-2 text-sm font-bold text-[#F5821F] hover:bg-[#F5821F]/20 transition-all disabled:opacity-50"
                   >
                     <Zap size={18} />
-                    Samadhan Desk
+                    Remotix
                   </button>
                 </>
               )}
