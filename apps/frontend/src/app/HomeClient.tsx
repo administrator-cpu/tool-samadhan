@@ -42,7 +42,7 @@ export default function HomeClient() {
             <div className="h-8 w-8 mb-2 text-primary transition-transform group-hover:scale-105">
               <Image src={SamadhanLogo} alt="Samadhan Logo" width={60} height={60}/>
             </div>
-            <span className="text-2xl font-bold tracking-tight text-primary">Samadhan</span>
+            <span className="text-2xl font-bold tracking-tight text-[#F5821F]">Samadhan</span>
           </div>
 
           <Link
@@ -71,7 +71,7 @@ export default function HomeClient() {
           <div className="fade-in-up mx-auto max-w-4xl">
             <h1 className="mb-8 text-5xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl">
               Help is on the way in under{" "}
-              <span className="relative inline-block text-primary">
+              <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#F5821F] to-amber-500">
                 30 seconds.
                 <svg
                   className="absolute -bottom-1 left-0 h-3 w-full text-indigo-200"

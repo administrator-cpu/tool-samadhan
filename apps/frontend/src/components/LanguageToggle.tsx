@@ -15,7 +15,7 @@ export default function LanguageToggle() {
     <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-xs">
       <button
         onClick={() => setTargetLang("en")}
-        className={`px-4 py-1.5 rounded-md text-xs font-black uppercase tracking-widest transition-all ${
+        className={`px-4 py-1.5 rounded-sm text-xs font-black uppercase tracking-widest transition-all ${
           targetLang === "en"
             ? "bg-brand-gradient text-white shadow-md shadow-[#F5821F]/20"
             : "text-slate-500 hover:bg-slate-200"
@@ -25,7 +25,7 @@ export default function LanguageToggle() {
       </button>
       <button
         onClick={() => setTargetLang("hi")}
-        className={`px-4 py-1.5 rounded-md text-xs font-black uppercase tracking-widest transition-all ${
+        className={`px-4 py-1.5 rounded-sm text-xs font-black uppercase tracking-widest transition-all ${
           targetLang === "hi"
             ? "bg-brand-gradient text-white shadow-md shadow-[#F5821F]/20"
             : "text-slate-500 hover:bg-slate-200"
