@@ -46,7 +46,7 @@ const osData: Record<Exclude<OS, "Unknown">, OSInfo> = {
     icon: <Apple className="h-6 w-6" />,
     description: "For macOS (Intel & Apple Silicon)",
     variants: [
-      { label: "Download for Apple Silicon (M1/M2/M3)", link: DOWNLOAD_LINKS.MAC_SILICON },
+      // { label: "Download for Apple Silicon (M1/M2/M3)", link: DOWNLOAD_LINKS.MAC_SILICON },
       { label: "Download for Intel Processors", link: DOWNLOAD_LINKS.MAC_INTEL }
     ]
   },
