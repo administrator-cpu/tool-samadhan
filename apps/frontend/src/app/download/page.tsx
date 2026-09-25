@@ -2,44 +2,69 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Monitor, Apple, Terminal, Download, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Monitor, Apple, Terminal, Download, ChevronRight, CheckCircle2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import SamadhanLogo from "../../assets/Samadhan-Logo.png";
 
+const R2_BASE_URL = "https://pub-4ffd98e492c6412198030e5235485b4f.r2.dev";
 
+const DOWNLOAD_LINKS = {
+  WINDOWS: `${R2_BASE_URL}/Samadhan-Desk-Win.exe`,
+  MAC_INTEL: `${R2_BASE_URL}/Samadhan-Desk-Mac-Intel.zip`,
+  MAC_SILICON: `${R2_BASE_URL}/Samadhan-Desk-Mac-Silicon.zip`,
+  LINUX: `${R2_BASE_URL}/Samadhan-Desk-Linux.AppImage`
+};
 
 type OS = "Windows" | "Mac" | "Linux" | "Unknown";
 
-const osData: Record<
-  Exclude<OS, "Unknown">,
-  { name: string; icon: React.ReactNode; link: string; description: string; disabled?: boolean }
-> = {
+type DownloadVariant = {
+  label: string;
+  link: string;
+  disabled?: boolean;
+};
+
+type OSInfo = {
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+  variants: DownloadVariant[];
+  disabled?: boolean;
+};
+
+const osData: Record<Exclude<OS, "Unknown">, OSInfo> = {
   Windows: {
     name: "Windows",
     icon: <Monitor className="h-6 w-6" />,
-    link: "/downloads/Samadhan-Desk/Samadhan-Desk-Win.exe",
     description: "For Windows 10, 11 (64-bit)",
+    variants: [
+      { label: "Download .exe", link: DOWNLOAD_LINKS.WINDOWS }
+    ]
   },
   Mac: {
     name: "macOS",
     icon: <Apple className="h-6 w-6" />,
-    link: "/downloads/Samadhan-Desk/Samadhan-Desk-Mac-Intel.zip",
-    description: "For macOS Intel Processors",
-    disabled: false,
+    description: "For macOS (Intel & Apple Silicon)",
+    variants: [
+      // { label: "Download for Apple Silicon (M1/M2/M3)", link: DOWNLOAD_LINKS.MAC_SILICON },
+      { label: "Download for Intel Processors", link: DOWNLOAD_LINKS.MAC_INTEL }
+    ]
   },
   Linux: {
     name: "Linux",
     icon: <Terminal className="h-6 w-6" />,
-    link: "#",
     description: "Coming Soon (AppImage / DEB)",
     disabled: true,
+    variants: [
+      { label: "Coming Soon", link: DOWNLOAD_LINKS.LINUX, disabled: true }
+    ]
   },
 };
 
 export default function DownloadPage() {
   const [detectedOS, setDetectedOS] = useState<OS>("Unknown");
   const [isMounted, setIsMounted] = useState(false);
+  const [downloadingLink, setDownloadingLink] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -54,6 +79,31 @@ export default function DownloadPage() {
       setDetectedOS("Windows"); // Fallback default
     }
   }, []);
+
+  const handleDownload = async (link: string) => {
+    try {
+      setDownloadingLink(link);
+      const filename = link.split('/').pop() || 'download';
+      
+      const response = await fetch(link);
+      if (!response.ok) throw new Error("Network response was not ok");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+      alert("Download failed. Please try again later.");
+    } finally {
+      setDownloadingLink(null);
+    }
+  };
 
   const primaryOSKey = detectedOS !== "Unknown" ? detectedOS : "Windows";
   const primaryOption = osData[primaryOSKey];
@@ -133,19 +183,38 @@ export default function DownloadPage() {
               </p>
 
               {isMounted && (
-                <motion.div
-                  whileTap={primaryOption.disabled ? undefined : { scale: 0.97 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                  className="w-full"
-                >
-                  <a
-                    href={primaryOption.disabled ? '#' : primaryOption.link}
-                    className={`inline-flex items-center justify-center gap-2 w-full h-14 text-base font-semibold rounded-xl text-white border-0 transition-all ${primaryOption.disabled ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' : 'bg-[#F5821F] hover:bg-[#e0751a] shadow-[0_8px_20px_rgba(245,130,31,0.25)] hover:shadow-[0_12px_25px_rgba(245,130,31,0.35)] cursor-pointer'}`}
-                  >
-                    <Download className="w-5 h-5" />
-                    {primaryOption.disabled ? "Coming Soon" : `Download .${primaryOption.link.split('.').pop()}`}
-                  </a>
-                </motion.div>
+                <div className="w-full flex flex-col gap-3">
+                  {primaryOption.variants.map((variant, idx) => {
+                    const isDisabled = variant.disabled || primaryOption.disabled;
+                    const isDownloading = downloadingLink === variant.link;
+                    
+                    return (
+                      <motion.div
+                        key={idx}
+                        whileTap={isDisabled ? undefined : { scale: 0.97 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                        className="w-full"
+                      >
+                        <button
+                          disabled={isDisabled || isDownloading}
+                          onClick={() => handleDownload(variant.link)}
+                          className={`inline-flex items-center justify-center gap-2 w-full h-14 text-base font-semibold rounded-xl text-white border-0 transition-all ${
+                            isDisabled 
+                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' 
+                              : 'bg-[#F5821F] hover:bg-[#e0751a] shadow-[0_8px_20px_rgba(245,130,31,0.25)] hover:shadow-[0_12px_25px_rgba(245,130,31,0.35)] cursor-pointer'
+                          } ${isDownloading ? 'opacity-80 pointer-events-none' : ''}`}
+                        >
+                          {isDownloading ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <Download className="w-5 h-5" />
+                          )}
+                          {isDisabled ? "Coming Soon" : (isDownloading ? "Downloading..." : variant.label)}
+                        </button>
+                      </motion.div>
+                    );
+                  })}
+                </div>
               )}
               
               <div className="mt-6 flex items-center justify-center gap-6 text-sm text-slate-500 font-medium">
@@ -178,11 +247,12 @@ export default function DownloadPage() {
                     animate={{ opacity: 1, transform: "translateY(0)" }}
                     transition={{ ease: [0.23, 1, 0.32, 1], duration: 0.5, delay: 0.3 + (index * 0.05) }}
                   >
-                    <motion.a
-                      href={os.disabled ? undefined : os.link}
+                    <motion.button
+                      onClick={() => setDetectedOS(key as OS)}
+                      disabled={os.disabled}
                       whileHover={os.disabled ? {} : { scale: 1.02 }}
                       whileTap={os.disabled ? {} : { scale: 0.98 }}
-                      className={`block p-6 rounded-2xl border transition-all flex items-center justify-between group h-full shadow-sm hover:shadow-md
+                      className={`w-full block p-6 rounded-2xl border transition-all flex items-center justify-between group h-full shadow-sm hover:shadow-md text-left
                         ${isSelected 
                           ? 'bg-slate-50 border-[#F5821F]/30 ring-1 ring-[#F5821F]/10' 
                           : 'bg-white border-slate-200 hover:border-slate-300'
@@ -202,7 +272,7 @@ export default function DownloadPage() {
                       {!os.disabled && (
                         <ChevronRight className={`w-5 h-5 text-slate-400 group-hover:text-[#F5821F] transition-colors`} />
                       )}
-                    </motion.a>
+                    </motion.button>
                   </motion.div>
                 );
               })}
