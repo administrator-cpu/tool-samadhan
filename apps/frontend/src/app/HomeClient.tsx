@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Gauge, ShieldCheck, Eye } from "lucide-react";
+import { ArrowRight, Gauge, ShieldCheck, Eye, Monitor, DownloadCloud, Smartphone } from "lucide-react";
 import SamadhanLogo from "../assets/Samadhan-Logo.png";
 import TicketWorkflowStepper from "../components/TicketWorkflowStepper";
 import { useAuthStore } from "../store/useAuthStore";
@@ -45,12 +45,21 @@ export default function HomeClient() {
             <span className="text-2xl font-bold tracking-tight text-[#F5821F]">Samadhan</span>
           </div>
 
-          <Link
-            href="/auth/login"
-            className="inline-flex items-center justify-center rounded-full bg-brand-gradient px-6 py-2.5 text-sm font-medium text-white transition hover:bg-brand-gradient-hover border-none"
-          >
-            Login
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/download"
+              className="hidden sm:inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:border-slate-300"
+            >
+              <DownloadCloud size={18} />
+              Download Remotix
+            </Link>
+            <Link
+              href="/auth/login"
+              className="inline-flex items-center justify-center rounded-full bg-brand-gradient px-6 py-2.5 text-sm font-medium text-white transition hover:bg-brand-gradient-hover border-none shadow-sm hover:shadow-md"
+            >
+              Login
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -156,6 +165,39 @@ export default function HomeClient() {
           </div>
         </section>
 
+        {/* Download Remotix Section */}
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-xl transition-all hover:shadow-2xl">
+            {/* Decorative background blurs */}
+            <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[#F5821F]/10 blur-3xl pointer-events-none" />
+            <div className="absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
+            
+            <div className="relative z-10 flex flex-col items-center justify-between gap-10 p-8 sm:p-12 md:flex-row lg:p-16">
+              <div className="max-w-xl text-center md:text-left">
+                <div className="mb-6 mx-auto md:mx-0 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 text-[#F5821F] shadow-sm ring-1 ring-orange-100/50">
+                  <Monitor size={32} />
+                </div>
+                <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+                  Download Remotix
+                </h2>
+                <p className="text-lg leading-relaxed text-slate-500 sm:text-xl">
+                  Access any device instantly. Secure, reliable, and incredibly easy to use. No configuration required for Windows, Mac, or Linux.
+                </p>
+              </div>
+              
+              <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row shrink-0">
+                <Link
+                  href="/download"
+                  className="group flex w-full items-center justify-center gap-3 rounded-xl bg-slate-900 px-8 py-4 text-white shadow-lg transition duration-300 hover:bg-slate-800 hover:-translate-y-1 hover:shadow-xl sm:w-auto"
+                >
+                  <DownloadCloud size={24} />
+                  <span className="text-lg font-bold tracking-tight">Go to Downloads</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="mx-4 mb-8 mt-12 max-w-7xl sm:mx-6 lg:mx-8 xl:mx-auto">
           <div className="relative overflow-hidden rounded-[2rem] bg-brand-gradient px-6 py-16 text-center shadow-2xl sm:p-20">
@@ -186,6 +228,56 @@ export default function HomeClient() {
             </div>
           </div>
         </section>
+
+
+
+
+        {/* Download App Section */}
+        {/* <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-xl transition-all hover:shadow-2xl">
+             */}
+            {/* Decorative background blurs */}
+            {/* <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[#F5821F]/10 blur-3xl pointer-events-none" />
+            <div className="absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
+            
+            <div className="relative z-10 flex flex-col items-center justify-between gap-10 p-8 sm:p-12 md:flex-row lg:p-16">
+              <div className="max-w-xl text-center md:text-left">
+                <div className="mb-6 mx-auto md:mx-0 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 text-[#F5821F] shadow-sm ring-1 ring-orange-100/50">
+                  <Smartphone size={32} />
+                </div>
+                <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+                  Take Samadhan wherever you go
+                </h2>
+                <p className="text-lg leading-relaxed text-slate-500 sm:text-xl">
+                  Internet down? Report issues instantly using mobile data with our dedicated app. Get real-time push notifications on your ticket status.
+                </p>
+              </div>
+              
+              <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row md:flex-col lg:flex-row shrink-0">
+                <Link
+                  href="/download/ios"
+                  className="group flex w-full items-center justify-center gap-4 rounded-xl bg-slate-900 px-8 py-4 text-white shadow-lg transition duration-300 hover:bg-slate-800 hover:-translate-y-1 hover:shadow-xl sm:w-auto"
+                >
+                  <div className="flex flex-col items-start leading-none">
+                    <span className="mb-1 text-[10px] text-slate-400 font-semibold tracking-widest uppercase">Download on the</span>
+                    <span className="text-xl font-bold tracking-tight">App Store</span>
+                  </div>
+                </Link>
+                <Link
+                  href="/download/android"
+                  className="group flex w-full items-center justify-center gap-4 rounded-xl bg-slate-900 px-8 py-4 text-white shadow-lg transition duration-300 hover:bg-slate-800 hover:-translate-y-1 hover:shadow-xl sm:w-auto"
+                >
+                  <div className="flex flex-col items-start leading-none">
+                    <span className="mb-1 text-[10px] text-slate-400 font-semibold tracking-widest uppercase">GET IT ON</span>
+                    <span className="text-xl font-bold tracking-tight">Google Play</span>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section> */}
+
+        
       </main>
 
       {/* Footer */}
