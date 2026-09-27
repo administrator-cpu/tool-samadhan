@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import StandardPagination from "@/components/StandardPagination";
+import TableSkeleton from "@/components/TableSkeleton";
 import { useMemo, useRef } from "react";
 
 interface Ticket {
@@ -146,9 +147,7 @@ export default function TicketsPage() {
         <section className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex justify-center items-center p-20">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
+              <TableSkeleton columns={6} rows={5} />
             ) : error ? (
               <div className="p-10 text-center text-red-500">{error}</div>
             ) : tickets.length === 0 ? (

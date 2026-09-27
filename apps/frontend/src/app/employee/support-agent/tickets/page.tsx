@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Search, ArrowUpDown, Filter, ChevronDown, TrendingUp, Calendar } from "lucide-react";
 import ReassignModal from "@/components/ReassignModal";
 import StandardPagination from "@/components/StandardPagination";
+import TableSkeleton from "@/components/TableSkeleton";
 import { useRef } from "react";
 
 interface Ticket {
@@ -193,9 +194,7 @@ export default function AgentTicketsPage() {
         <section className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-2xl shadow-slate-200/40">
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex h-64 items-center justify-center">
-                <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-indigo-600"></div>
-              </div>
+              <TableSkeleton columns={7} rows={5} />
             ) : filteredAndSortedTickets.length === 0 ? (
               <div className="flex h-80 flex-col items-center justify-center text-slate-400">
                 <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50">
