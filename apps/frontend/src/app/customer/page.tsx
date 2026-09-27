@@ -8,6 +8,7 @@ import Marquee from "react-fast-marquee";
 import { formatINR } from "@/lib/formatINR";
 
 import MetricHighlightCards from "@/components/MetricHighlightCards";
+import { Monitor, DownloadCloud } from "lucide-react";
 
 interface Ticket {
   id: number;
@@ -228,6 +229,28 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {/* Download Remotix Section */}
+      {/* <section className="mt-2 border-t border-slate-100 pt-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl bg-gradient-to-r from-slate-50 to-[#F5821F]/5 p-6 border border-slate-200/70 gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm text-primary">
+              <Monitor size={24} />
+            </div>
+            <div>
+              <h4 className="text-lg font-bold text-slate-900 font-outfit">Download Remotix Support Client</h4>
+              <p className="text-sm font-medium text-slate-500">Install our remote access tool so agents can quickly troubleshoot your system.</p>
+            </div>
+          </div>
+          <Link 
+            href="/download"
+            className="flex shrink-0 items-center gap-2 rounded-full bg-white border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-[#F5821F]/5 hover:text-primary hover:border-primary/30"
+          >
+            <DownloadCloud size={18} />
+            Download Now
+          </Link>
+        </div>
+      </section> */}
     </div>
   );
 }

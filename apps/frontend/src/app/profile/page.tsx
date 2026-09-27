@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { User, Mail, Loader2, LogOut, Phone, Camera, X } from "lucide-react";
 import Cropper from "react-easy-crop";
+import ProfileSkeleton from "@/components/ProfileSkeleton";
 import getCroppedImg from "@/lib/cropImage";
 import Image from "next/image";
 
@@ -186,11 +187,7 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (!profileData) return null;
