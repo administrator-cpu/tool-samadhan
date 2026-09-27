@@ -231,7 +231,7 @@ export default function Home() {
       </section>
 
       {/* Download Remotix Section */}
-      <section className="mt-2 border-t border-slate-100 pt-2">
+      {/* <section className="mt-2 border-t border-slate-100 pt-2">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl bg-gradient-to-r from-slate-50 to-[#F5821F]/5 p-6 border border-slate-200/70 gap-4">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm text-primary">
@@ -250,7 +250,7 @@ export default function Home() {
             Download Now
           </Link>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }
