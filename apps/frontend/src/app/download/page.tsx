@@ -10,7 +10,7 @@ import SamadhanLogo from "../../assets/Samadhan-Logo.png";
 const R2_BASE_URL = "https://pub-4ffd98e492c6412198030e5235485b4f.r2.dev";
 
 const DOWNLOAD_LINKS = {
-  WINDOWS: `${R2_BASE_URL}/Samadhan-Desk-Win.exe`,
+  WINDOWS: "https://apps.microsoft.com/detail/9nbgs330jg1w?hl=en&gl=IN&ocid=pdpshare",
   MAC_INTEL: `${R2_BASE_URL}/Samadhan-Desk-Mac-Intel.zip`,
   MAC_SILICON: `${R2_BASE_URL}/Samadhan-Desk-Mac-Silicon.zip`,
   LINUX: `${R2_BASE_URL}/Samadhan-Desk-Linux.AppImage`
@@ -38,7 +38,7 @@ const osData: Record<Exclude<OS, "Unknown">, OSInfo> = {
     icon: <Monitor className="h-6 w-6" />,
     description: "For Windows 10, 11 (64-bit)",
     variants: [
-      { label: "Download .exe", link: DOWNLOAD_LINKS.WINDOWS }
+      { label: "Get from Microsoft Store", link: DOWNLOAD_LINKS.WINDOWS }
     ]
   },
   Mac: {
@@ -81,6 +81,11 @@ export default function DownloadPage() {
   }, []);
 
   const handleDownload = async (link: string) => {
+    if (link === DOWNLOAD_LINKS.WINDOWS) {
+      window.location.href = link;
+      return;
+    }
+
     try {
       setDownloadingLink(link);
       const filename = link.split('/').pop() || 'download';
