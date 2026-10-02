@@ -181,7 +181,7 @@ export default function HomeClient() {
                   Download Samadhan Desk
                 </h2>
                 <p className="text-lg leading-relaxed text-slate-500 sm:text-xl">
-                  Access any device instantly. Secure, reliable, and incredibly easy to use. No configuration required for Windows, Mac, or Linux.
+                  Install our remote access tool so agents can quickly troubleshoot your system.
                 </p>
               </div>
               

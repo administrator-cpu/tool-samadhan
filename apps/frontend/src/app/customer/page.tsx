@@ -231,14 +231,14 @@ export default function Home() {
       </section>
 
       {/* Download Remotix Section */}
-      {/* <section className="mt-2 border-t border-slate-100 pt-2">
+      <section className="mt-2 border-t border-slate-100 pt-2">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl bg-gradient-to-r from-slate-50 to-[#F5821F]/5 p-6 border border-slate-200/70 gap-4">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm text-primary">
               <Monitor size={24} />
             </div>
             <div>
-              <h4 className="text-lg font-bold text-slate-900 font-outfit">Download Remotix Support Client</h4>
+              <h4 className="text-lg font-bold text-slate-900 font-outfit">Download Samadhan Desk</h4>
               <p className="text-sm font-medium text-slate-500">Install our remote access tool so agents can quickly troubleshoot your system.</p>
             </div>
           </div>
@@ -250,7 +250,7 @@ export default function Home() {
             Download Now
           </Link>
         </div>
-      </section> */}
+      </section>
     </div>
   );
 }
