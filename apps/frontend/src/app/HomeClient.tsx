@@ -51,7 +51,7 @@ export default function HomeClient() {
               className="hidden sm:inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:border-slate-300"
             >
               <DownloadCloud size={18} />
-              Download Remotix
+              Download Samadhan Desk
             </Link>
             <Link
               href="/auth/login"
@@ -178,10 +178,10 @@ export default function HomeClient() {
                   <Monitor size={32} />
                 </div>
                 <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-                  Download Remotix
+                  Download Samadhan Desk
                 </h2>
                 <p className="text-lg leading-relaxed text-slate-500 sm:text-xl">
-                  Access any device instantly. Secure, reliable, and incredibly easy to use. No configuration required for Windows, Mac, or Linux.
+                  Install our remote access tool so agents can quickly troubleshoot your system.
                 </p>
               </div>
               
