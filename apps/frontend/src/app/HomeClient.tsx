@@ -282,8 +282,10 @@ export default function HomeClient() {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-100 bg-white py-12 text-center text-sm text-slate-500">
-        <p>© DIV Private Limited. All Rights Reserved {`</>`}
-        </p>
+        <a href="https://thediv.in" target="_blank" rel="noopener noreferrer" className="">
+                    <div className="">Powerd by : {`DIV`}</div>
+                    <div className="">© DIV Private Limited. All Rights Reserved {`</>`} </div>
+            </a>
       </footer>
     </div>
   );

@@ -82,7 +82,7 @@ export default function DownloadPage() {
 
   const handleDownload = async (link: string) => {
     if (link === DOWNLOAD_LINKS.WINDOWS) {
-      window.location.href = link;
+      window.location.assign(link);
       return;
     }
 
