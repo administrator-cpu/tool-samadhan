@@ -15,9 +15,7 @@ export const postgresPool = new Pool({
   connectionTimeoutMillis: 10_000,
   keepAlive: true,
   keepAliveInitialDelayMillis: 10_000,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: env.postgres.ssl ? { rejectUnauthorized: false } : false,
 });
 
 postgresPool.on('connect', (client) => {
@@ -25,7 +23,7 @@ postgresPool.on('connect', (client) => {
 
 export const db = drizzle(postgresPool, { schema });
 
-logger.info(`[DB] Attempting to connect to ${env.postgres.host}:${env.postgres.port}...`);
+logger.info(`[DB] Attempting to connect to ${env.postgres.host}:${env.postgres.port} (SSL: ${env.postgres.ssl ? 'enabled' : 'disabled'})...`);
 
 postgresPool.on('error', (err) => {
   logger.error('Unexpected PostgreSQL pool error:', err);

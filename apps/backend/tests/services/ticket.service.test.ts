@@ -11,12 +11,17 @@ vi.mock('../../src/repositories/ticket-event.repository.js');
 vi.mock('../../src/services/email.service.js');
 vi.mock('../../src/lib/event-emitter.js');
 
-// Mock withTransaction to just execute the callback synchronously with a fake client
 vi.mock('../../src/config/database.js', () => ({
   withTransaction: vi.fn(async (cb: any) => {
     const mockClient = { query: vi.fn() };
     return cb(mockClient);
   }),
+  db: {
+    transaction: vi.fn(async (cb: any) => {
+      const mockTx = { query: vi.fn() };
+      return cb(mockTx);
+    }),
+  },
   postgresPool: { connect: vi.fn() }
 }));
 
@@ -33,7 +38,7 @@ describe('TicketService - updateTicketRca', () => {
     vi.mocked(TicketRepository.findByIdForUpdate).mockResolvedValue(null);
 
     await expect(
-      TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, MOCK_ACTOR_ID)
+      TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, [], [], MOCK_ACTOR_ID)
     ).rejects.toThrow(AppError);
   });
 
@@ -43,7 +48,7 @@ describe('TicketService - updateTicketRca', () => {
     } as any);
 
     await expect(
-      TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, MOCK_ACTOR_ID)
+      TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, [], [], MOCK_ACTOR_ID)
     ).rejects.toThrow('Cannot update RCA for a closed ticket');
   });
 
@@ -59,13 +64,13 @@ describe('TicketService - updateTicketRca', () => {
     vi.mocked(TicketRepository.updateFields).mockResolvedValue({ id: MOCK_TICKET_ID, rca: MOCK_RCA } as any);
     vi.mocked(TicketEventRepository.insertEvent).mockResolvedValue({ id: 'evt-1' } as any);
 
-    await TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, MOCK_ACTOR_ID);
+    await TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, [], [], MOCK_ACTOR_ID);
 
     // Verify it only updated RCA and did NOT auto-close
     expect(TicketRepository.updateFields).toHaveBeenCalledWith(
       expect.anything(),
       MOCK_TICKET_ID,
-      { rca: MOCK_RCA } // Only RCA is passed
+      { rca: MOCK_RCA, rca_images: '[]' }
     );
 
     // Verify only the RCA event was emitted, no STATUS_CHANGED
@@ -87,7 +92,7 @@ describe('TicketService - updateTicketRca', () => {
     vi.mocked(TicketRepository.updateFields).mockResolvedValue({ id: MOCK_TICKET_ID, status: 'CLOSED' } as any);
     vi.mocked(TicketEventRepository.insertEvent).mockResolvedValue({ id: 'evt-1' } as any);
 
-    await TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, MOCK_ACTOR_ID);
+    await TicketService.updateTicketRca(MOCK_TICKET_ID, MOCK_RCA, [], [], MOCK_ACTOR_ID);
 
     // Verify it updated RCA AND bundled the CLOSED status
     expect(TicketRepository.updateFields).toHaveBeenCalledWith(
@@ -95,9 +100,10 @@ describe('TicketService - updateTicketRca', () => {
       MOCK_TICKET_ID,
       expect.objectContaining({
         rca: MOCK_RCA,
+        rca_images: '[]',
         status: 'CLOSED',
         allow_customer_reply: false,
-        closed_at: expect.any(String)
+        closed_at: expect.any(Date)
       })
     );
 
