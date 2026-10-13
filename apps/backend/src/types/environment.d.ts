@@ -10,6 +10,7 @@ declare global {
       POSTGRES_DB?: string;
       POSTGRES_PORT?: string;
       PG_POOL_MAX?: string;
+      POSTGRES_SSL?: string;
 
       REDIS_HOST?: string;
       REDIS_PORT?: string;

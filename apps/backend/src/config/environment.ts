@@ -27,9 +27,17 @@ function getEnvNum(key: string, defaultValue?: number): number {
   return parsed;
 }
 
+function getEnvBool(key: string, defaultValue: boolean): boolean {
+  const value = process.env[key];
+  if (value === undefined || value === '') return defaultValue;
+  return value.toLowerCase() === 'true' || value === '1';
+}
+
+const nodeEnv = getEnvStr('NODE_ENV', 'production');
+
 export const env = {
   port: getEnvNum('PORT', 4000),
-  nodeEnv: getEnvStr('NODE_ENV', 'production'),
+  nodeEnv,
   
   postgres: {
     user: getEnvStr('POSTGRES_USER', 'admin'),
@@ -38,6 +46,7 @@ export const env = {
     database: getEnvStr('POSTGRES_DB', 'samadhandb'),
     port: getEnvNum('POSTGRES_PORT', 5432),
     poolMax: getEnvNum('PG_POOL_MAX', 1),
+    ssl: getEnvBool('POSTGRES_SSL', nodeEnv === 'development'),
   },
 
   redis: {
