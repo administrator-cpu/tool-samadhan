@@ -1,0 +1,30 @@
+name: Deploy Samadhan API
+
+# Deploys only when backend code or the lockfile changes on main (or when started by hand).
+# Never triggered by pull requests: the runner executes this as Administrator.
+# Database migrations are NOT part of this workflow; run them by hand.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/backend/**'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-samadhan
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, windows, samadhan-prod]
+    timeout-minutes: 20
+    env:
+      GIT_TERMINAL_PROMPT: '0'
+      GCM_INTERACTIVE: never
+    steps:
+      - name: Deploy samadhan-api
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File C:\Apps\deploy\deploy-samadhan.ps1
+          exit $LASTEXITCODE
