@@ -37,7 +37,10 @@ export class UserController {
 
   static async refresh(req: Request, res: Response, next: NextFunction) {
     try {
-      const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+      const refreshToken =
+        req.cookies?.refreshToken ||
+        req.body?.refreshToken ||
+        (req.headers['x-refresh-token'] as string | undefined);
       if (!refreshToken) {
         return sendResponse({ res, statusCode: 401, success: false, message: 'Refresh token required' });
       }

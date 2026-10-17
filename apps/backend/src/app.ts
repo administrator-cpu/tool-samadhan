@@ -26,6 +26,10 @@ const corsOptions = {
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use((req, res, next) => {
+  req.body = req.body || {};
+  next();
+});
 app.use(cookieParser());
 
 // Request logger for debugging in development
