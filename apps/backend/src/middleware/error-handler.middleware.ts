@@ -43,18 +43,22 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   }
 
   // Handle unexpected errors
-  logger.error('Unhandled error:', err);
+  const causeMsg = err.cause ? (err.cause?.message || err.cause?.code || String(err.cause)) : null;
+  logger.error('Unhandled error:', { err, ...(causeMsg ? { cause: err.cause } : {}) });
 
   const statusCode = err.status || 500;
   
   // Fire-and-forget an email alert for unexpected server errors (500s)
 
   if (statusCode >= 500 && env.nodeEnv === 'production') {
+    const errorMessage = causeMsg ? `${err.message || 'Unknown error occurred'} (Cause: ${causeMsg})` : (err.message || 'Unknown error occurred');
+    const stackTrace = err.stack ? (causeMsg ? `${err.stack}\nCause: ${err.cause?.stack || causeMsg}` : err.stack) : undefined;
+
     sendServerErrorEmail({
       timestamp: new Date().toISOString(),
       errorType: err.name || 'Unexpected Error',
-      errorMessage: err.message || 'Unknown error occurred',
-      stackTrace: err.stack,
+      errorMessage,
+      stackTrace,
       path: req.originalUrl,
       method: req.method,
       payload: req.body,
