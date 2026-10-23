@@ -288,8 +288,7 @@ export class UserController {
       const user = await UserService.getCurrentUserDetails(req.user!.userId);
       if (!user) return sendResponse({ res, statusCode: 404, success: false, message: 'User not found' });
       
-      const customerName = user.name as string;
-      
+      const customerName = user.name?.trim();
       if (!customerName) return sendResponse({ res, statusCode: 400, message: 'Customer name is required' });
 
       const outstandingBalance = await UserService.getOutstandingBalance(customerName);

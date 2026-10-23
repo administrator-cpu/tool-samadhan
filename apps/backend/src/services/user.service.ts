@@ -158,54 +158,110 @@ export class UserService {
   private static outstandingCache: Map<string, number> | null = null;
   private static cacheExpiresAt = 0;
   
-  static async getAllOutstandingBalances(): Promise < Map < string, number >> {
+  static async getAllOutstandingBalances(): Promise<Map<string, number>> {
     // Return cached data if still valid
     if (this.outstandingCache && Date.now() < this.cacheExpiresAt) {
       return this.outstandingCache;
     }
-    const response = await fetch( `${env.bahiKhataApiUrl}/all?limit=10000`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-          "x-api-key": env.bahiKhataApiKey,
-        },
-      }
-    );
-  
-    // if (!response.ok) throw new Error(`BahiKhata API returned ${response.status}`);
-  
-    const result = await response.json();
-  
-    const outstandingMap = new Map<string, number>();
-    for (const customer of result.data) {
-      outstandingMap.set(
-        customer.companyName.trim().toUpperCase(),
-        customer.totalOutstanding
-      );
+
+    if (!env.bahiKhataApiUrl) {
+      return this.outstandingCache ?? new Map<string, number>();
     }
 
-    // Update cache
-    this.outstandingCache = outstandingMap;
-    this.cacheExpiresAt = Date.now() + this.CACHE_TTL;
-    
-    return this.outstandingCache;
+    try {
+      const response = await fetch(`${env.bahiKhataApiUrl}/all?limit=10000`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": env.bahiKhataApiKey,
+        },
+        signal: AbortSignal.timeout(8000),
+      });
+
+      if (!response.ok) {
+        logger.warn(`[UserService] Failed to fetch all outstanding balances. HTTP ${response.status}`);
+        return this.outstandingCache ?? new Map<string, number>();
+      }
+
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        logger.warn(`[UserService] BahiKhata /all returned non-JSON content-type: ${contentType}`);
+        return this.outstandingCache ?? new Map<string, number>();
+      }
+
+      const result = await response.json();
+      if (!Array.isArray(result?.data)) {
+        return this.outstandingCache ?? new Map<string, number>();
+      }
+
+      const outstandingMap = new Map<string, number>();
+      for (const customer of result.data) {
+        if (customer?.companyName && typeof customer?.totalOutstanding === "number") {
+          outstandingMap.set(
+            customer.companyName.trim().toUpperCase(),
+            customer.totalOutstanding
+          );
+        }
+      }
+
+      // Update cache
+      this.outstandingCache = outstandingMap;
+      this.cacheExpiresAt = Date.now() + this.CACHE_TTL;
+
+      return this.outstandingCache;
+    } catch (error: any) {
+      logger.warn(`[UserService] Error fetching all outstanding balances: ${error?.message}`, {
+        cause: error?.cause,
+      });
+      // Fallback to stale cache if available, otherwise empty map
+      return this.outstandingCache ?? new Map<string, number>();
+    }
   }
 
-  static async getOutstandingBalance(customerName: string): Promise<number> {
-    const bahiKhataUrl = `${env.bahiKhataApiUrl}/search?name=${encodeURIComponent(customerName.trim().toUpperCase())}`;
-    const response = await fetch(bahiKhataUrl, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": env.bahiKhataApiKey,
+  static async getOutstandingBalance(customerName: string): Promise<number | null> {
+    const trimmedName = customerName?.trim();
+    if (!env.bahiKhataApiUrl || !trimmedName) {
+      return null;
+    }
+
+    try {
+      const bahiKhataUrl = `${env.bahiKhataApiUrl}/search?name=${encodeURIComponent(trimmedName.toUpperCase())}`;
+      const response = await fetch(bahiKhataUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": env.bahiKhataApiKey,
+        },
+        signal: AbortSignal.timeout(5000),
+      });
+
+      // BahiKhata returns 404 when no matching customer is found
+      if (response.status === 404) {
+        return null;
       }
-    });
 
-    // if (!response.ok) throw new Error(`BahiKhata API returned ${response.status}`);
+      if (!response.ok) {
+        logger.warn(`[UserService] BahiKhata search returned status ${response.status} for "${trimmedName}"`);
+        return null;
+      }
 
-    const outstandingBalance = await response.json();
-    if (outstandingBalance.matchFound) return outstandingBalance.data.totalOutstanding;
-    else return null;
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        logger.warn(`[UserService] BahiKhata search returned non-JSON content-type: ${contentType}`);
+        return null;
+      }
+
+      const outstandingBalance = await response.json();
+      if (outstandingBalance?.matchFound && typeof outstandingBalance?.data?.totalOutstanding === "number") {
+        return outstandingBalance.data.totalOutstanding;
+      }
+      return null;
+    } catch (error: any) {
+      logger.warn(`[UserService] Failed to fetch outstanding balance for "${customerName}": ${error?.message}`, {
+        cause: error?.cause,
+      });
+      return null;
+    }
   }
 
 
