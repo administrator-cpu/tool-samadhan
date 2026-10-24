@@ -43,6 +43,13 @@
       "when": 1789498231523,
       "tag": "0005_fat_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792862200216,
+      "tag": "0006_users_ringback_tune",
+      "breakpoints": true
     }
   ]
 }

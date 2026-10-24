@@ -2,6 +2,8 @@
 import { Server, Socket } from 'socket.io';
 import { sendPushToEmail } from '../lib/push.js';
 import { logger } from '../lib/logger.js';
+import { db } from '../config/database.js';
+import { sql } from 'drizzle-orm';
 
 const RELAY_EVENTS = [
   'call:invite',
@@ -35,6 +37,19 @@ type PendingCall = {
 };
 
 const PENDING_TTL_MS = 50_000;
+
+const RINGBACK_TUNES = new Set(['classic', 'chime', 'meadow', 'calm']);
+
+async function getRingbackTune(email: string): Promise<string | null> {
+  try {
+    const res = await db.execute(sql`SELECT ringback_tune FROM users WHERE lower(email) = lower(${email}) LIMIT 1`);
+    const tune = res.rows[0]?.ringback_tune;
+    return typeof tune === 'string' && RINGBACK_TUNES.has(tune) ? tune : null;
+  } catch (err) {
+    logger.error('[CALL] Failed to read ringback tune:', err);
+    return null;
+  }
+}
 
 const BUFFERED_EVENTS = new Set<RelayEvent>(['call:invite', 'call:offer', 'call:ice-candidate']);
 const CALLEE_SETTLES = new Set<RelayEvent>(['call:accept', 'call:answer', 'call:reject', 'call:busy']);
@@ -83,9 +98,12 @@ function replayPending(socket: Socket, calleeEmail: string) {
   }
 }
 
-async function isReachable(io: Server, email: string) {
+async function presenceOf(io: Server, email: string) {
   const sockets = await io.in(roomFor(email)).fetchSockets();
-  return sockets.some((s) => s.data?.foreground !== false);
+  return {
+    connected: sockets.length > 0,
+    foreground: sockets.some((s) => s.data?.foreground !== false),
+  };
 }
 
 export function registerCallSignaling(io: Server, socket: Socket) {
@@ -95,6 +113,28 @@ export function registerCallSignaling(io: Server, socket: Socket) {
   socket.data.foreground = true;
   socket.join(roomFor(userEmail));
   replayPending(socket, userEmail);
+
+  type Ack = (res: Record<string, unknown>) => void;
+
+  socket.on('call:tune:get', async (_payload: unknown, ack?: Ack) => {
+    if (typeof ack !== 'function') return;
+    ack({ ok: true, tune: await getRingbackTune(userEmail) });
+  });
+
+  socket.on('call:tune:set', async (payload: { tune?: unknown }, ack?: Ack) => {
+    const reply = typeof ack === 'function' ? ack : () => {};
+    const tune = typeof payload?.tune === 'string' ? payload.tune : '';
+    if (!RINGBACK_TUNES.has(tune)) return reply({ ok: false, error: 'invalid_tune' });
+    try {
+      await db.execute(
+        sql`UPDATE users SET ringback_tune = ${tune}, updated_at = CURRENT_TIMESTAMP WHERE lower(email) = lower(${userEmail})`
+      );
+      reply({ ok: true, tune });
+    } catch (err) {
+      logger.error('[CALL] Failed to save ringback tune:', err);
+      reply({ ok: false, error: 'server_error' });
+    }
+  });
 
   socket.on('app:state', (state: string) => {
     const foreground = state === 'active';
@@ -118,14 +158,36 @@ export function registerCallSignaling(io: Server, socket: Socket) {
 
           io.to(roomFor(toEmail)).emit(event, payload);
 
-          if (!(await isReachable(io, toEmail))) {
-            pending.pushed = true;
-            await sendPushToEmail(toEmail, {
+          const presence = await presenceOf(io, toEmail);
+          let delivered = presence.connected;
+
+          if (!presence.foreground) {
+            const sent = await sendPushToEmail(toEmail, {
               title: 'Incoming call',
               body: `${pending.callerName} is calling you`,
-              data: { type: 'call_invite', callId, ticketId: raw.ticketId },
+              data: {
+                type: 'call_invite',
+                callId,
+                ticketId: raw.ticketId ?? null,
+                callerName: pending.callerName,
+                fromEmail: userEmail,
+              },
+              channelId: 'incoming_call',
+              categoryId: 'incoming_call',
+              ttl: Math.ceil(PENDING_TTL_MS / 1000),
             });
+            pending.pushed = sent > 0;
+            delivered = delivered || sent > 0;
           }
+
+          if (!delivered) {
+            removePending(toEmail, callId);
+            socket.emit('call:unavailable', { callId, fromEmail: toEmail });
+            logger.info(`[CALL] ${callId}: ${toEmail} unreachable (no socket, no push)`);
+            return;
+          }
+
+          socket.emit('call:ringing', { callId, fromEmail: toEmail, tune: await getRingbackTune(toEmail) });
           return;
         }
 
@@ -142,7 +204,8 @@ export function registerCallSignaling(io: Server, socket: Socket) {
             await sendPushToEmail(toEmail, {
               title: 'Missed call',
               body: `Missed call from ${pending.callerName}`,
-              data: { type: 'call_missed', callId, ticketId: raw.ticketId },
+              data: { type: 'call_missed', callId, ticketId: raw.ticketId ?? null },
+              channelId: 'missed_call',
             });
           }
           return;

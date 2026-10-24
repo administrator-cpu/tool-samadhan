@@ -21,6 +21,7 @@ export const users = pgTable('users', {
   must_change_password: boolean('must_change_password').default(true).notNull(),
   profile_image: text('profile_image'),
   translated_names: jsonb('translated_names').default({}).notNull(),
+  ringback_tune: varchar('ringback_tune', { length: 32 }),
   created_at: timestamp('created_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => ({
