@@ -1,4 +1,5 @@
 // sockets/callSignaling.ts
+import { randomBytes, timingSafeEqual } from 'crypto';
 import { Server, Socket } from 'socket.io';
 import { sendPushToEmail } from '../lib/push.js';
 import { logger } from '../lib/logger.js';
@@ -33,6 +34,7 @@ type PendingCall = {
   callerName: string;
   events: { event: RelayEvent; payload: Record<string, unknown> }[];
   pushed: boolean;
+  declineToken: string;
   timer: NodeJS.Timeout;
 };
 
@@ -82,6 +84,7 @@ function createPending(calleeEmail: string, callId: string, fromEmail: string, c
     callerName,
     events: [],
     pushed: false,
+    declineToken: randomBytes(18).toString('base64url'),
     timer: setTimeout(() => removePending(calleeEmail, callId), PENDING_TTL_MS),
   };
   if (!pendingByCallee.has(calleeEmail)) pendingByCallee.set(calleeEmail, new Map());
@@ -98,6 +101,29 @@ function replayPending(socket: Socket, calleeEmail: string) {
   }
 }
 
+let ioRef: Server | null = null;
+
+function safeEqual(a: string, b: string) {
+  const x = Buffer.from(a);
+  const y = Buffer.from(b);
+  return x.length === y.length && timingSafeEqual(x, y);
+}
+
+/** Decline from the Android call notification (no socket, no auth token): proven by the per-call secret sent in the push. */
+export function declineCallWithToken(callId: string, token: string): boolean {
+  if (!ioRef || !callId || !token) return false;
+  for (const [calleeEmail, calls] of pendingByCallee) {
+    const pending = calls.get(callId);
+    if (!pending || !safeEqual(pending.declineToken, token)) continue;
+    removePending(calleeEmail, callId);
+    ioRef.to(roomFor(pending.fromEmail)).emit('call:reject', { callId, fromEmail: calleeEmail, toEmail: pending.fromEmail });
+    ioRef.to(roomFor(calleeEmail)).emit('call:cancel', { callId, fromEmail: pending.fromEmail });
+    logger.info(`[CALL] ${callId}: declined from notification by ${calleeEmail}`);
+    return true;
+  }
+  return false;
+}
+
 async function presenceOf(io: Server, email: string) {
   const sockets = await io.in(roomFor(email)).fetchSockets();
   return {
@@ -109,12 +135,19 @@ async function presenceOf(io: Server, email: string) {
 export function registerCallSignaling(io: Server, socket: Socket) {
   const userEmail = norm((socket as any).user?.email);
   if (!userEmail) return;
+  ioRef = io;
 
   socket.data.foreground = true;
   socket.join(roomFor(userEmail));
   replayPending(socket, userEmail);
 
   type Ack = (res: Record<string, unknown>) => void;
+
+  socket.on('call:check', (payload: { callId?: unknown }, ack?: Ack) => {
+    if (typeof ack !== 'function') return;
+    const callId = payload?.callId ? String(payload.callId) : '';
+    ack({ ok: true, active: !!callId && !!getPending(userEmail, callId) });
+  });
 
   socket.on('call:tune:get', async (_payload: unknown, ack?: Ack) => {
     if (typeof ack !== 'function') return;
@@ -154,26 +187,26 @@ export function registerCallSignaling(io: Server, socket: Socket) {
 
         if (event === 'call:invite') {
           const pending = createPending(toEmail, callId, userEmail, String(raw.callerName || 'Someone'));
-          pending.events.push({ event, payload });
+          const invitePayload = { ...payload, declineToken: pending.declineToken };
+          pending.events.push({ event, payload: invitePayload });
 
-          io.to(roomFor(toEmail)).emit(event, payload);
+          io.to(roomFor(toEmail)).emit(event, invitePayload);
 
           const presence = await presenceOf(io, toEmail);
           let delivered = presence.connected;
 
           if (!presence.foreground) {
             const sent = await sendPushToEmail(toEmail, {
-              title: 'Incoming call',
-              body: `${pending.callerName} is calling you`,
+              dataOnly: true,
               data: {
                 type: 'call_invite',
                 callId,
                 ticketId: raw.ticketId ?? null,
+                ticketNumber: raw.ticketNumber ?? null,
                 callerName: pending.callerName,
                 fromEmail: userEmail,
+                declineToken: pending.declineToken,
               },
-              channelId: 'incoming_call',
-              categoryId: 'incoming_call',
               ttl: Math.ceil(PENDING_TTL_MS / 1000),
             });
             pending.pushed = sent > 0;
@@ -201,6 +234,11 @@ export function registerCallSignaling(io: Server, socket: Socket) {
           const pending = removePending(toEmail, callId);
           io.to(roomFor(toEmail)).emit(event, payload);
           if (pending?.pushed) {
+            await sendPushToEmail(toEmail, {
+              dataOnly: true,
+              data: { type: 'call_cancel', callId },
+              ttl: 60,
+            });
             await sendPushToEmail(toEmail, {
               title: 'Missed call',
               body: `Missed call from ${pending.callerName}`,

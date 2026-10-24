@@ -6,8 +6,10 @@ import { logger } from './logger.js';
 const expo = new Expo();
 
 type PushOptions = {
-  title: string;
-  body: string;
+  title?: string;
+  body?: string;
+  /** Data-only message: no visible notification; wakes the app's background notification task. */
+  dataOnly?: boolean;
   data?: Record<string, unknown>;
   channelId?: string;
   categoryId?: string;
@@ -17,7 +19,7 @@ type PushOptions = {
 /** Sends a push to every device of the user. Returns how many devices accepted it. */
 export async function sendPushToEmail(
   email: string,
-  { title, body, data, channelId = 'default', categoryId, ttl }: PushOptions
+  { title, body, data, dataOnly = false, channelId = 'default', categoryId, ttl }: PushOptions
 ): Promise<number> {
   try {
     const res = await db.execute(sql`
@@ -33,17 +35,27 @@ export async function sendPushToEmail(
       return 0;
     }
 
-    const messages: ExpoPushMessage[] = tokens.map((token) => ({
-      to: token,
-      sound: 'default',
-      title,
-      body,
-      data,
-      priority: 'high',
-      channelId,
-      ...(categoryId ? { categoryId } : {}),
-      ...(ttl ? { ttl } : {}),
-    }));
+    const messages: ExpoPushMessage[] = tokens.map((token) =>
+      dataOnly
+        ? {
+            to: token,
+            data,
+            priority: 'high',
+            _contentAvailable: true,
+            ...(ttl ? { ttl } : {}),
+          }
+        : {
+            to: token,
+            sound: 'default',
+            title,
+            body,
+            data,
+            priority: 'high',
+            channelId,
+            ...(categoryId ? { categoryId } : {}),
+            ...(ttl ? { ttl } : {}),
+          }
+    );
 
     let accepted = 0;
     const deadTokens: string[] = [];
