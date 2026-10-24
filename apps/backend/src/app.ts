@@ -12,6 +12,7 @@ import userRoutes from './routes/user.routes.js';
 import ticketRoutes from './routes/ticket.routes.js';
 import eventRoutes from './routes/event.routes.js';
 import guestRoutes from './routes/guest.routes.js';
+import callRoutes from './routes/call.routes.js';
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/guest', guestRoutes);
+app.use('/api/calls', callRoutes);
 
 // Catch 404
 app.use((req, res, next) => {
