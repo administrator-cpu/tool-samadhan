@@ -13,7 +13,7 @@ export class PasswordResetService {
   static async requestPasswordReset(email: string): Promise<{ message: string; alreadySent?: boolean; remainingSeconds?: number }> {
     return db.transaction(async (tx) => {
       const user = await UserRepository.findByEmail(tx, email);
-      if (!user) {
+      if (!user || user.is_active === false) {
         return { message: 'If this email exists in our system, you will receive a reset OTP shortly.' };
       }
 
@@ -64,6 +64,11 @@ export class PasswordResetService {
         throw new AppError(400, 'OTP has expired', ErrorCodes.OTP_EXPIRED);
       }
 
+      const user = await UserRepository.findById(tx, otpRecord.user_id);
+      if (!user || user.is_active === false) {
+        throw new AppError(403, 'Your account has been deactivated. Please contact support.', ErrorCodes.ACCOUNT_INACTIVE);
+      }
+
       // Verification successful, we do not delete it yet until they provide the new password
     });
   }
@@ -78,6 +83,11 @@ export class PasswordResetService {
 
       if (new Date() > otpRecord.expires_at) {
         throw new AppError(400, 'OTP has expired', ErrorCodes.OTP_EXPIRED);
+      }
+
+      const user = await UserRepository.findById(tx, otpRecord.user_id);
+      if (!user || user.is_active === false) {
+        throw new AppError(403, 'Your account has been deactivated. Please contact support.', ErrorCodes.ACCOUNT_INACTIVE);
       }
 
       const hashedPassword = await argon2.hash(newPassword);

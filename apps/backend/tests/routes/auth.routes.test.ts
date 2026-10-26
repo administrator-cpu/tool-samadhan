@@ -42,6 +42,20 @@ describe('Auth Routes (/api/auth)', () => {
       expect(res.body.message).toMatch(/Invalid credentials/i);
     });
 
+    it('should return 403 when user account is inactive', async () => {
+      vi.mocked(AuthService.loginUser).mockRejectedValue(
+        new AppError(403, 'Your account has been deactivated. Please contact support.', 'ACCOUNT_INACTIVE')
+      );
+
+      const res = await request(app)
+        .post('/api/login')
+        .send({ email: 'inactive@example.com', password: 'password123' });
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toMatch(/account has been deactivated/i);
+    });
+
     it('should return 200 and set refreshToken cookie on success', async () => {
       const mockResult = {
         accessToken: 'mock-access-token',
@@ -123,6 +137,21 @@ describe('Auth Routes (/api/auth)', () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.refreshToken).toBe('new-refresh-token');
       expect(AuthService.refreshSession).toHaveBeenCalledWith('valid-body-token', expect.any(Object));
+    });
+
+    it('should return 403 when user account is inactive during refresh', async () => {
+      vi.mocked(AuthService.refreshSession).mockRejectedValue(
+        new AppError(403, 'Your account has been deactivated. Please contact support.', 'ACCOUNT_INACTIVE')
+      );
+
+      const res = await request(app)
+        .post('/api/refresh')
+        .set('Cookie', ['refreshToken=valid-cookie-token'])
+        .send();
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toMatch(/account has been deactivated/i);
     });
 
     it('should return 200 and refresh session via X-Refresh-Token header', async () => {

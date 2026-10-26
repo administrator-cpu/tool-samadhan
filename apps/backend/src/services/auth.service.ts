@@ -25,6 +25,10 @@ export class AuthService {
         throw new AppError(401, 'Invalid credentials', ErrorCodes.INVALID_CREDENTIALS);
       }
 
+      if (user.is_active === false) {
+        throw new AppError(403, 'Your account has been deactivated. Please contact support.', ErrorCodes.ACCOUNT_INACTIVE);
+      }
+
       const { accessToken, refreshToken, jti } = generateTokens({
         userId: user.id,
         role: user.role,
@@ -52,6 +56,7 @@ export class AuthService {
           role: user.role,
           must_change_password: user.must_change_password,
           profile_image: user.profile_image,
+          is_active: user.is_active,
         },
         accessToken,
         refreshToken,
@@ -86,6 +91,12 @@ export class AuthService {
         throw new AppError(401, 'User not found', ErrorCodes.USER_NOT_FOUND);
       }
 
+      if (user.is_active === false) {
+        await SessionRepository.markRevoked(tx, session.id);
+        disconnectUser(user.id);
+        throw new AppError(403, 'Your account has been deactivated. Please contact support.', ErrorCodes.ACCOUNT_INACTIVE);
+      }
+
       // Invalidate old session
       await SessionRepository.markRevoked(tx, session.id);
 
@@ -117,6 +128,7 @@ export class AuthService {
           role: user.role,
           must_change_password: user.must_change_password,
           profile_image: user.profile_image,
+          is_active: user.is_active,
         },
         accessToken: newTokens.accessToken,
         refreshToken: newTokens.refreshToken,

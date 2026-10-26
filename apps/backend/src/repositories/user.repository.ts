@@ -19,20 +19,21 @@ export class UserRepository {
   }
 
   static async create(tx: any, data: Partial<User>): Promise<User> {
-    const { name, email, password, role, phone } = data;
+    const { name, email, password, role, phone, is_active } = data;
     const result = await tx.insert(users).values({
       name: name!,
       email: email?.toLowerCase() || '',
       password: password!,
       role: role as any,
-      phone: phone || null
-    }).returning({ id: users.id, name: users.name, email: users.email, role: users.role, phone: users.phone });
+      phone: phone || null,
+      is_active: is_active !== undefined ? is_active : true,
+    }).returning({ id: users.id, name: users.name, email: users.email, role: users.role, phone: users.phone, is_active: users.is_active });
     
     return { ...result[0], id: String(result[0].id) } as any;
   }
 
   static async update(tx: any, userId: string, data: Partial<User>): Promise<User | null> {
-    const { name, email, phone, profile_image } = data;
+    const { name, email, phone, profile_image, is_active } = data;
     const updates: any = { updated_at: sql`NOW()` };
     
     if (name !== undefined) {
@@ -42,11 +43,12 @@ export class UserRepository {
     if (email !== undefined) updates.email = email.toLowerCase();
     if (phone !== undefined) updates.phone = phone;
     if (profile_image !== undefined) updates.profile_image = profile_image;
+    if (is_active !== undefined) updates.is_active = is_active;
 
     const result = await tx.update(users)
       .set(updates)
       .where(eq(users.id, parseInt(userId, 10)))
-      .returning({ id: users.id, name: users.name, email: users.email, role: users.role, phone: users.phone, profile_image: users.profile_image });
+      .returning({ id: users.id, name: users.name, email: users.email, role: users.role, phone: users.phone, profile_image: users.profile_image, is_active: users.is_active });
 
     return result.length ? ({ ...result[0], id: String(result[0].id) } as any) : null;
   }
