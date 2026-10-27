@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
-import { ArrowRight, Lock, Mail, Loader2, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Lock, Mail, Loader2, Eye, EyeOff, AlertCircle, AlertTriangle } from "lucide-react";
 import icon from "@/assets/Samadhan-Logo.png";
 import Image from "next/image";
 
@@ -32,16 +32,23 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, isSessionChecked, _hasHydrated, router, getDashboardPath, user, clearAuth]);
 
+  interface FormErrors {
+    email?: string;
+    password?: string;
+    general?: string;
+    isDeactivated?: boolean;
+  }
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const validate = () => {
-    const newErrors: { email?: string; password?: string } = {};
+    const newErrors: FormErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!formData.email) {
@@ -65,10 +72,13 @@ export default function LoginPage() {
       ...prev,
       [e.target.name]: e.target.value,
     }));
-    // Clear error when user starts typing
-    if (errors[e.target.name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
-    }
+    // Clear errors when user starts modifying fields
+    setErrors((prev) => ({
+      ...prev,
+      [e.target.name]: undefined,
+      general: undefined,
+      isDeactivated: undefined,
+    }));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -86,15 +96,27 @@ export default function LoginPage() {
       const dashboardPath = getDashboardPath();
       router.push(dashboardPath);
     } catch (error: any) {
-      console.error("Login error:", error);
-      // Detailed error logging would go here (Grafana Loki etc.)
-      const message = error.message || "Invalid credentials. Please try again.";
+      console.warn("[AUTH] Login failed:", error?.message || error);
+      const message = error?.message || "Invalid credentials. Please try again.";
       toast.error(message);
       
-      if (message.toLowerCase().includes("email")) {
-        setErrors(prev => ({ ...prev, email: message }));
+      if (error?.code === "ACCOUNT_INACTIVE" || error?.statusCode === 403) {
+        setErrors({
+          general: error.message || "Your account has been deactivated. Please contact support.",
+          isDeactivated: true,
+        });
+      } else if (error?.code === "INVALID_CREDENTIALS" || error?.statusCode === 401) {
+        setErrors({
+          general: "Invalid email or password. Please try again.",
+        });
+      } else if (message.toLowerCase().includes("email")) {
+        setErrors((prev) => ({ ...prev, email: message }));
       } else if (message.toLowerCase().includes("password")) {
-        setErrors(prev => ({ ...prev, password: message }));
+        setErrors((prev) => ({ ...prev, password: message }));
+      } else {
+        setErrors({
+          general: message,
+        });
       }
     } finally {
       setIsLoading(false);
@@ -129,6 +151,42 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
+            {/* General / Deactivation Error Alert Banner */}
+            {errors.general && (
+              <div
+                role="alert"
+                className={`flex items-start gap-3 rounded-xl border p-4 text-sm transition-all duration-200 animate-in fade-in slide-in-from-top-1 ${
+                  errors.isDeactivated
+                    ? "border-amber-200 bg-amber-50/90 text-amber-900"
+                    : "border-red-200 bg-red-50/90 text-red-900"
+                }`}
+              >
+                {errors.isDeactivated ? (
+                  <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <p className="font-semibold">
+                    {errors.isDeactivated ? "Account Deactivated" : "Sign In Failed"}
+                  </p>
+                  <p className="mt-0.5 text-xs sm:text-sm leading-relaxed opacity-90">
+                    {errors.general}
+                  </p>
+                  {errors.isDeactivated && (
+                    <div className="mt-2 text-xs">
+                      <a
+                        href="mailto:support@samadhan.com"
+                        className="font-medium text-amber-900 underline hover:text-amber-950"
+                      >
+                        Contact Support &rarr;
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Email */}
             <div className="flex flex-col gap-2">
               <label

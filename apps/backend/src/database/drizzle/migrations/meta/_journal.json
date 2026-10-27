@@ -47,8 +47,8 @@
     {
       "idx": 6,
       "version": "7",
-      "when": 1790000000000,
-      "tag": "0006_fluffy_status",
+      "when": 1793073512077,
+      "tag": "0006_add_is_active_to_users",
       "breakpoints": true
     }
   ]
