@@ -115,6 +115,9 @@ export const initSocket = (server: any) => {
 export const disconnectUser = (userId: string) => {
   if (!io) return;
   logger.info(`[SOCKET] Forcibly disconnecting all sockets for user:${userId}`);
+  io.to(`user:${userId}`).emit('account_deactivated', {
+    message: 'Your account has been deactivated by an administrator.',
+  });
   io.to(`user:${userId}`).disconnectSockets(true);
 };
 

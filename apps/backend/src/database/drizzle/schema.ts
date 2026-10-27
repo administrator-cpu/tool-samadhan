@@ -20,6 +20,7 @@ export const users = pgTable('users', {
   role: userRoleEnum('role').default('USER').notNull(),
   must_change_password: boolean('must_change_password').default(true).notNull(),
   profile_image: text('profile_image'),
+  is_active: boolean('is_active').default(true).notNull(),
   translated_names: jsonb('translated_names').default({}).notNull(),
   ringback_tune: varchar('ringback_tune', { length: 32 }),
   created_at: timestamp('created_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),

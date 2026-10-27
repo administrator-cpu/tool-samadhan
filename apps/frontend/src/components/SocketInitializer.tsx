@@ -53,8 +53,8 @@ export const SocketInitializer = () => {
         if (!data?.data?.accessToken) {
           clearAuth();
         }
-      } catch (error) {
-        console.error("[AUTH] Session restore failed:", error);
+      } catch (error: any) {
+        console.warn("[AUTH] Session restore failed:", error?.message || error);
         if (isActive) {
           clearAuth();
         }

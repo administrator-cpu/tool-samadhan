@@ -25,19 +25,22 @@ const startServer = async () => {
     // Automatically apply migrations
     await applyMigrations();
 
-    // Schedule fallback cron job
-    await ticketAutomationQueue.add(
+    server.listen(PORT, () => {
+      logger.info(`[SERVER] Running in ${env.nodeEnv} mode on port ${PORT}`);
+    });
+
+    // Schedule fallback cron job asynchronously (does not block HTTP server startup)
+    ticketAutomationQueue.add(
       'BULK_CLOSE_RESOLVED_TICKETS',
       {},
       {
         repeat: { pattern: '0 3 * * *' }, // 3 AM every day
         jobId: 'bulk-close-resolved-tickets-cron'
       }
-    );
-    logger.info('[CRON] Bulk close tickets fallback job scheduled for 3 AM daily.');
-
-    server.listen(PORT, () => {
-      logger.info(`[SERVER] Running in ${env.nodeEnv} mode on port ${PORT}`);
+    ).then(() => {
+      logger.info('[CRON] Bulk close tickets fallback job scheduled for 3 AM daily.');
+    }).catch((queueError) => {
+      logger.warn('[CRON] Failed to schedule ticket automation cron job (Redis may be unavailable):', queueError);
     });
   } catch (error) {
     logger.error('[APP-INIT] Failed to start server:', error);

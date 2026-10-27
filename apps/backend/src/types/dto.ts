@@ -24,6 +24,7 @@ export interface AuthResult {
     role: UserRole;
     must_change_password?: boolean;
     profile_image?: string | null;
+    is_active?: boolean;
   };
   accessToken: string;
   refreshToken: string;

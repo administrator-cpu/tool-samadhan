@@ -47,8 +47,8 @@
     {
       "idx": 6,
       "version": "7",
-      "when": 1792862200216,
-      "tag": "0006_users_ringback_tune",
+      "when": 1793073512077,
+      "tag": "0006_add_is_active_to_users",
       "breakpoints": true
     }
   ]

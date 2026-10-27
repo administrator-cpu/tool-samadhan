@@ -6,6 +6,8 @@ import { isProd, env } from '../config/environment.js';
 import { sendResponse } from '../utils/response.js';
 import { UserRole } from '../types/dto.js';
 import { PushTokenRepository } from '../repositories/index.js';
+import { AppError } from '../errors/AppError.js';
+import { ErrorCodes } from '../errors/error-codes.js';
 
 
 const cookieOptions = {
@@ -160,6 +162,24 @@ export class UserController {
     try {
       const data = await UserService.updateCustomer((req.params.id as string), req.body);
       return sendResponse({ res, message: 'Customer updated successfully', data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateCustomerStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { is_active } = req.body;
+      if (typeof is_active !== 'boolean') {
+        return next(new AppError(400, 'is_active (boolean) is required', ErrorCodes.VALIDATION_ERROR));
+      }
+
+      const data = await UserService.updateCustomerStatus((req.params.id as string), is_active);
+      return sendResponse({
+        res,
+        message: is_active ? 'Customer activated successfully' : 'Customer deactivated successfully',
+        data
+      });
     } catch (error) {
       next(error);
     }

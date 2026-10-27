@@ -103,6 +103,15 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       set({ isConnected: false });
     });
 
+    s.on("account_deactivated", (data?: { message?: string }) => {
+      console.warn("[SOCKET-STORE] Account deactivated event received:", data?.message);
+      get().disconnect();
+      useAuthStore.getState().clearAuth();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("auth-session-expired"));
+      }
+    });
+
     s.on("connect_error", async (err) => {
       set({ isConnected: false });
 

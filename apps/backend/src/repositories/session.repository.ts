@@ -55,4 +55,13 @@ export class SessionRepository {
       WHERE jti = ${jti} AND token_hash = ${tokenHash}
     `);
   }
+
+  static async revokeAllByUserId(tx: any = db, userId: string): Promise<void> {
+    await tx.execute(sql`
+      UPDATE sessions
+      SET revoked = TRUE,
+          revoked_at = NOW()
+      WHERE user_id = ${parseInt(userId, 10)} AND revoked = FALSE
+    `);
+  }
 }

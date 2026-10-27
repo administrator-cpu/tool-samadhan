@@ -5,6 +5,7 @@ import { sql } from 'drizzle-orm';
 import { UserRepository } from '../repositories/user.repository.js';
 import { EmployeeRepository } from '../repositories/employee.repository.js';
 import { CustomerRepository } from '../repositories/customer.repository.js';
+import { SessionRepository } from '../repositories/session.repository.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import { CreateEmployeeDto, CreateCustomerDto, UpdateProfileDto, ChangePasswordDto, UserRole, PaginatedResponse } from '../types/dto.js';
@@ -468,6 +469,27 @@ export class UserService {
       }
 
       return UserRepository.findById(tx, userId);
+    });
+  }
+
+  static async updateCustomerStatus(customerRowId: string, isActive: boolean) {
+    return db.transaction(async (tx) => {
+      const custInfo = await CustomerRepository.findByRowId(tx, customerRowId);
+      if (!custInfo) throw new AppError(404, 'Customer not found', ErrorCodes.CUSTOMER_NOT_FOUND);
+
+      const userId = custInfo.user_id;
+      const updatedUser = await UserRepository.update(tx, userId, { is_active: isActive });
+
+      if (!isActive) {
+        await SessionRepository.revokeAllByUserId(tx, userId);
+        disconnectUser(userId);
+      }
+
+      return {
+        customer_row_id: parseInt(customerRowId, 10),
+        user_id: userId,
+        is_active: updatedUser?.is_active ?? isActive,
+      };
     });
   }
 

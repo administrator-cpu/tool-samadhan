@@ -33,6 +33,7 @@ router.get(   '/customers/connections-by-email', requireRole([UserRole.ADMIN, Us
 router.get(   '/customers/:id/connections', requireRole([UserRole.ADMIN]),                            UserController.getCustomerConnectionsById );
 router.get(   '/customers/:id/metrics',     requireRole([UserRole.ADMIN]),                            UserController.getCustomerMetricsById );
 router.put(   '/customers/:id',             requireRole([UserRole.ADMIN]),  validateUpdateProfile,    UserController.updateCustomer );
+router.patch( '/customers/:id/status',      requireRole([UserRole.ADMIN]),                            UserController.updateCustomerStatus );
 router.delete('/customers/:id',             requireRole([UserRole.ADMIN]),                            UserController.deleteCustomer );
 
 export default router;

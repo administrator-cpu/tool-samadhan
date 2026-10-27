@@ -1,5 +1,5 @@
 {
-  "id": "9092a26e-e97c-4e3c-8c14-a737d58848a7",
+  "id": "a2736f07-c7e0-4a3f-8d47-039ab165b458",
   "prevId": "2a6ea6b5-ab3d-4aab-922d-087144ae4453",
   "version": "7",
   "dialect": "postgresql",
@@ -1193,18 +1193,19 @@
           "primaryKey": false,
           "notNull": false
         },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
         "translated_names": {
           "name": "translated_names",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
           "default": "'{}'::jsonb"
-        },
-        "ringback_tune": {
-          "name": "ringback_tune",
-          "type": "varchar(32)",
-          "primaryKey": false,
-          "notNull": false
         },
         "created_at": {
           "name": "created_at",
