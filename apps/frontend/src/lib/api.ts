@@ -255,8 +255,9 @@ async function apiFetch(endpoint: string, options: ApiOptions = {}) {
     const stillAuth = useAuthStore.getState().isAuthenticated;
     const errorCode = data.data?.code || data.code;
 
-    // If an authenticated user's account is deactivated in real-time, clear auth immediately
-    if (stillAuth && (errorCode === "ACCOUNT_INACTIVE" || (response.status === 403 && data.message?.toLowerCase().includes("deactivated")))) {
+    // If an authenticated user's own account is deactivated in real-time, clear auth immediately
+    const isCustomerError = errorCode === "CUSTOMER_INACTIVE" || data.message?.toLowerCase().includes("customer account");
+    if (!isCustomerError && stillAuth && (errorCode === "ACCOUNT_INACTIVE" || (response.status === 403 && data.message?.toLowerCase().includes("your account has been deactivated")))) {
       useAuthStore.getState().clearAuth();
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("auth-session-expired"));

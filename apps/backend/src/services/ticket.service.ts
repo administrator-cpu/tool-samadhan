@@ -23,16 +23,30 @@ export class TicketService {
       let customerId: string | null = null;
 
       if (actorRole === UserRole.USER) {
+        const user = await UserRepository.findById(tx, actorUserId);
+        if (user && user.is_active === false) {
+          throw new AppError(403, 'Your account has been deactivated. Please contact support.', ErrorCodes.ACCOUNT_INACTIVE);
+        }
         const cust = await CustomerRepository.findByUserId(tx, actorUserId);
         if (!cust) throw new AppError(404, 'Customer record not found', ErrorCodes.CUSTOMER_NOT_FOUND);
         customerId = cust.id;
       } else {
         if (dto.customerId) {
           customerId = dto.customerId;
+          const custInfo = await CustomerRepository.findByRowId(tx, customerId);
+          if (custInfo) {
+            const user = await UserRepository.findById(tx, custInfo.user_id);
+            if (user && user.is_active === false) {
+              throw new AppError(400, 'Customer account is inactive.', ErrorCodes.CUSTOMER_INACTIVE);
+            }
+          }
         } else if (dto.customerEmail) {
           const user = await UserRepository.findByEmail(tx, dto.customerEmail);
           if (!user) throw new AppError(404, 'Customer with this email not found', ErrorCodes.CUSTOMER_NOT_FOUND);
           if (user.role !== UserRole.USER) throw new AppError(400, 'Provided email does not belong to a customer', ErrorCodes.VALIDATION_ERROR);
+          if (user.is_active === false) {
+            throw new AppError(400, 'Customer account is inactive.', ErrorCodes.CUSTOMER_INACTIVE);
+          }
           const cust = await CustomerRepository.findByUserId(tx, user.id);
           if (!cust) throw new AppError(404, 'Customer record not found', ErrorCodes.CUSTOMER_NOT_FOUND);
           customerId = cust.id;

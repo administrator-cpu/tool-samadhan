@@ -332,6 +332,16 @@ export class UserController {
         return sendResponse({ res, statusCode: 404, success: false, message: "This customer doesn't exist" });
       }
 
+      if (user.is_active === false) {
+        return sendResponse({
+          res,
+          statusCode: 400,
+          success: false,
+          message: 'Customer account is inactive.',
+          data: { code: ErrorCodes.CUSTOMER_INACTIVE }
+        });
+      }
+
       try {
         const { crmFound, connections } = await UserService.getCustomerConnectionsFromCrm(user.name);
         return sendResponse({ res, data: { name: user.name, connections, crmFound } });
