@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node dist/index.js",
-    "build": "tsc && node -e \"require('fs').cpSync('src/database/drizzle/migrations', 'dist/database/drizzle/migrations', {recursive: true})\"",
+    "build": "tsc && node -e \"require('fs').rmSync('dist/database/drizzle/migrations', {recursive: true, force: true}); require('fs').cpSync('src/database/drizzle/migrations', 'dist/database/drizzle/migrations', {recursive: true})\"",
     "dev": "tsx watch src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",

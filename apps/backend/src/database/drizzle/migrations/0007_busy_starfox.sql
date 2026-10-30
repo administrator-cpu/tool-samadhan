@@ -1,1 +1,1 @@
-ALTER TABLE "users" ADD COLUMN "ringback_tune" varchar(32);
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "ringback_tune" varchar(32);

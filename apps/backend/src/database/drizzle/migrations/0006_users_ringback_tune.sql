@@ -1,1 +1,0 @@
-ALTER TABLE "users" ADD COLUMN "ringback_tune" varchar(32);
