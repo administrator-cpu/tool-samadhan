@@ -26,6 +26,7 @@ export default function SalesCreateTicketPage() {
   const [customerName, setCustomerName] = useState<string | null>(null);
   const [fetchingConnections, setFetchingConnections] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -70,6 +71,7 @@ export default function SalesCreateTicketPage() {
       setEmailVerified(false);
       setCustomerName(null);
       setConnections([]);
+      setVerificationError(null);
       setFormData((prev) => ({ ...prev, circuitDescription: "" }));
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -89,6 +91,7 @@ export default function SalesCreateTicketPage() {
     }
 
     setFetchingConnections(true);
+    setVerificationError(null);
     try {
       const res = await api.get(`/users/customers/connections-by-email?email=${encodeURIComponent(emailStr)}`);
       // `res` is the JSON parsed response. `res.data` is the "data" object returned from the API.
@@ -96,6 +99,7 @@ export default function SalesCreateTicketPage() {
       setCustomerName(data.name);
       setConnections(data.connections || []);
       setEmailVerified(true);
+      setVerificationError(null);
       if (!data.connections || data.connections.length === 0) {
         toast.error("There is no active circuit of this customer.");
       } else {
@@ -105,7 +109,9 @@ export default function SalesCreateTicketPage() {
       setCustomerName(null);
       setConnections([]);
       setEmailVerified(false);
-      toast.error(err.response?.data?.message || err.message || "Failed to verify customer.");
+      const errMsg = err.message || "Failed to verify customer.";
+      setVerificationError(errMsg);
+      toast.error(errMsg);
     } finally {
       setFetchingConnections(false);
     }
@@ -115,6 +121,11 @@ export default function SalesCreateTicketPage() {
     e.preventDefault();
     if (!formData.customerEmail.trim()) {
       toast.error("Please enter customer email");
+      return;
+    }
+
+    if (!emailVerified) {
+      toast.error("Please verify customer email first.");
       return;
     }
 
@@ -231,6 +242,11 @@ export default function SalesCreateTicketPage() {
               {emailVerified && customerName && (
                 <p className="text-sm text-primary font-medium">
                   ✓ Verified Customer: {customerName}
+                </p>
+              )}
+              {verificationError && (
+                <p className="text-sm text-red-600 font-medium">
+                  ✕ {verificationError}
                 </p>
               )}
             </div>
@@ -378,7 +394,7 @@ export default function SalesCreateTicketPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !emailVerified}
                 className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient text-white text-[15px] font-bold transition-all hover:bg-brand-gradient-hover disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-500/20"
               >
                 {loading ? (

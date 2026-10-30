@@ -50,6 +50,13 @@
       "when": 1793073512077,
       "tag": "0006_add_is_active_to_users",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793287496365,
+      "tag": "0007_busy_starfox",
+      "breakpoints": true
     }
   ]
 }
