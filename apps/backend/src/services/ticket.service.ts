@@ -16,6 +16,8 @@ import { UserRole } from '../types/dto.js';
 import { formatTicketEvent } from '../utils/event-formatter.js';
 import { ticketAutomationQueue, translationQueue } from '../config/redis.js';
 import { logger } from '../lib/logger.js';
+import { publishNotificationEvent } from '../lib/notification-events.js';
+import { env } from '../config/environment.js';
 
 export class TicketService {
   static async createTicket(dto: any, actorUserId: string, actorRole: string) {
@@ -142,6 +144,10 @@ export class TicketService {
       return { ticket, assignedAgentId, info, agentUser };
     });
 
+    publishNotificationEvent('ticket.created', result.ticket.id, actorUserId, {
+      assignedEmployeeId: result.assignedAgentId ? String(result.assignedAgentId) : null,
+    });
+
     if (result.info) {
       // Execute emails sequentially in the background to prevent rate limiting / concurrency issues on the custom email server
       (async () => {
@@ -155,7 +161,7 @@ export class TicketService {
             circuitId: result.info.circuit_description, 
             attachments: dto.metadata?.attachments 
           });
-          await NotificationService.notify({
+          if (env.notifications.legacyTicketPushEnabled) await NotificationService.notify({
             userIds: [result.info.user_id],
             title: `Ticket ${result.info.ticket_no} created`,
             body: `Your ticket regarding ${result.info.category} has been created.`,
@@ -181,7 +187,7 @@ export class TicketService {
               category: result.info.category,
               circuitId: result.info.circuit_description
             });
-            if (result.info.agent_user_id) {
+            if (env.notifications.legacyTicketPushEnabled && result.info.agent_user_id) {
               await NotificationService.notify({
                 userIds: [result.info.agent_user_id],
                 title: `Ticket ${result.info.ticket_no} assigned`,
@@ -310,7 +316,10 @@ export class TicketService {
   }
 
   static async addTicketEvent(ticketId: string, dto: any, actorUserId: string, role: string) {
-    return db.transaction(async (tx) => {
+    // Assigned inside the transaction; read after commit.
+    let published = null as { eventType: string; visibleToCustomer: boolean; eventId: unknown } | null;
+
+    const result = await db.transaction(async (tx) => {
       const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
       
@@ -397,8 +406,20 @@ export class TicketService {
         });
       }
 
+      published = { eventType, visibleToCustomer, eventId: rawEvent.id };
+
       return event;
     });
+
+    if (published) {
+      publishNotificationEvent(published.visibleToCustomer ? 'ticket.reply' : 'ticket.internal_note', ticketId, actorUserId, {
+        ticketEventId: published.eventId != null ? String(published.eventId) : null,
+        replyType: published.eventType,
+        actorRole: role,
+      });
+    }
+
+    return result;
   }
 
   static async updateTicketStatus(ticketId: string, dto: any, actorUserId: string, role: string) {
@@ -474,7 +495,13 @@ export class TicketService {
           }
       }
       
-      return { updatedTicket, info, newStatus, updatedStatus, agentName, agentEmail };
+      return { updatedTicket, info, newStatus, updatedStatus, oldStatus, agentName, agentEmail };
+    });
+
+    publishNotificationEvent('ticket.status_changed', ticketId, actorUserId, {
+      requestedStatus: result.newStatus,
+      newStatus: result.updatedStatus,
+      oldStatus: result.oldStatus,
     });
 
     if (result.info) {
@@ -581,8 +608,10 @@ export class TicketService {
         });
       }
 
-      return { updatedTicket, info, combinedImages };
+      return { updatedTicket, info, combinedImages, autoClosed };
     });
+
+    publishNotificationEvent('ticket.rca_added', ticketId, actorUserId, { autoClosed: result.autoClosed });
 
     if (result.info) {
       sendTicketRcaEmail({
@@ -604,7 +633,7 @@ export class TicketService {
   }
 
   static async updateOutageDetails(ticketId: string, dto: any, actorUserId: string) {
-    return db.transaction(async (tx) => {
+    const updated = await db.transaction(async (tx) => {
       const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
 
@@ -627,6 +656,13 @@ export class TicketService {
 
       return updatedTicket;
     });
+
+    publishNotificationEvent('ticket.outage', ticketId, actorUserId, {
+      problemSide: dto.problemSide ?? null,
+      externalTicketNo: dto.externalTicketNo ?? null,
+    });
+
+    return updated;
   }
 
   static async reassignTicket(ticketId: string, employeeId: string, actorUserId: string) {
@@ -637,6 +673,8 @@ export class TicketService {
       if (ticket.status === 'CLOSED' || ticket.status === 'RESOLVED') {
          throw new AppError(400, 'Cannot reassign a resolved or closed ticket. Reopen it first.', ErrorCodes.VALIDATION_ERROR);
       }
+
+      const previousEmployeeId = ticket.current_assigned_employee_id;
 
       const updates: any = {
         current_assigned_employee_id: employeeId
@@ -680,7 +718,12 @@ export class TicketService {
 
       const info = await TicketRepository.getCustomerContactInfo(tx, ticketId);
 
-      return { updatedTicket, info, agentName, agentEmail };
+      return { updatedTicket, info, agentName, agentEmail, previousEmployeeId };
+    });
+
+    publishNotificationEvent('ticket.reassigned', ticketId, actorUserId, {
+      previousEmployeeId: result.previousEmployeeId != null ? String(result.previousEmployeeId) : null,
+      newEmployeeId: String(employeeId),
     });
 
     if (result.info && result.agentEmail) {
@@ -742,7 +785,7 @@ export class TicketService {
   }
 
   static async updateTicketRating(ticketId: string, rating: number, feedback: string, actorUserId: string) {
-    return db.transaction(async (tx) => {
+    const updated = await db.transaction(async (tx) => {
       const ticket = await TicketRepository.findByIdForUpdate(tx, ticketId);
       if (!ticket) throw new AppError(404, 'Ticket not found', ErrorCodes.TICKET_NOT_FOUND);
       
@@ -770,5 +813,9 @@ export class TicketService {
 
       return updatedTicket;
     });
+
+    publishNotificationEvent('ticket.rated', ticketId, actorUserId, { rating });
+
+    return updated;
   }
 }

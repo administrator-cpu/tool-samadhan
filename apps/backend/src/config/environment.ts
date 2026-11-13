@@ -87,6 +87,15 @@ export const env = {
   bahiKhataApiKey: getEnvStr('BAHIKHATA_API_KEY', ''),
   googleProjectId: getEnvStr('GOOGLE_CLOUD_PROJECT_ID', ''),
   googleTranslateApiKey: getEnvStr('GOOGLE_CLOUD_APPLICATION_CREDENTIALS', ''),
+
+  notifications: {
+    // Publish ticket events to the Notification Service queue.
+    queueEnabled: getEnvBool('NOTIFICATION_QUEUE_ENABLED', false),
+    // Comma-separated event types to publish, or '*' for all (staged rollout).
+    queueEvents: getEnvStr('NOTIFICATION_QUEUE_EVENTS', '*'),
+    // Old in-process Expo push for tickets. Turn off once the Notification Service is verified.
+    legacyTicketPushEnabled: getEnvBool('LEGACY_TICKET_PUSH_ENABLED', true),
+  },
 };
 
 export const isProd = env.nodeEnv === 'production';
