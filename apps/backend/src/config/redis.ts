@@ -51,3 +51,20 @@ export const translationQueue = new Queue('translation-queue', {
 translationQueue.on('error', (err) => {
   logger.error('[TRANSLATION QUEUE] Error:', err);
 });
+
+// Consumed by the standalone Notification Service. Do not add a Worker for this queue in the backend.
+export const NOTIFICATIONS_QUEUE_NAME = 'notifications';
+
+export const notificationsQueue = new Queue(NOTIFICATIONS_QUEUE_NAME, {
+  connection: redisConnection,
+  defaultJobOptions: {
+    attempts: 5,
+    backoff: { type: 'exponential', delay: 3000 },
+    removeOnComplete: { age: 86400 },
+    removeOnFail: { age: 604800 },
+  },
+});
+
+notificationsQueue.on('error', (err) => {
+  logger.error('[NOTIFICATIONS QUEUE] Error:', err);
+});

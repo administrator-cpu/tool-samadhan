@@ -8,6 +8,7 @@ import { sendCustomerAssignment2MinEmail, sendTroubleshootingUpdateEmail, sendLo
 import { sendTroubleshootingUpdateSms, sendMediaOutageAlertSms } from '../services/sms.service.js';
 import ticketEventEmitter from '../lib/event-emitter.js';
 import { logger } from '../lib/logger.js';
+import { publishNotificationEvent } from '../lib/notification-events.js';
 import { TicketEvent } from '../types/models.js';
 
 export const ticketAutomationWorker = new Worker( 'ticket-automation', async (job: Job) => {
@@ -43,9 +44,11 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
       switch (jobName) {
         
         case 'BULK_CLOSE_RESOLVED_TICKETS': {
+          let bulkClosedIds: Array<string | number> = [];
           try {
             await db.transaction(async (tx) => {
               const closedTickets = await TicketRepository.bulkCloseExpiredResolvedTickets(tx);
+              bulkClosedIds = closedTickets.map((t: any) => t.id);
             
             for (const t of closedTickets) {
               const event: Partial<TicketEvent> = {
@@ -71,6 +74,9 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
             });
           } catch (err) {
             throw err;
+          }
+          for (const id of bulkClosedIds) {
+            publishNotificationEvent('ticket.auto_closed', id, null, { source: 'BULK_CRON' });
           }
           break;
         }
@@ -123,6 +129,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
                 ticketId,
                 data: { type: 'TICKET_EVENT_ADDED' }
               });
+              publishNotificationEvent('ticket.automated_update', ticketId, null, { job: jobName });
             }
             await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
           }
@@ -163,6 +170,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
                 ticketId,
                 data: { type: 'TICKET_EVENT_ADDED' }
               });
+              publishNotificationEvent('ticket.automated_update', ticketId, null, { job: jobName });
             }
             await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
           }
@@ -205,6 +213,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
                   ticketId,
                   data: { type: 'TICKET_EVENT_ADDED' }
                 });
+                publishNotificationEvent('ticket.automated_update', ticketId, null, { job: jobName });
               }
               await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
             }
@@ -248,6 +257,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
                 ticketId,
                 data: { type: 'TICKET_EVENT_ADDED' }
               });
+              publishNotificationEvent('ticket.automated_update', ticketId, null, { job: jobName });
             }
             await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
           }
@@ -280,6 +290,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               }
             });
 
+            publishNotificationEvent('ticket.sla_breach', ticketId, null, { reopened: false });
             await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
             logger.info(`[WORKER] MTTR breach escalation sent for Ticket #${ticketId}. Status updated to ESCALATED.`);
           }
@@ -312,6 +323,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
               }
             });
 
+          publishNotificationEvent('ticket.sla_breach', ticketId, null, { reopened: true });
           await AutomatedEmailLogRepository.logEmailSent(db, ticketId, jobName);
           logger.info(`[WORKER] Reopened MTTR breach escalation sent for Ticket #${ticketId}. Status updated to ESCALATED.`);
         }
@@ -319,6 +331,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
       }
 
         case 'CLOSE_RESOLVED_TICKET': {
+          let didClose = false;
           try {
             await db.transaction(async (tx) => {
               const lockedTicket = await TicketRepository.findByIdForUpdate(tx, ticketId);
@@ -349,6 +362,7 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
                 }
               });
               
+              didClose = true;
               logger.info(`[WORKER] Ticket #${ticketId} automatically closed after 24 hours.`);
             } else {
               logger.info(`[WORKER] Ticket #${ticketId} not closed: either status is not RESOLVED or RCA is missing.`);
@@ -356,6 +370,9 @@ export const ticketAutomationWorker = new Worker( 'ticket-automation', async (jo
             });
           } catch (err) {
             throw err;
+          }
+          if (didClose) {
+            publishNotificationEvent('ticket.auto_closed', ticketId, null, { source: 'CLOSE_RESOLVED_TICKET' });
           }
           break;
         }
