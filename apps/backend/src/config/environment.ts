@@ -96,6 +96,11 @@ export const env = {
     // Old in-process Expo push for tickets. Turn off once the Notification Service is verified.
     legacyTicketPushEnabled: getEnvBool('LEGACY_TICKET_PUSH_ENABLED', true),
   },
+
+  calls: {
+    // Hand call pushes to the Notification Service "calls" queue (APNs VoIP / FCM). Off = old in-process Expo push.
+    queueEnabled: getEnvBool('CALL_QUEUE_ENABLED', false),
+  },
 };
 
 export const isProd = env.nodeEnv === 'production';

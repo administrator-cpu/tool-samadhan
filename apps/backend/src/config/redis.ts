@@ -68,3 +68,20 @@ export const notificationsQueue = new Queue(NOTIFICATIONS_QUEUE_NAME, {
 notificationsQueue.on('error', (err) => {
   logger.error('[NOTIFICATIONS QUEUE] Error:', err);
 });
+
+// Consumed by the Notification Service (APNs VoIP / FCM). Latency-critical: few, fast retries.
+export const CALLS_QUEUE_NAME = 'calls';
+
+export const callsQueue = new Queue(CALLS_QUEUE_NAME, {
+  connection: redisConnection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: { type: 'fixed', delay: 1000 },
+    removeOnComplete: { age: 3600 },
+    removeOnFail: { age: 86400 },
+  },
+});
+
+callsQueue.on('error', (err) => {
+  logger.error('[CALLS QUEUE] Error:', err);
+});
