@@ -57,3 +57,40 @@ Mapping ids to users: `employees.id → employees.user_id`, `tickets.customer_id
 4. `NOTIFICATION_QUEUE_EVENTS=*`.
 
 Call push (`src/lib/push.ts`, used by `callSignaling.ts`) is unchanged; it moves to the service in Track 3.
+
+# Call pushes (backend → Notification Service)
+
+Incoming calls ring natively (APNs VoIP → CallKit, FCM high-priority data → full-screen call).
+Producer: `src/lib/push.ts` → `sendCallPush(email, type, input)`, called from `src/sockets/callSignaling.ts`.
+Signaling, the pending-invite buffer, replay and decline tokens are unchanged.
+
+- Queue: **`calls`** (separate from `notifications`, so tickets never delay a ring)
+- Job name: `type`; job id: `jobId`
+- Attempts: 3, fixed 1 s backoff. The service drops an invite whose `expiresAt` has passed.
+
+| Field | Type | Notes |
+|---|---|---|
+| `version` | number | `1` |
+| `jobId` | string (UUID) | Idempotency key per device delivery |
+| `type` | `call_invite` \| `call_cancel` \| `call_missed` | |
+| `toEmail` / `toUserId` | string | Callee |
+| `callId` | string | |
+| `ticketId`, `ticketNumber`, `callerName`, `fromEmail` | string \| null | |
+| `declineToken` | string \| null | Invite only; posted to `POST /api/calls/decline` by the native UI |
+| `reason` | `caller_cancelled` \| `answered_elsewhere` \| `declined_elsewhere` \| null | Cancel only |
+| `excludeDeviceId` | string \| null | Cancel only: the device that answered/declined |
+| `ttlSec`, `createdAt`, `expiresAt` | | Invite TTL = ring timeout (50 s) |
+
+| When | Push |
+|---|---|
+| Invite while the callee has no foreground socket | `call_invite` |
+| Caller cancels / ends before answer | `call_cancel` (`caller_cancelled`) + `call_missed` |
+| Callee answers, declines or is busy on one device | `call_cancel` to the others (`answered_elsewhere` / `declined_elsewhere`) |
+| Decline from the lock screen (`/api/calls/decline`) | `call_cancel` (`declined_elsewhere`) to the others |
+
+`delivered` for `call:unavailable` = connected socket, or at least one device the push was handed to.
+Callees with no `apns_voip`/`fcm` token (old app builds) get the previous Expo data push.
+
+| Env | Default | |
+|---|---|---|
+| `CALL_QUEUE_ENABLED` | `false` | `true` = use the `calls` queue. `false` = old in-process Expo push for everyone |

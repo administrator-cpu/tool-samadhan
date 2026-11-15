@@ -1,7 +1,7 @@
 // sockets/callSignaling.ts
 import { randomBytes, timingSafeEqual } from 'crypto';
 import { Server, Socket } from 'socket.io';
-import { sendPushToEmail } from '../lib/push.js';
+import { sendCallPush, type CallCancelReason } from '../lib/push.js';
 import { logger } from '../lib/logger.js';
 import { db } from '../config/database.js';
 import { sql } from 'drizzle-orm';
@@ -109,8 +109,22 @@ function safeEqual(a: string, b: string) {
   return x.length === y.length && timingSafeEqual(x, y);
 }
 
-/** Decline from the Android call notification (no socket, no auth token): proven by the per-call secret sent in the push. */
-export function declineCallWithToken(callId: string, token: string): boolean {
+const PENDING_TTL_SEC = Math.ceil(PENDING_TTL_MS / 1000);
+const CANCEL_TTL_SEC = 60;
+
+/** Stops the native ring on the callee's other devices once one device has settled the call. */
+function cancelOnOtherDevices(calleeEmail: string, pending: PendingCall, reason: CallCancelReason, deviceId?: unknown) {
+  if (!pending.pushed) return;
+  void sendCallPush(calleeEmail, 'call_cancel', {
+    callId: pending.callId,
+    ttlSec: CANCEL_TTL_SEC,
+    reason,
+    excludeDeviceId: typeof deviceId === 'string' ? deviceId : null,
+  }).catch((err) => logger.error(`[CALL] ${pending.callId}: cancel push failed:`, err));
+}
+
+/** Decline from the native call UI (no socket, no auth token): proven by the per-call secret sent in the push. */
+export function declineCallWithToken(callId: string, token: string, deviceId?: string): boolean {
   if (!ioRef || !callId || !token) return false;
   for (const [calleeEmail, calls] of pendingByCallee) {
     const pending = calls.get(callId);
@@ -118,6 +132,7 @@ export function declineCallWithToken(callId: string, token: string): boolean {
     removePending(calleeEmail, callId);
     ioRef.to(roomFor(pending.fromEmail)).emit('call:reject', { callId, fromEmail: calleeEmail, toEmail: pending.fromEmail });
     ioRef.to(roomFor(calleeEmail)).emit('call:cancel', { callId, fromEmail: pending.fromEmail });
+    cancelOnOtherDevices(calleeEmail, pending, 'declined_elsewhere', deviceId);
     logger.info(`[CALL] ${callId}: declined from notification by ${calleeEmail}`);
     return true;
   }
@@ -196,18 +211,14 @@ export function registerCallSignaling(io: Server, socket: Socket) {
           let delivered = presence.connected;
 
           if (!presence.foreground) {
-            const sent = await sendPushToEmail(toEmail, {
-              dataOnly: true,
-              data: {
-                type: 'call_invite',
-                callId,
-                ticketId: raw.ticketId ?? null,
-                ticketNumber: raw.ticketNumber ?? null,
-                callerName: pending.callerName,
-                fromEmail: userEmail,
-                declineToken: pending.declineToken,
-              },
-              ttl: Math.ceil(PENDING_TTL_MS / 1000),
+            const sent = await sendCallPush(toEmail, 'call_invite', {
+              callId,
+              ticketId: raw.ticketId as string | number | null | undefined,
+              ticketNumber: raw.ticketNumber as string | number | null | undefined,
+              callerName: pending.callerName,
+              fromEmail: userEmail,
+              declineToken: pending.declineToken,
+              ttlSec: PENDING_TTL_SEC,
             });
             pending.pushed = sent > 0;
             delivered = delivered || sent > 0;
@@ -234,25 +245,31 @@ export function registerCallSignaling(io: Server, socket: Socket) {
           const pending = removePending(toEmail, callId);
           io.to(roomFor(toEmail)).emit(event, payload);
           if (pending?.pushed) {
-            await sendPushToEmail(toEmail, {
-              dataOnly: true,
-              data: { type: 'call_cancel', callId },
-              ttl: 60,
-            });
-            await sendPushToEmail(toEmail, {
-              title: 'Missed call',
-              body: `Missed call from ${pending.callerName}`,
-              data: { type: 'call_missed', callId, ticketId: raw.ticketId ?? null },
-              channelId: 'missed_call',
+            await sendCallPush(toEmail, 'call_cancel', { callId, ttlSec: CANCEL_TTL_SEC, reason: 'caller_cancelled' });
+            await sendCallPush(toEmail, 'call_missed', {
+              callId,
+              ttlSec: 24 * 3600,
+              ticketId: raw.ticketId as string | number | null | undefined,
+              ticketNumber: raw.ticketNumber as string | number | null | undefined,
+              callerName: pending.callerName,
+              fromEmail: pending.fromEmail,
             });
           }
           return;
         }
 
         if (CALLEE_SETTLES.has(event)) {
-          removePending(userEmail, callId);
-          if (event === 'call:accept' || event === 'call:reject') {
+          const settled = removePending(userEmail, callId);
+          if (event === 'call:accept' || event === 'call:reject' || event === 'call:busy') {
             socket.to(roomFor(userEmail)).emit('call:cancel', { callId, fromEmail: toEmail });
+            if (settled) {
+              cancelOnOtherDevices(
+                userEmail,
+                settled,
+                event === 'call:accept' ? 'answered_elsewhere' : 'declined_elsewhere',
+                raw.deviceId
+              );
+            }
           }
         }
 
