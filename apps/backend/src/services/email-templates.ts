@@ -1,6 +1,6 @@
 const emeraldLayout = (title, content) => `
-  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-    <div style="background-color: #059669; padding: 24px; text-align: center;">
+  <div style="font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+    <div style="background-color: #FF007A; background: linear-gradient(135deg, #FF007A 0%, #FF5757 50%, #FFB900 100%); padding: 24px; text-align: center;">
       <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.025em; text-transform: uppercase;">${title}</h1>
     </div>
     <div style="padding: 30px 16px; color: #1f2937; line-height: 1.6; font-size: 15px;">
@@ -18,10 +18,10 @@ export const welcomeStaffTemplate = ( { name, email, password, role }: any) => (
   html: emeraldLayout(
     "Support Team Onboarding",
     `
-      <h2 style="color: #059669; margin-top: 0; font-size: 18px;">Hello ${name},</h2>
+      <h2 style="color: #FF007A; margin-top: 0; font-size: 18px;">Hello ${name},</h2>
       <p>Your account has been successfully created. You can now log in to the Support Dashboard using the credentials below:</p>
       
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; margin: 20px 0;">
+      <div style="background-color: #FFF7F9; border: 1px solid #FFE4E8; border-radius: 8px; padding: 14px; margin: 20px 0;">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
           <tr>
             <td style="color: #4b5563; padding-bottom: 6px;">Email Address: </td>
@@ -35,7 +35,7 @@ export const welcomeStaffTemplate = ( { name, email, password, role }: any) => (
       </div>
 
       <div style="margin: 20px 0;">
-        <span style="display: inline-block; background-color: #e6f4ea; color: #059669; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; text-transform: uppercase;">Role: ${role.replace('_', ' ')}</span>
+        <span style="display: inline-block; background-color: #FDF2F8; color: #FF007A; border: 1px solid #FCE7F3; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; text-transform: uppercase;">Role: ${role.replace('_', ' ')}</span>
       </div>
 
       <p style="font-size: 13px; color: #6b7280; margin-top: 20px;">Please change your password after your first login for security purposes.</p>
@@ -71,7 +71,7 @@ export const ticketCreatedHelpdeskTemplate = ( { customerName, ticketNo, categor
         <p>Dear Team,</p>
         <p>This is to inform that a complaint has been registered with below details:</p>
         
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <div style="background-color: #FFF7F9; border: 1px solid #FFE4E8; border-radius: 8px; padding: 16px; margin: 20px 0;">
           <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
             <tr>
               <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Name of Customer:</td>
@@ -110,7 +110,7 @@ export const ticketAssignedToAgentTemplate = ( { ticketNo, customerName, agentNa
       <p>Dear Team,</p>
       <p>This is to inform that a complaint has been assigned with below details:</p>
       
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <div style="background-color: #FFF7F9; border: 1px solid #FFE4E8; border-radius: 8px; padding: 16px; margin: 20px 0;">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
           <tr>
             <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Assigned To:</td>
@@ -150,7 +150,7 @@ export const ticketReassignedToAgentTemplate = ( { ticketNo, customerName, agent
       <p>Dear Team,</p>
       <p>This is to inform that a complaint has been reassigned with below details:</p>
       
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <div style="background-color: #FFF7F9; border: 1px solid #FFE4E8; border-radius: 8px; padding: 16px; margin: 20px 0;">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
           <tr>
             <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Reassigned To:</td>
@@ -190,7 +190,7 @@ export const ticketReopenedAgentTemplate = ( { ticketNo, customerName, agentName
       <p>Dear Team,</p>
       <p>This is to inform that a complaint has been reopened with below details:</p>
       
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <div style="background-color: #FFF7F9; border: 1px solid #FFE4E8; border-radius: 8px; padding: 16px; margin: 20px 0;">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
           <tr>
             <td style="padding: 6px 0; color: #4b5563; font-weight: 600;">Assigned To:</td>
@@ -226,6 +226,45 @@ export const ticketReopenedAgentTemplate = ( { ticketNo, customerName, agentName
 
 // ---Customer Templates---
 
+const SAMADHAN_PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.harshjha047.samadhan";
+
+type PromoVariant = 'welcome' | 'active_ticket' | 'resolved' | 'otp';
+
+const PROMO_CONFIG: Record<PromoVariant, { message: string; cta: string }> = {
+  welcome: {
+    message: "Get 24/7 support in your pocket. Download the Samadhan App to manage your connection and raise tickets anytime.",
+    cta: "Install on Android"
+  },
+  active_ticket: {
+    message: "Track this ticket live on the Samadhan Android App with real-time status updates.",
+    cta: "Install from Play Store"
+  },
+  resolved: {
+    message: "Keep Samadhan on your phone to reopen tickets, rate your experience, or get instant help next time.",
+    cta: "Get the App on Play Store"
+  },
+  otp: {
+    message: "Tired of OTPs? Log in once and manage everything on the Samadhan App.",
+    cta: "Download App"
+  }
+};
+
+const appPromoBanner = (variant: PromoVariant) => {
+  const config = PROMO_CONFIG[variant];
+  return `
+      <div style="background-color: #FFF7F9; border: 1px solid #FFE4E8; border-radius: 10px; padding: 16px; margin: 24px 0 20px 0; text-align: center;">
+        <div style="font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 10px; line-height: 1.5;">
+          <span style="font-size: 18px; vertical-align: middle; margin-right: 4px;">&#128241;</span>
+          ${config.message}
+        </div>
+        <div>
+          <a href="${SAMADHAN_PLAYSTORE_URL}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #FF007A; background: linear-gradient(135deg, #FF007A 0%, #FF5757 50%, #FFB900 100%); color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 700; padding: 9px 18px; border-radius: 6px; letter-spacing: 0.02em;">
+            ${config.cta} &rarr;
+          </a>
+        </div>
+      </div>`;
+};
+
 export const welcomeCustomerTemplate = ( { name, email, password }: any) => ( {
   subject: "Welcome to Fab5 Support Portal",
   html: emeraldLayout(
@@ -234,7 +273,7 @@ export const welcomeCustomerTemplate = ( { name, email, password }: any) => ( {
       <p>Dear Customer,</p>
       <p>An account has been created for you on the Fab5 Support Portal. You can now log in to raise support tickets and track their status in real-time.</p>
       
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <div style="background-color: #FFF7F9; border: 1px solid #FFE4E8; border-radius: 8px; padding: 16px; margin: 20px 0;">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
           <tr>
             <td style="color: #4b5563; padding-bottom: 6px;">Email Address: </td>
@@ -248,7 +287,7 @@ export const welcomeCustomerTemplate = ( { name, email, password }: any) => ( {
       </div>
 
       <p style="font-size: 13px; color: #6b7280;">For security purposes, you will be required to change your password during your first login.</p>
-      
+      ${appPromoBanner('welcome')}
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
       </div>
@@ -283,7 +322,7 @@ export const ticketCreatedTemplate = ( { ticketNo, circuitId, attachments }: any
         ${imagesHtml}
 
         <p>Thank you for your patience and cooperation.</p>
-        
+        ${appPromoBanner('active_ticket')}
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
           <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
         </div>
@@ -301,7 +340,7 @@ export const ticketAssignedCustomer2MinTemplate = ( { ticketNo, circuitId }: any
       <p>We would like to inform you that your complaint has been assigned to the concerned department for further investigation and necessary action.</p>
             
       <p>Thank you for your patience and cooperation.</p>
-      
+      ${appPromoBanner('active_ticket')}
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
       </div>
@@ -318,7 +357,7 @@ export const ticketTroubleshootingCustomer15MinTemplate = ( { ticketNo, circuitI
       <p>To expedite and prioritize the restoration of your services, we are performing detailed troubleshooting. The estimated resolution time is 45 minutes.</p>
             
       <p>Thank you for your patience and cooperation.</p>
-      
+      ${appPromoBanner('active_ticket')}
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
       </div>
@@ -333,7 +372,7 @@ export const mediaOutage45MinTemplate = ( { ticketNo, circuitId }: any) => ( {
     `
       <p>Dear Customer,</p>
       <p>We are currently coordinating with our Network Tier 2 team for end-to-end media verification. Rest assured, we will keep you informed with the latest updates as soon as they become available. The tentative Estimated Resolution Time is 90 min. We appreciate your patience during this process.</p>
-            
+      ${appPromoBanner('active_ticket')}
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
       </div>
@@ -359,7 +398,7 @@ export const ticketUpdateByStaffTemplate = ( { ticketNo, agentName, message, att
 
   const messageHtml = message && message.trim() !== ""
     ? `
-      <div style="background-color: #f0fdf4; padding: 16px; margin: 20px 0; border-radius: 4px;">
+      <div style="background-color: #FFF7F9; border: 1px solid #FFE4E8; padding: 16px; margin: 20px 0; border-radius: 8px;">
         ${message}
       </div>
     `
@@ -375,7 +414,7 @@ export const ticketUpdateByStaffTemplate = ( { ticketNo, agentName, message, att
         
         ${messageHtml}
         ${imagesHtml}
-              
+        ${appPromoBanner('active_ticket')}
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
           <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
         </div>
@@ -413,7 +452,7 @@ export const ticketStatusUpdateTemplate = ( { ticketNo, status, updateType, circ
       `
         <p>Dear Customer,</p>
         <p>${config.message}</p>
-                
+        ${appPromoBanner('active_ticket')}
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
       </div>
@@ -431,7 +470,7 @@ export const ticketResolvedTemplate = ( { ticketNo, circuitId }: any) => ( {
       <p>Dear Customer,</p>
       <p>We are pleased to inform you that your complaint has been successfully resolved. With this, we are proceeding to close your complaint in our system. If you believe the issue has not been fully resolved or require any further assistance, then please reopen the ticket with 24 hrs.</p>
       <p>We would appreciate it if you could take a moment to share your feedback on portal of your experience with our support team. Your input is valuable and helps us improve our services.</p>
-      
+      ${appPromoBanner('resolved')}
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
       </div>
@@ -463,14 +502,14 @@ export const ticketRcaTemplate = ( { ticketNo, rca, rcaImages, circuitId }: any)
         <p>Dear Customer,</p>
         <p>Update on Root Cause Analysis of Reported Issue: <strong>${ticketNo}</strong> (Ticket ID)</p>
         
-        <div style="background-color: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 20px 0; border-radius: 4px; font-style: italic;">
+        <div style="background-color: #FFF7F9; border-left: 4px solid #FF007A; padding: 16px; margin: 20px 0; border-radius: 4px; font-style: italic;">
           "${rca}"
         </div>
 
         ${imagesHtml}
         
         <p>Please feel free to reach out if you have any questions or need additional clarification.</p>
-      
+      ${appPromoBanner('resolved')}
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
       </div>
@@ -490,13 +529,13 @@ export const passwordResetOtpTemplate = ( { name, otpCode }: any) => ( {
       <p>Dear Customer,</p>
       <p>We received a request to reset your support account password. Use the verification code below to proceed. <strong style="color: #dc2626;">This code will expire in 10 minutes.</strong></p>
       
-      <div style="background-color: #f0fdf4; border: 2px dashed #059669; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
-        <div style="color: #065f46; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Verification Code</div>
-        <div style="color: #059669; font-size: 36px; font-weight: 900; letter-spacing: 0.2em; font-family: monospace;">${otpCode}</div>
+      <div style="background-color: #FFF7F9; border: 2px dashed #FF007A; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
+        <div style="color: #9D174D; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Verification Code</div>
+        <div style="color: #FF007A; font-size: 36px; font-weight: 900; letter-spacing: 0.2em; font-family: monospace;">${otpCode}</div>
       </div>
       
       <p style="font-size: 13px; color: #6b7280;">If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
-      
+      ${appPromoBanner('otp')}
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
       </div>
@@ -630,13 +669,13 @@ export const guestOtpTemplate = ( { otpCode }: any) => ( {
       <p>Hello,</p>
       <p>We received a request to raise a support ticket as a guest. Use the verification code below to proceed. <strong style="color: #dc2626;">This code will expire in 10 minutes.</strong></p>
       
-      <div style="background-color: #f0fdf4; border: 2px dashed #059669; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
-        <div style="color: #065f46; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Verification Code</div>
-        <div style="color: #059669; font-size: 36px; font-weight: 900; letter-spacing: 0.2em; font-family: monospace;">${otpCode}</div>
+      <div style="background-color: #FFF7F9; border: 2px dashed #FF007A; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
+        <div style="color: #9D174D; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Verification Code</div>
+        <div style="color: #FF007A; font-size: 36px; font-weight: 900; letter-spacing: 0.2em; font-family: monospace;">${otpCode}</div>
       </div>
       
       <p style="font-size: 13px; color: #6b7280;">If you did not request this verification code, you can safely ignore this email.</p>
-      
+      ${appPromoBanner('otp')}
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; line-height: 1.6;">
         <p style="margin: 0; font-size: 14px;">Best regards,<br/>Customer Support Team<br/><strong>Fab5 Network Pvt. Ltd.</strong><br/><span><span style="font-size: 18px; vertical-align: middle;">&#9742;</span><span style="vertical-align: middle;"> 9953637300</span></span><br/><span><span style="font-size: 20px; vertical-align: middle;">&#9993;</span><span style="vertical-align: middle;"> helpdesk@fab5network.com</span></span><br/></p>
       </div>
