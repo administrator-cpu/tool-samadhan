@@ -15,6 +15,7 @@ import ReopenTicketModal from "@/components/ReopenTicketModal";
 import LanguageToggle from "@/components/LanguageToggle";
 import { translateTitle } from "@/lib/eventDetails";
 import { useLanguageStore } from "@/store/useLanguageStore";
+import TicketDetailSkeleton from "@/components/TicketDetailSkeleton";
 
 interface TicketEvent {
   id: number;
@@ -153,14 +154,7 @@ export default function SalesTicketDetailPage() {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-indigo-600"></div>
-          <p className="text-sm font-bold text-slate-500 animate-pulse">Loading timeline...</p>
-        </div>
-      </div>
-    );
+    return <TicketDetailSkeleton variant="sales" />;
   }
 
   if (!data) return null;

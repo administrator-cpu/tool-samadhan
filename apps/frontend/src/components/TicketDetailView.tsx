@@ -20,6 +20,7 @@ import LanguageToggle from "@/components/LanguageToggle";
 import ReopenTicketModal from "@/components/ReopenTicketModal";
 import { getStatusBadgeConfig } from "@/lib/statusBadge";
 import { getSeverityConfig } from "@/lib/severity";
+import TicketDetailSkeleton from "@/components/TicketDetailSkeleton";
 
 interface TicketEvent {
   id: number;
@@ -323,11 +324,7 @@ export default function TicketDetailView({ userRole, basePath, replyEventType }:
   };
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-emerald-600"></div>
-      </div>
-    );
+    return <TicketDetailSkeleton variant="staff" />;
   }
 
   if (!data) return null;
