@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import Image from "next/image";
-import { Paperclip, X, ChevronDown } from "lucide-react";
+import { Paperclip, X, ChevronDown, Smartphone, ExternalLink } from "lucide-react";
 import { useConnectionStore } from "../../../store/useConnectionStore";
 
 
@@ -16,6 +16,7 @@ export default function CreateTicketPage() {
 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showAppPromo, setShowAppPromo] = useState(true);
   const { categories, fetchCategories } = useCategoryStore();
   const searchParams = useSearchParams();
   const circuitIdParam = searchParams.get("circuitId");
@@ -153,6 +154,70 @@ export default function CreateTicketPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f6f8] text-slate-900 antialiased font-sans">
+      {showAppPromo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+            onClick={() => setShowAppPromo(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="samadhan-app-modal-title"
+            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 sm:p-8 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200"
+          >
+            <button
+              type="button"
+              onClick={() => setShowAppPromo(false)}
+              aria-label="Close popup"
+              className="absolute right-4 top-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF7F9] border border-[#FFE4E8] text-[#FF007A] shadow-xs">
+                <Smartphone size={28} />
+              </div>
+
+              <span className="mb-2 inline-flex items-center rounded-full bg-[#FDF2F8] border border-[#FCE7F3] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#FF007A]">
+                Now on Android
+              </span>
+
+              <h2
+                id="samadhan-app-modal-title"
+                className="text-xl sm:text-2xl font-bold text-slate-900 mb-2"
+              >
+                Raise Tickets on the Samadhan App
+              </h2>
+
+              <p className="text-sm sm:text-base text-slate-500 mb-6 leading-relaxed">
+                You can now raise support tickets in seconds, snap &amp; attach photos directly, and track real-time updates from the Samadhan Android App.
+              </p>
+
+              <div className="flex w-full flex-col gap-3">
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.harshjha047.samadhan"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient text-white text-sm font-bold shadow-md transition-all hover:bg-brand-gradient-hover"
+                >
+                  <span>Get it on Google Play</span>
+                  <ExternalLink size={16} />
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAppPromo(false)}
+                  className="flex h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Continue on Web Portal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Header */}
       {/* <header className="w-full px-6 py-6 sm:px-8">
