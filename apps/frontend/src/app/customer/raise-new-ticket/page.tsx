@@ -180,10 +180,6 @@ export default function CreateTicketPage() {
                 <Smartphone size={28} />
               </div>
 
-              <span className="mb-2 inline-flex items-center rounded-full bg-[#FDF2F8] border border-[#FCE7F3] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#FF007A]">
-                Now on Android
-              </span>
-
               <h2
                 id="samadhan-app-modal-title"
                 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2"
