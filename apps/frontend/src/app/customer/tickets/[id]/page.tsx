@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useRef } from "react";
 import ReopenTicketModal from "@/components/ReopenTicketModal";
 import LanguageToggle from "@/components/LanguageToggle";
+import TicketDetailSkeleton from "@/components/TicketDetailSkeleton";
 
 interface Ticket {
   id: number;
@@ -319,11 +320,7 @@ export default function TicketDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf9fa]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <TicketDetailSkeleton variant="customer" />;
   }
 
   if (error || !ticket) {
