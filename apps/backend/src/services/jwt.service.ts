@@ -34,6 +34,15 @@ export const verifyAccessToken = (token: string): JwtPayload => {
   }
 };
 
+/** Signature-checked, expiry ignored. Only for logout, so an expired access token can still end its session. */
+export const decodeAccessTokenForLogout = (token: string): JwtPayload | null => {
+  try {
+    return jwt.verify(token, env.jwt.secret, { ignoreExpiration: true }) as JwtPayload;
+  } catch {
+    return null;
+  }
+};
+
 export const verifyRefreshToken = (token: string): JwtPayload => {
   try {
     return jwt.verify(token, env.jwt.refreshSecret) as JwtPayload;

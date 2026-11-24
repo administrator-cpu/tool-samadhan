@@ -68,8 +68,13 @@ export class UserController {
   static async logout(req: Request, res: Response, next: NextFunction) {
     try {
       const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+      const authHeader = req.headers.authorization;
+      const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : req.cookies?.accessToken;
       if (refreshToken) {
         await AuthService.logoutSession(refreshToken);
+      } else if (accessToken) {
+        // Mobile app sends only the access token; end that session too.
+        await AuthService.logoutByAccessToken(accessToken);
       }
 
       res.clearCookie('accessToken');
