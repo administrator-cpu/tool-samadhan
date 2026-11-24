@@ -2,7 +2,7 @@ import argon2 from 'argon2';
 import { db } from '../config/database.js';
 import { UserRepository } from '../repositories/user.repository.js';
 import { SessionRepository } from '../repositories/session.repository.js';
-import { generateTokens, verifyRefreshToken, hashToken } from './jwt.service.js';
+import { generateTokens, verifyRefreshToken, hashToken, decodeAccessTokenForLogout } from './jwt.service.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/error-codes.js';
 import { LoginDto, AuthResult, UserRole } from '../types/dto.js';
@@ -151,5 +151,19 @@ export class AuthService {
       // Force disconnect sockets
       disconnectUser(decoded.userId);
     });
+  }
+
+  /**
+   * Logout for clients that only send the access token (the mobile app).
+   * Revokes the session the token belongs to, so refresh stops working and
+   * the Notification Service stops pushing to that device.
+   */
+  static async logoutByAccessToken(accessToken: string): Promise<void> {
+    const decoded: any = decodeAccessTokenForLogout(accessToken);
+    if (!decoded?.jti || decoded.userId === undefined) return;
+    await db.transaction(async (tx) => {
+      await SessionRepository.markRevokedByJtiAndUser(tx, decoded.jti, decoded.userId);
+    });
+    disconnectUser(decoded.userId);
   }
 }

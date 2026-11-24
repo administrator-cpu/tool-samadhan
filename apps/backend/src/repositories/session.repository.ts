@@ -56,6 +56,15 @@ export class SessionRepository {
     `);
   }
 
+  static async markRevokedByJtiAndUser(tx: any = db, jti: string, userId: string | number): Promise<void> {
+    await tx.execute(sql`
+      UPDATE sessions
+      SET revoked = TRUE,
+          revoked_at = COALESCE(revoked_at, NOW())
+      WHERE jti = ${jti} AND user_id = ${Number(userId)}
+    `);
+  }
+
   static async revokeAllByUserId(tx: any = db, userId: string): Promise<void> {
     await tx.execute(sql`
       UPDATE sessions
